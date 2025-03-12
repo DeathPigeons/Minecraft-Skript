@@ -1,0 +1,403 @@
+on spawn:
+  spawn reason is natural
+  entity is a monster
+  set {_chance} to log({rpgdiff} / 4) / 10
+  {_chance} <= 0:
+    stop
+  entity is a zombie:
+    if entity is not a baby zombie:
+      chance of ({_chance}*4)%:
+        makeSpecial(entity)
+      chance of ({_chance}*4)%:
+        makeSummoner(entity)
+    else:
+      chance of ({_chance}*4)%:
+        makeSpecial(entity)     
+    
+  else if entity is a skeleton:
+    chance of ({_chance}*4)%:
+      makeSpecial(entity)
+    chance of ({_chance}*4)%:
+      makeSummoner(entity)
+  else if entity is a spider:
+    chance of ({_chance}*4)%:
+      makeSpecial(entity)
+  else if entity is a enderman:
+    chance of ({_chance}*4)%:
+      makeSpecial(entity)
+  else if entity is a creeper:
+    chance of ({_chance}*4)%:
+      makeSpecial(entity)
+  scriptDebugBroadcastType("difficulty", "Attempting to spawn a boss at %{_chance}% chance with %{rpgdiff}% difficulty")
+  chance of {_chance}%:
+    makeBoss(entity)
+  
+
+on spawn:
+  isMinion(entity) is false
+  if at least one of:
+    entity is a monster
+    entity is an iron golem
+    entity is a wolf
+    entity is a polar bear
+  then:
+    if {rpgdiff} is not set:
+      set {rpgdiff} to 1
+    set attack damage attribute of entity to (1.1^({rpgdiff} - 1)) * attack damage attribute of entity
+    set maximum health of entity to (1.1^({rpgdiff} - 1)) * maximum health of entity
+    heal entity
+
+on death:
+  damage cause is not burn
+  victim is a monster:
+    set {rpgdiff} to {rpgdiff} + 0.0025
+    if mod({rpgdiff}, 0.2) is 0:
+      broadcast "Difficulty is now: %{rpgdiff}%"	
+
+  victim is a player:
+    set {rpgdiff} to {rpgdiff} - 0.3
+    broadcast "Difficulty is now: %{rpgdiff}%"
+
+every 5 seconds:
+  if {rpgdiff} is less than 0.05:
+    set {rpgdiff} to 0.05
+
+every 10 seconds:
+  loop all players:
+    {apocalypse} is true:
+      hasClass(loop-player, "herobrine") is false
+      time in world of loop-player is between 19:00 and 5:00
+      scriptDebugBroadcastType("worldevents", "{apocalypse} is attempting to spawn zombies near %loop-player%")
+      loop all blocks in radius 30 around loop-player:
+        block below loop-block is not water
+        loop-block is air
+        block above loop-block is air
+        block 2 blocks above loop-block is air
+        distance between loop-block and loop-player is greater than 9
+        light level at loop-block is less than 8
+        chance of 50%:
+          spawn 1 zombie at loop-block
+          exit 1 loop
+        chance of 30%:
+          spawn 2 zombie at loop-block
+          exit 1 loop
+        chance of 15%:
+          spawn 3 zombie at loop-block
+          exit 1 loop
+      wait 1 ticks
+      
+at 5:00:
+  if {apocalypse} is not false:
+    scriptDebugBroadcastType("worldevents", "Setting {apocalypse} to false")
+    set {apocalypse} to false
+    broadcast "The Apocalypse is Over!"
+    
+
+at 19:00:
+  scriptDebugBroadcastType("worldevents", "Randomizing a apocalypse")
+  chance of 5%:
+    if {apocalypse} is false:
+      set {apocalypse} to true
+      broadcast "&cA apocalypse is rising!"
+
+on weather change to rain:
+  chance of 100%:
+    set {acidrain} to true
+    broadcast "&cAn Acid Rain Pours!"
+
+on weather change:
+  weather is not rain:
+    if {acidrain} is not false:
+      set {acidrain} to false
+      broadcast "&cAn Acid Rain Ends..."
+
+command /worldevents <text> <boolean>:
+  trigger:
+    if command executor does not have permission "rpg.spawn":
+      send "&cYou do not have access to that command." to command executor
+      stop
+    if arg 1 is "apocalypse":
+      set {apocalypse} to arg 2 
+      scriptDebugBroadcastType("worldevents", "Setting {apocalypse} to %arg 2%")
+      broadcast "&c{apocalypse} set to %arg 2%"
+    if arg 1 is "acid rain":
+      set {acidrain} to arg 2 
+      scriptDebugBroadcastType("worldevents", "Setting {acidrain} to %arg 2%")
+      broadcast "&c{acidrain} set to %arg 2%"
+    else:
+      send "&cInvalid World Event." to command executor 
+
+command /displayevents:
+  trigger:
+    broadcast "&cBroadcasting Events"
+    broadcast "&c{apocalypse} is %{apocalypse}%"
+    broadcast "&6{acidrain} is %{acidrain}%"
+      
+function makeSpecial(entity: entity):
+  {_entity} is a zombie:
+    if {_entity} is not a baby zombie:
+      set attack damage attribute of {_entity} to 1.8 * attack damage attribute of {_entity}
+      set movement speed attribute of {_entity} to 1.2 * movement speed attribute of {_entity}
+      set maximum health of {_entity} to 2.2 * maximum health of {_entity}
+      heal {_entity}
+      equip {_entity} with iron helmet
+      equip {_entity} with iron chestplate
+      equip {_entity} with iron leggings
+      equip {_entity} with iron boots
+      set {_entity}'s held item to iron sword
+      loop 2 times:
+        spawn a skeleton at {_entity}
+    else:
+      set attack damage attribute of {_entity} to 2.0 * attack damage attribute of {_entity}
+      set movement speed attribute of {_entity} to 1.5 * movement speed attribute of {_entity}
+      set maximum health of {_entity} to 2.0 * maximum health of {_entity}
+      set size of {_entity} to 1.25 * size of {_entity}
+      heal {_entity}
+      equip {_entity} with leather helmet
+      equip {_entity} with leather chestplate
+      equip {_entity} with leather leggings
+      equip {_entity} with leather boots
+      set {_entity}'s held item to gold sword
+      loop 2 times:
+        spawn a skeleton at {_entity}
+  else if {_entity} is a skeleton:
+    set attack damage attribute of {_entity} to 2.0 * attack damage attribute of {_entity}
+    set movement speed attribute of {_entity} to 1.3 * movement speed attribute of {_entity}
+    set maximum health of {_entity} to 1.7 * maximum health of {_entity}
+    equip {_entity} with chain helmet
+    equip {_entity} with chain chestplate
+    equip {_entity} with chain leggings
+    equip {_entity} with chain boots
+    set {_entity}'s held item to iron sword
+    loop 2 times:
+      spawn a zombie at {_entity}
+  else if {_entity} is a spider:
+    loop 3 times:
+      spawn a cave spider at {_entity}
+  else if {_entity} is an enderman:
+    set attack damage attribute of {_entity} to 1.5 * attack damage attribute of {_entity}
+    set movement speed attribute of {_entity} to 2.0 * movement speed attribute of {_entity}
+    set maximum health of {_entity} to 1.5 * maximum health of {_entity}
+    heal {_entity}
+    loop 3 times:
+      spawn a shulker at {_entity}
+  else if {_entity} is a creeper:
+    set movement speed attribute of {_entity} to 2 * movement speed attribute of {_entity}
+    set maximum health of {_entity} to 5.0 * maximum health of {_entity}
+    set {evilSkript::%{_entity}%::disease} to true
+    heal {_entity}
+    loop 3 times:
+      spawn a creeper at {_entity}
+
+function summonButcher(player:player, chance:number):
+  loop all blocks in radius 30 around {_player}:
+    loop-block is not air
+    block above loop-block is air
+    block 2 blocks above loop-block is air
+    set {_v} to vector between {_player} and loop-block
+    scriptDebugBroadcastType("difficulty", "Attempting to spawn a Butcher at %{_player}%") 
+    length of {_v} is greater than 10:
+      chance of {_chance}%:
+        spawn 1 zombie at the location above loop-block:
+          set the zombie's display name to "&4The Butcher"
+          set attack damage attribute of the zombie to 2.5 * attack damage attribute of the zombie
+          set movement speed attribute of the zombie to 2.0 * movement speed attribute of the zombie
+          set maximum health of the zombie to 200
+          heal the zombie
+          set {evilSkript::%the zombie%::isBoss} to true
+          set helmet of the zombie to generateLootHelmet()
+          set chestplate of the zombie to generateLootChestplate()
+          set leggings of the zombie to generateLootLeggings()
+          set boots of the zombie to generateLootBoots()
+          set held item of the zombie to generateLootSword()
+          set off hand item of the zombie to generateLootShield() 
+          scriptDebugBroadcastType("difficulty", "Spawning a Butcher at %{_player}%") 
+          broadcast "A presence of evil surrounds %{_player}%!"  
+          stop     
+
+command /spawnButcher <player> <number>:
+  executable by: players
+  trigger:
+    if command executor does not have permission "rpg.spawn":
+      send "&4You do not have access to that command." to command executor
+    summonButcher(arg 1, arg 2)
+        
+on explosion:
+  if event-entity is a creeper:
+    creeperDetonate(event-entity)
+
+
+on death:
+  creeperDetonate(victim)
+
+function creeperDetonate(entity:entity):
+  if {evilSkript::%{_entity}%::disease} is true:
+    createWorldEffect(location of {_entity}, "disease", 20 seconds, {_entity})
+  if {evilSkript::%{_entity}%::detonator} is true:
+    create an explosion with force 3 at {_entity}
+    loop blocks in radius 5.99 around {_entity}:
+      loop-block is not air
+      loop-block is not bedrock
+      break loop-block naturally
+    loop blocks in radius 5.99 around {_entity}:
+      loop-block is air:
+        chance of 5%:
+          show yellow dust at loop-block
+    if {evilSkript::%{_entity}%::crassus} is true:
+      loop blocks in radius 7.99 around {_entity}:
+        loop-block is not air
+        if at least one of:
+          loop-block is stone
+          loop-block is deepslate
+          loop-block is grass block
+          loop-block is dirt
+          loop-block is sand
+          loop-block is red sand
+        then:
+          loop blocks in radius 1 around loop-block:
+            loop-block-2 is not air
+            loop-block-2 is not any ore
+            loop-block-1 is not bedrock
+            chance of 30%:
+              set {_odds} to rollDice(1,100)
+              if {_odds} is less than 10:
+                set loop-block-1 to coal ore
+              else if {_odds} is less than 20:
+                set loop-block-1 to copper ore
+              else if {_odds} is less than 50:
+                set loop-block-1 to iron ore
+              else if {_odds} is less than 80:
+                set loop-block-1 to gold ore
+              else if {_odds} is less than 85:
+                set loop-block-1 to redstone ore
+              else if {_odds} is less than 95:
+                set loop-block-1 to lapis lazuli ore
+              else if {_odds} is less than 98:
+                set loop-block-1 to diamond ore
+              else:
+                set loop-block-1 to emerald ore
+                
+    loop all entities in radius 10 around {_entity}:
+      loop-entity is not a dropped item
+      loop-entity is alive
+      damage loop-entity by 200
+    broadcast "&eDetonator Explosion!"
+    
+function makeSummoner(entity:entity):
+  if at least one of:
+    {_entity} is a skeleton
+    {_entity} is a zombie
+  then:
+    set {_entity}'s held item to a stick
+    set {evilSkript::%{_entity}%::summoner} to true
+    set {evilSkript::%{_entity}%::summoncount} to 3
+
+function makeBoss(entity:entity):
+  {_entity} is a husk:
+    set {_entity}'s display name to "&6Dune Revenant"
+    set attack damage attribute of {_entity} to 2 * attack damage attribute of {_entity}
+    set movement speed attribute of {_entity} to 2.0 * movement speed attribute of {_entity}
+    set maximum health of {_entity} to 100
+    heal {_entity}
+    set {evilSkript::%{_entity}%::dunerev} to true
+    set {evilSkript::%{_entity}%::isBoss} to true
+    set helmet of {_entity} to generateLootHelmet()
+    set chestplate of {_entity} to generateLootChestplate()
+    set leggings of {_entity} to generateLootLeggings()
+    set boots of {_entity} to generateLootBoots()
+    set held item of {_entity} to generateLootSword()
+    set off hand item of {_entity} to generateLootShield()
+  {_entity} is a creeper:
+    set {_entity}'s display name to "&8Detonator"
+    set movement speed attribute of {_entity} to 0.5 * movement speed attribute of {_entity}
+    set maximum health of {_entity} to 200
+    set {evilSkript::%{_entity}%::detonator} to true
+    chance of 30%:
+      set {evilSkript::%{_entity}%::crassus} to true 
+      set {_entity}'s display name to "&eCrassus Detonator"  
+    set {evilSkript::%{_entity}%::isBoss} to true
+    heal {_entity}
+  {_entity} is an evoker:
+    set {_entity}'s display name to "&4Pillage Captain"
+    set movement speed attribute of {_entity} to 1.25 * movement speed attribute of {_entity}
+    set attack damage attribute of {_entity} to 1.5 * attack damage attribute of {_entity}
+    set maximum health of {_entity} to 100
+    set {evilSkript::%{_entity}%::isBoss} to true
+    set {evilSkript::%{_entity}%::summoner} to true
+    set {evilSkript::%{_entity}%::summoncount} to 3
+    set helmet of {_entity} to generateLootHelmet()
+    set chestplate of {_entity} to generateLootChestplate()
+    set leggings of {_entity} to generateLootLeggings()
+    set boots of {_entity} to generateLootBoots()
+    set held item of {_entity} to generateLootSword()
+    set off hand item of {_entity} to generateLootShield()
+    heal {_entity}
+
+command /spawnBoss <text>:
+  executable by: players
+  trigger:
+    command executor has permission "rpg.spawn"
+    if arg 1 is "DuneRev":
+      spawn a husk at the player:
+        makeBoss(the husk)
+    if arg 1 is "Detonator":
+      spawn a creeper at the player:
+        makeBoss(the creeper)
+    else if arg 1 is "PillCap":
+      spawn a evoker at the player:
+        makeBoss(the evoker)
+    
+    
+on target:
+  isMonster(event-entity) is true:
+    if {evilSkript::%event-entity%::summoner} is true:
+      loop {evilSkript::%event-entity%::summonercount} times:
+        if event-entity is a zombie:
+          spawn a zombie at event-entity
+        else if event-entity is a skeleton:
+          spawn a skeleton at event-entity
+        set {evilSkript::%event-entity%::summonercount} to {evilSkript::%event-entity%::summonercount} - 1
+
+every 10 seconds:
+  loop all entities:
+    {evilSkript::%loop-entity%::summoner} is true:
+      set {evilSkript::%loop-entity%::summonercount} to {evilSkript::%loop-entity%::summonercount} + 1
+      if {evilSkript::%loop-entity%::summonercount} is greater than 5:
+        set {evilSkript::%loop-entity%::summonercount} to 5
+      
+    
+
+command /rpgdifficulty <number>:
+  trigger:
+    if arg 1 is less than 0.01:
+      set {rpgdiff} to 0.01
+    else:
+      set {rpgdiff} to arg 1	
+    broadcast "&cSet Difficulty Modifier to %{rpgdiff}%"
+
+command /getrpgdifficulty:
+  trigger:
+    broadcast "Difficulty is: %{rpgdiff}%"
+
+command /spawnSpecial <text> <number>:
+  executable by: players
+  trigger:
+    if arg 1 is "Disease Creeper":
+      loop arg 2 times:
+        spawn a creeper at player:
+          makeSpecial(the creeper)
+    if arg 1 is "Dragon Disciple":
+      loop arg 2 times:
+        spawn an enderman at player:
+          makeSpecial(the enderman)
+    if arg 1 is "Zombie Warrior":
+      loop arg 2 times:
+        spawn a zombie at player:
+          makeSpecial(the zombie)
+    if arg 1 is "Skeleton Warrior":
+      loop arg 2 times:
+        spawn a skeleton at player:
+          makeSpecial(the skeleton)
+  
+     
+
