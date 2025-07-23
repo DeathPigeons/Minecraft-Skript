@@ -1515,7 +1515,7 @@ on damage:
 
 		chance of {_critchance}:
 			set the damage to the damage * 1.5
-			send "&6You landed a critical hit!" to the attacker
+			#send "&6You landed a critical hit!" to the attacker
 			set {_ndamage} to the damage
 			scriptDebugBroadcastType("damage", "%{_odamage}%: Critical Hit Damage Bonus x1.5 -> %{_ndamage}%")
 			set {_odamage} to the damage
@@ -1524,7 +1524,7 @@ on damage:
 			set {_ndamage} to the damage
 			scriptDebugBroadcastType("damage", "%{_odamage}%: Overpowered Attack Damage Bonus x1.5 -> %{_ndamage}%")
 			set {_odamage} to the damage
-		send "&6You landed an overpowered attack!" to the attacker
+		#send "&6You landed an overpowered attack!" to the attacker
 
 	{commandSkript::%victim%::isTrainingDummy} is true:
 		send "&6The damage you dealt to the Training Dummy was increased to %{_ndamage}%!" to the attacker
