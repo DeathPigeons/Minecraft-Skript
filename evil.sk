@@ -48,7 +48,6 @@ on spawn:
     heal entity
 
 on death:
-  damage cause is not burn
   victim is a monster:
     set {rpgdiff} to {rpgdiff} + 0.0025
     if mod({rpgdiff}, 0.2) is 0:
@@ -101,7 +100,7 @@ at 19:00:
       broadcast "&cA apocalypse is rising!"
 
 on weather change to rain:
-  chance of 100%:
+  chance of 15%:
     set {acidrain} to true
     broadcast "&cAn Acid Rain Pours!"
 
