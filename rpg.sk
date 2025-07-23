@@ -2634,7 +2634,8 @@ function regenMana(player: player):
 			then:
 				set {_add} to {_add} + 5
 				applyEffect(loop-entity, "Void", 10 seconds)
-				send "&9You are now Voided and Vulnerable!" to loop-entity
+				if hasEffect(loop-entity, "Void") is false:
+					send "&9You are now Voided and Vulnerable!" to loop-entity
 			else:
 				set {_absorb} to rollDice(3,6)
 				subMana(loop-entity, {_absorb}, false)
