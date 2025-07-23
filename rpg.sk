@@ -80,6 +80,8 @@ on chat:
 		set the message to "&0[&4Herobrine&0]&r %message%"
 	hasClass(player, "monk") is true:
 		set the message to "&e[&2Monk&e]&r %message%"
+	hasClass(player, "Nethermancer") is true:
+		set the message to "&0[&4Nethermancer&0]&r %message%"
 
 function rpgLog(message: text):
 	log "%{_message}%" to "rpg/main.log"
@@ -1507,29 +1509,21 @@ on damage:
 
 	
 	
-	if at least one of:
-		damage cause is burn
-		damage cause is lava
-		damage cause is hot floor
-		damage cause is drowning
-		damage cause is freeze
-	then:
-		stop
-		
-	set {_critchance} to calculateCritical(attacker, victim)
-	set {_opchance} to calculateCritical(attacker, victim)
+	if attacker is set:
+		set {_critchance} to calculateCritical(attacker, victim)
+		set {_opchance} to calculateCritical(attacker, victim)
 
-	chance of {_critchance}:
-		set the damage to the damage * 1.5
-		send "&6You landed a critical hit!" to the attacker
-		set {_ndamage} to the damage
-		scriptDebugBroadcastType("damage", "%{_odamage}%: Critical Hit Damage Bonus x1.5 -> %{_ndamage}%")
-		set {_odamage} to the damage
-	chance of {_opchance}:
-		set the damage to the damage * 1.5
-		set {_ndamage} to the damage
-		scriptDebugBroadcastType("damage", "%{_odamage}%: Overpowered Attack Damage Bonus x1.5 -> %{_ndamage}%")
-		set {_odamage} to the damage
+		chance of {_critchance}:
+			set the damage to the damage * 1.5
+			send "&6You landed a critical hit!" to the attacker
+			set {_ndamage} to the damage
+			scriptDebugBroadcastType("damage", "%{_odamage}%: Critical Hit Damage Bonus x1.5 -> %{_ndamage}%")
+			set {_odamage} to the damage
+		chance of {_opchance}:
+			set the damage to the damage * 1.5
+			set {_ndamage} to the damage
+			scriptDebugBroadcastType("damage", "%{_odamage}%: Overpowered Attack Damage Bonus x1.5 -> %{_ndamage}%")
+			set {_odamage} to the damage
 		send "&6You landed an overpowered attack!" to the attacker
 
 	{commandSkript::%victim%::isTrainingDummy} is true:
@@ -2645,7 +2639,7 @@ function regenMana(player: player):
 			
 
 	if hasImbue({_player}, "photosynthesis") is true:
-		sun light level at {_player} is greater than 5:
+		sun light level at {_player} is greater than 5:F
 			time in world of {_player} is not between 19:00 and 5:00:
 				set {_add} to {_add} * ( 1 + 0.1 * countImbue({_player}, "photosynthesis"))
 	
