@@ -2639,7 +2639,7 @@ function regenMana(player: player):
 			
 
 	if hasImbue({_player}, "photosynthesis") is true:
-		sun light level at {_player} is greater than 5:F
+		sun light level at {_player} is greater than 5:
 			time in world of {_player} is not between 19:00 and 5:00:
 				set {_add} to {_add} * ( 1 + 0.1 * countImbue({_player}, "photosynthesis"))
 	
