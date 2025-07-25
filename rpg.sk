@@ -19,15 +19,15 @@ on script load:
 on script unload:
 	broadcast "{@prefix} &3Unloading script..."
 	
-	delete {rpgSkript::fireballs::*}
-	delete {rpgSkript::cryoballs::*}
+	delete {-rpgSkript::fireballs::*}
+	delete {-rpgSkript::cryoballs::*}
 
-	loop {rpgSkript::minions::*}:
+	loop {-rpgSkript::minions::*}:
 		killMinion(loop-index)
 
-	delete {rpgSkript::minions::*}
-	delete {rpgSkript::effects::*}
-	delete {rpgSkript::worldeffects::*}
+	delete {-rpgSkript::minions::*}
+	delete {-rpgSkript::effects::*}
+	delete {-rpgSkript::worldeffects::*}
 
 on join:
 	wait 3 seconds
@@ -529,17 +529,17 @@ on join:
 
 function createWorldEffect(loc: location, name: text, duration: time span, creator: entity={_none}):
 	set {_id} to a random UUID
-	set {rpgSkript::worldeffects::%{_id}%} to 0
-	set {rpgSkript::worldeffects::%{_id}%::location} to {_loc}
-	set {rpgSkript::worldeffects::%{_id}%::name} to {_name}
-	set {rpgSkript::worldeffects::%{_id}%::duration} to {_duration}
-	set {rpgSkript::worldeffects::%{_id}%::creator} to {_creator}
-	set {rpgSkript::worldeffects::%{_id}%::started} to now
+	set {-rpgSkript::worldeffects::%{_id}%} to 0
+	set {-rpgSkript::worldeffects::%{_id}%::location} to {_loc}
+	set {-rpgSkript::worldeffects::%{_id}%::name} to {_name}
+	set {-rpgSkript::worldeffects::%{_id}%::duration} to {_duration}
+	set {-rpgSkript::worldeffects::%{_id}%::creator} to {_creator}
+	set {-rpgSkript::worldeffects::%{_id}%::started} to now
 	scriptDebugBroadcastType("world_effect", "Created world effect %{_name}% at %{_loc}% for %{_duration}%, created by %{_creator}%")
 
 function drawWorldEffect(index: text):
-	set {_loc} to {rpgSkript::worldeffects::%{_index}%::location}
-	set {_name} to {rpgSkript::worldeffects::%{_index}%::name}
+	set {_loc} to {-rpgSkript::worldeffects::%{_index}%::location}
+	set {_name} to {-rpgSkript::worldeffects::%{_index}%::name}
 
 	{_name} is "electric_smoke":
 		loop blocks in radius 12 around {_loc}:
@@ -603,16 +603,16 @@ function drawWorldEffect(index: text):
 			
 
 function handleWorldEffect(index: text):
-	set {_loc} to {rpgSkript::worldeffects::%{_index}%::location}
-	set {_name} to {rpgSkript::worldeffects::%{_index}%::name}
-	set {_started} to {rpgSkript::worldeffects::%{_index}%::started}
-	set {_duration} to {rpgSkript::worldeffects::%{_index}%::duration}
-	set {_creator} to {rpgSkript::worldeffects::%{_index}%::creator}
+	set {_loc} to {-rpgSkript::worldeffects::%{_index}%::location}
+	set {_name} to {-rpgSkript::worldeffects::%{_index}%::name}
+	set {_started} to {-rpgSkript::worldeffects::%{_index}%::started}
+	set {_duration} to {-rpgSkript::worldeffects::%{_index}%::duration}
+	set {_creator} to {-rpgSkript::worldeffects::%{_index}%::creator}
 
 	set {_diff} to difference between now and {_started}
 	{_diff} is greater than {_duration}:
-		delete {rpgSkript::worldeffects::%{_index}%::*}
-		delete {rpgSkript::worldeffects::%{_index}%}
+		delete {-rpgSkript::worldeffects::%{_index}%::*}
+		delete {-rpgSkript::worldeffects::%{_index}%}
 		scriptDebugBroadcastType("world_effect", "Deleted world effect %{_name}% at %{_loc}%")
 		stop
 
@@ -704,11 +704,11 @@ function handleWorldEffect(index: text):
 
 
 every 5 ticks:
-	loop {rpgSkript::worldeffects::*}:
+	loop {-rpgSkript::worldeffects::*}:
 		drawWorldEffect(loop-index)
 
 every 10 ticks:
-	loop {rpgSkript::worldeffects::*}:
+	loop {-rpgSkript::worldeffects::*}:
 		handleWorldEffect(loop-index)
 
 function generateIndex(entity: entity) :: text:
@@ -721,31 +721,31 @@ function generateIndex(entity: entity) :: text:
 
 function removeAllEffects(entity: entity):
 	set {_index} to generateIndex({_entity})
-	loop {rpgSkript::effects::%{_index}%::*}:
+	loop {-rpgSkript::effects::%{_index}%::*}:
 		removeEffect({_entity}, loop-index)
 
 function removeEffect(entity: entity, name: string):
 	scriptDebugBroadcastType("effect", "Removing Effect %{_name}% from %{_entity}%")
 	set {_index} to generateIndex({_entity})
-	delete {rpgSkript::effects::%{_index}%::%{_name}%}
-	delete {rpgSkript::effects::%{_index}%::%{_name}%::*}
+	delete {-rpgSkript::effects::%{_index}%::%{_name}%}
+	delete {-rpgSkript::effects::%{_index}%::%{_name}%::*}
 
 function applyEffect(entity: entity, name: string, duration: timespan):
 	scriptDebugBroadcastType("effect", "Applying Effect %{_name}% to %{_entity}% for %{_duration}%")
 	set {_index} to generateIndex({_entity})
-	set {rpgSkript::effects::%{_index}%::%{_name}%} to 0
-	set {rpgSkript::effects::%{_index}%::%{_name}%::duration} to {_duration}
-	set {rpgSkript::effects::%{_index}%::%{_name}%::applied} to now
+	set {-rpgSkript::effects::%{_index}%::%{_name}%} to 0
+	set {-rpgSkript::effects::%{_index}%::%{_name}%::duration} to {_duration}
+	set {-rpgSkript::effects::%{_index}%::%{_name}%::applied} to now
 
 function hasEffect(entity: entity, name: string) :: boolean:
 	{_entity} is a player:
 		hasImbue({_entity}, "%{_name}% effect") is true:
 			return true
 	set {_index} to generateIndex({_entity})
-	{rpgSkript::effects::%{_index}%::%{_name}%} is not set:
+	{-rpgSkript::effects::%{_index}%::%{_name}%} is not set:
 		return false
-	set {_diff} to difference between now and {rpgSkript::effects::%{_index}%::%{_name}%::applied}
-	{_diff} is greater than {rpgSkript::effects::%{_index}%::%{_name}%::duration}:
+	set {_diff} to difference between now and {-rpgSkript::effects::%{_index}%::%{_name}%::applied}
+	{_diff} is greater than {-rpgSkript::effects::%{_index}%::%{_name}%::duration}:
 		return false
 	return true
 
@@ -2885,9 +2885,9 @@ command /cast <text>:
 				
 			set {_c} to 1
 			while {_x} is not set:
-				if {rpgSkript::fireballs::%{_c}%} is not set:
+				if {-rpgSkript::fireballs::%{_c}%} is not set:
 					set {_x} to {_c}
-					set {rpgSkript::fireballs::%{_x}%} to "fireball"
+					set {-rpgSkript::fireballs::%{_x}%} to "fireball"
 				else:
 					set {_c} to {_c} + 1
 					
@@ -2903,11 +2903,11 @@ command /cast <text>:
 			
 			set {_loc} to ( {_loc} ~ {_first} )
 			
-			set {rpgSkript::fireballs::%{_x}%::loc} to {_loc}
-			set {rpgSkript::fireballs::%{_x}%::v} to {_v}
-			set {rpgSkript::fireballs::%{_x}%::time} to now
-			set {rpgSkript::fireballs::%{_x}%::caster} to player
-			set {rpgSkript::fireballs::%{_x}%} to 1
+			set {-rpgSkript::fireballs::%{_x}%::loc} to {_loc}
+			set {-rpgSkript::fireballs::%{_x}%::v} to {_v}
+			set {-rpgSkript::fireballs::%{_x}%::time} to now
+			set {-rpgSkript::fireballs::%{_x}%::caster} to player
+			set {-rpgSkript::fireballs::%{_x}%} to 1
 			play sound "item.firecharge.use" with pitch 0.7 at command executor
 			send "&dYou unleash a sphere of fiery destruction!" to command executor
 
@@ -2915,16 +2915,16 @@ command /fireballs:
 	trigger:
 		command executor has permission "rpg.control":
 			set {_x} to 0
-			loop {rpgSkript::fireballs::*}:
+			loop {-rpgSkript::fireballs::*}:
 				set {_x} to {_x} + 1
 			send "&cFireballs: %{_x}%" to command executor
 
 every tick:
-	loop {rpgSkript::fireballs::*}:
-		set {_loc} to {rpgSkript::fireballs::%loop-index%::loc}
+	loop {-rpgSkript::fireballs::*}:
+		set {_loc} to {-rpgSkript::fireballs::%loop-index%::loc}
 
-		if difference between {rpgSkript::fireballs::%loop-index%::time} and now is greater than 10 seconds:
-			delete {rpgSkript::fireballs::%loop-index%}
+		if difference between {-rpgSkript::fireballs::%loop-index%::time} and now is greater than 10 seconds:
+			delete {-rpgSkript::fireballs::%loop-index%}
 
 		y of (vector of {_loc}) is greater than 300:
 			explodeFireball(loop-index)
@@ -2935,9 +2935,9 @@ every tick:
 			rpgLog("Cleared stray fireball")
 			continue
 
-		set {_delta} to {rpgSkript::fireballs::%loop-index%::v}
+		set {_delta} to {-rpgSkript::fireballs::%loop-index%::v}
 		set vector length of {_delta} to 0.25
-		set {_distance} to vector length of {rpgSkript::fireballs::%loop-index%::v}
+		set {_distance} to vector length of {-rpgSkript::fireballs::%loop-index%::v}
 		while {_distance} > 0.25:
 			moveFireball(loop-index, {_delta})
 			set {_distance} to {_distance} - 0.25
@@ -2945,18 +2945,18 @@ every tick:
 		moveFireball(loop-index, {_delta})
 
 function moveFireball(index: string, v: vector):
-	if {rpgSkript::fireballs::%{_index}%} is not set:
+	if {-rpgSkript::fireballs::%{_index}%} is not set:
 		exit
-	show large smoke at ({rpgSkript::fireballs::%{_index}%::loc})
-	#broadcast "%{rpgSkript::fireballs::%{_index}%::loc}%"
-	set {rpgSkript::fireballs::%{_index}%::loc} to ({rpgSkript::fireballs::%{_index}%::loc} ~ {_v})
-	set {_loc} to {rpgSkript::fireballs::%{_index}%::loc}
-	#broadcast "%{rpgSkript::fireballs::%{_index}%::loc}%"
+	show large smoke at ({-rpgSkript::fireballs::%{_index}%::loc})
+	#broadcast "%{-rpgSkript::fireballs::%{_index}%::loc}%"
+	set {-rpgSkript::fireballs::%{_index}%::loc} to ({-rpgSkript::fireballs::%{_index}%::loc} ~ {_v})
+	set {_loc} to {-rpgSkript::fireballs::%{_index}%::loc}
+	#broadcast "%{-rpgSkript::fireballs::%{_index}%::loc}%"
 	show mob spawner flames at {_loc}
 	loop blocks in radius 1 around {_loc}:
 		#show mob spawner flames at loop-block
 		loop-block is water:
-			delete {rpgSkript::fireballs::%{_index}%}
+			delete {-rpgSkript::fireballs::%{_index}%}
 		loop-block is solid:
 			explodeFireball({_index})
 	loop all entities in radius 2 around {_loc}:
@@ -2964,9 +2964,9 @@ function moveFireball(index: string, v: vector):
 			explodeFireball({_index})
 
 function explodeFireball(index: string):
-	if {rpgSkript::fireballs::%{_index}%} is not set:
+	if {-rpgSkript::fireballs::%{_index}%} is not set:
 		exit
-	set {_loc} to {rpgSkript::fireballs::%{_index}%::loc}
+	set {_loc} to {-rpgSkript::fireballs::%{_index}%::loc}
 	playSoundToPlayers({_loc}, "entity.firework_rocket.blast", 90, 0.3)
 	explodeRadius(block at {_loc}, 1.5)
 	loop blocks in radius 2.5 around {_loc}:
@@ -2975,20 +2975,20 @@ function explodeFireball(index: string):
 	loop blocks in radius 5 around {_loc}:
 		loop-block is air:
 			set block at location of loop-block to fire
-	delete {rpgSkript::fireballs::%{_index}%}
+	delete {-rpgSkript::fireballs::%{_index}%}
 	loop all entities in radius 8 around ({_loc}):
 		loop-entity is not a dropped item
 		damage loop-entity by 60
 	create an explosion with force 3 at {_loc}
-	if {rpgSkript::fireballs::%{_index}%::caster} is set:
-		add 5 experience to {rpgSkript::fireballs::%{_index}%::caster}
+	if {-rpgSkript::fireballs::%{_index}%::caster} is set:
+		add 5 experience to {-rpgSkript::fireballs::%{_index}%::caster}
 
 every tick:
-	loop {rpgSkript::cryoballs::*}:
-		set {_loc} to {rpgSkript::cryoballs::%loop-index%::loc}
+	loop {-rpgSkript::cryoballs::*}:
+		set {_loc} to {-rpgSkript::cryoballs::%loop-index%::loc}
 
-		if difference between {rpgSkript::cryoballs::%loop-index%::time} and now is greater than 10 seconds:
-			delete {rpgSkript::cryoballs::%loop-index%}
+		if difference between {-rpgSkript::cryoballs::%loop-index%::time} and now is greater than 10 seconds:
+			delete {-rpgSkript::cryoballs::%loop-index%}
 
 		y of (vector of {_loc}) is greater than 300:
 			explodeCryoball(loop-index)
@@ -2999,21 +2999,21 @@ every tick:
 			rpgLog("Cleared stray cryoball")
 			continue
 
-		set {_delta} to {rpgSkript::cryoballs::%loop-index%::v}
+		set {_delta} to {-rpgSkript::cryoballs::%loop-index%::v}
 		set vector length of {_delta} to 0.25
-		set {_distance} to vector length of {rpgSkript::cryoballs::%loop-index%::v}
+		set {_distance} to vector length of {-rpgSkript::cryoballs::%loop-index%::v}
 		while {_distance} > 0.25:
 			moveCryoball(loop-index, {_delta})
 			set {_distance} to {_distance} - 0.25
 		set vector length of {_delta} to {_distance}
 		moveCryoball(loop-index, {_delta})
-		set {rpgSkript::cryoballs::%loop-index%::v} to {rpgSkript::cryoballs::%loop-index%::v} -- (vector 0,0.1,0)
+		set {-rpgSkript::cryoballs::%loop-index%::v} to {-rpgSkript::cryoballs::%loop-index%::v} -- (vector 0,0.1,0)
 
 function moveCryoball(index: string, v: vector):
-	if {rpgSkript::cryoballs::%{_index}%} is not set:
+	if {-rpgSkript::cryoballs::%{_index}%} is not set:
 		exit
-	set {rpgSkript::cryoballs::%{_index}%::loc} to ({rpgSkript::cryoballs::%{_index}%::loc} ~ {_v})
-	set {_loc} to {rpgSkript::cryoballs::%{_index}%::loc}
+	set {-rpgSkript::cryoballs::%{_index}%::loc} to ({-rpgSkript::cryoballs::%{_index}%::loc} ~ {_v})
+	set {_loc} to {-rpgSkript::cryoballs::%{_index}%::loc}
 	show water splash at {_loc}
 	loop blocks in radius 1 around {_loc}:
 		show cloud at loop-block
@@ -3029,9 +3029,9 @@ function moveCryoball(index: string, v: vector):
 			explodeCryoball({_index})
 
 function explodeCryoball(index: string):
-	if {rpgSkript::cryoballs::%{_index}%} is not set:
+	if {-rpgSkript::cryoballs::%{_index}%} is not set:
 		exit
-	set {_loc} to {rpgSkript::cryoballs::%{_index}%::loc}
+	set {_loc} to {-rpgSkript::cryoballs::%{_index}%::loc}
 	playSoundToPlayers({_loc}, "entity.firework_rocket.blast", 50, 0.7)
 	loop blocks in radius 4 around {_loc}:
 		loop-block is air:
@@ -3043,13 +3043,13 @@ function explodeCryoball(index: string):
 	loop blocks in radius 10 around {_loc}:
 		loop-block is fire:
 			set loop-block to air
-	delete {rpgSkript::cryoballs::%{_index}%}
+	delete {-rpgSkript::cryoballs::%{_index}%}
 	loop all entities in radius 14 around ({_loc}):
 		loop-entity is not a dropped item
 		damage loop-entity by 3
 		apply slowness 3 to loop-entity for 8 seconds replacing the existing effect
-	if {rpgSkript::cryoballs::%{_index}%::caster} is set:
-		add 3 experience to {rpgSkript::cryoballs::%{_index}%::caster}
+	if {-rpgSkript::cryoballs::%{_index}%::caster} is set:
+		add 3 experience to {-rpgSkript::cryoballs::%{_index}%::caster}
 
 on inventory close:
 	if event-inventory's name is "&dSafe":
@@ -3353,9 +3353,9 @@ on right click with lapis lazuli:
 		
 	set {_c} to 1
 	while {_x} is not set:
-		if {rpgSkript::cryoballs::%{_c}%} is not set:
+		if {-rpgSkript::cryoballs::%{_c}%} is not set:
 			set {_x} to {_c}
-			set {rpgSkript::cryoballs::%{_x}%} to "cryoball"
+			set {-rpgSkript::cryoballs::%{_x}%} to "cryoball"
 		else:
 			set {_c} to {_c} + 1
 			
@@ -3371,11 +3371,11 @@ on right click with lapis lazuli:
 	
 	set {_loc} to ( {_loc} ~ {_first} )
 	
-	set {rpgSkript::cryoballs::%{_x}%::loc} to {_loc}
-	set {rpgSkript::cryoballs::%{_x}%::v} to {_v}
-	set {rpgSkript::cryoballs::%{_x}%::time} to now
-	set {rpgSkript::cryoballs::%{_x}%::caster} to player
-	set {rpgSkript::cryoballs::%{_x}%} to 1
+	set {-rpgSkript::cryoballs::%{_x}%::loc} to {_loc}
+	set {-rpgSkript::cryoballs::%{_x}%::v} to {_v}
+	set {-rpgSkript::cryoballs::%{_x}%::time} to now
+	set {-rpgSkript::cryoballs::%{_x}%::caster} to player
+	set {-rpgSkript::cryoballs::%{_x}%} to 1
 	play sound "item.bucket.empty" with pitch 0.7 at command executor
 	send "&dYou release a freezing orb of water!" to command executor
 
@@ -3386,7 +3386,7 @@ on right click with lapis lazuli:
 
 
 function isMinion(entity: entity) :: boolean:
-	{rpgSkript::minions::%uuid of {_entity}%} is set:
+	{-rpgSkript::minions::%uuid of {_entity}%} is set:
 		return true
 	return false
 
@@ -3399,7 +3399,7 @@ every 2 seconds:
 
 	set {_start} to now
 
-	loop {rpgSkript::minions::*}:
+	loop {-rpgSkript::minions::*}:
 	
 		set {_uuid} to loop-index
 		set {_entity} to getByUUID({_uuid})
@@ -3407,7 +3407,7 @@ every 2 seconds:
 			deleteMinion({_uuid})
 			continue loop
 			
-		set {_summoner} to {rpgSkript::minions::%{_uuid}%::summoner}
+		set {_summoner} to {-rpgSkript::minions::%{_uuid}%::summoner}
 		{_summoner} is not online:
 			killMinion({_uuid})
 			continue loop
@@ -3452,8 +3452,8 @@ on explosion prime:
 
 function deleteMinion(uuid: text):
 	#broadcast "&7Deleting minion"
-	delete {rpgSkript::minions::%{_uuid}%}
-	delete {rpgSkript::minions::%{_uuid}%::*}
+	delete {-rpgSkript::minions::%{_uuid}%}
+	delete {-rpgSkript::minions::%{_uuid}%::*}
 
 	set {_entity} to getByUUID({_uuid})
 	{_entity} is set:
@@ -3591,31 +3591,31 @@ on left click with redstone:
 		heal(event-player, 3 * {_monsters} )
 
 function setupMinion(entity: entity, summoner: player):
-	set {rpgSkript::minions::%uuid of {_entity}%} to 1
-	set {rpgSkript::minions::%uuid of {_entity}%::summoner} to {_summoner}
+	set {-rpgSkript::minions::%uuid of {_entity}%} to 1
+	set {-rpgSkript::minions::%uuid of {_entity}%::summoner} to {_summoner}
 	set {_entity}'s helmet to leather helmet
 	dye {_entity}'s helmet blue
 	enchant {_entity}'s helmet with protection 1
 	reset target of {_entity}
 
 function hasSameSummoner(entity: entity, entity2: entity) :: boolean:
-	{rpgSkript::minions::%uuid of {_entity}%::summoner} is {rpgSkript::minions::%uuid of {_entity2}%::summoner}:
+	{-rpgSkript::minions::%uuid of {_entity}%::summoner} is {-rpgSkript::minions::%uuid of {_entity2}%::summoner}:
 		return true
 	return false
 
 function getSummoner(uuid: text) :: player:
-	{rpgSkript::minions::%{_uuid}%::summoner} is set:
-		return {rpgSkript::minions::%{_uuid}%::summoner}
+	{-rpgSkript::minions::%{_uuid}%::summoner} is set:
+		return {-rpgSkript::minions::%{_uuid}%::summoner}
 
 function getMinionCount(summoner: player) :: number:
 	set {_count} to 0
-	loop {rpgSkript::minions::*}:
+	loop {-rpgSkript::minions::*}:
 		getSummoner(loop-index) is {_summoner}:
 			set {_count} to {_count} + 1
 	return {_count}
 
 function getMinionUUIDs(summoner: player) :: texts:
-	loop {rpgSkript::minions::*}:
+	loop {-rpgSkript::minions::*}:
 		getSummoner(loop-index) is {_summoner}:
 			add loop-index to {_list::*}
 	return {_list::*}
@@ -3643,7 +3643,7 @@ function calculateMaxMinions(summoner: player) :: number:
 
 function cullMinions(summoner: player):
 	set {_toRemove} to getMinionCount({_summoner}) - calculateMaxMinions({_summoner})
-	loop {rpgSkript::minions::*}:
+	loop {-rpgSkript::minions::*}:
 		{_toRemove} > 0:
 			getSummoner(loop-index) is {_summoner}:
 				killMinion(loop-index)
