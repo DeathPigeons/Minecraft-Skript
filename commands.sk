@@ -19,7 +19,7 @@ command /formula <number>:
 command /trainingdummy:
 	executable by: players
 	trigger:
-		if player does not have permission "rpg.control":
+		if player does not have permission "rpg.spawn":
 			send "&cYou do not have access to that command." to player
 			stop
 		spawn 1 villager at player:
@@ -28,5 +28,28 @@ command /trainingdummy:
 			set movement speed attribute of the villager to 0
 			heal the villager
 			set the villager's display name to "&6Training Dummy"
-			set {commandSkript::%the villager%::isTrainingDummy} to true
+			set {_temp} to the villager
+			set {-commandSkript::%{_temp}%::isTrainingDummy} to true
 			send "&6Training Dummy Created." to player
+
+command /classinfo <text>:
+	executable by: anyone
+	trigger:
+		if arg 1 is "warrior":
+			send "Warrior Features:" to command executor
+			send "Damage Resistance and Increased Damage" to command executor
+			send "Power Attacks and Better Tool Crafting" to command executor
+		else if arg 1 is "rogue":
+			send "Rogue Features:" to command executor
+			send "Dodge Chances and Increased Damage" to command executor
+			send "Movement Speed, Invisibility, Enhanced Loot Pools, and Detection" to command executor		
+		else if arg 1 is "wizard":
+
+		else if arg 1 is "nethermancer":
+			send "Nethermancer Features:" to command executor
+			send "Accumulate Heat by taking damage, being on fire, drinking lava, and being in specific environments" to command executor
+			send "Spend heat to regenerate mana and radiate fire to nearby enemies" to command executor
+			send "Enjoy a base 0.40 damage reduction that declines as heat increases" to command executor
+			send "Use magma cream and blaze rods to access your spells" to command executor
+		else:
+			send "Not a Valid Class" to command executor
