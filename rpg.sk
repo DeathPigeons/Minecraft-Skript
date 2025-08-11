@@ -19,15 +19,15 @@ on script load:
 on script unload:
 	broadcast "{@prefix} &3Unloading script..."
 	
-	delete {rpgSkript::fireballs::*}
-	delete {rpgSkript::cryoballs::*}
+	delete {-rpgSkript::fireballs::*}
+	delete {-rpgSkript::cryoballs::*}
 
-	loop {rpgSkript::minions::*}:
+	loop {-rpgSkript::minions::*}:
 		killMinion(loop-index)
 
-	delete {rpgSkript::minions::*}
-	delete {rpgSkript::effects::*}
-	delete {rpgSkript::worldeffects::*}
+	delete {-rpgSkript::minions::*}
+	delete {-rpgSkript::effects::*}
+	delete {-rpgSkript::worldeffects::*}
 
 on join:
 	wait 3 seconds
@@ -93,9 +93,9 @@ function scriptConsoleMessage(message: text):
 	send "{@consolePrefix} {@prefix} &3%{_message}%" to console
 
 function shouldPrintDebugType(type: string) :: boolean:
-	if {rpgSkript::debug::%{_type}%} is not set:
-		set {rpgSkript::debug::%{_type}%} to false
-	return {rpgSkript::debug::%{_type}%}
+	if {-rpgSkript::debug::%{_type}%} is not set:
+		set {-rpgSkript::debug::%{_type}%} to false
+	return {-rpgSkript::debug::%{_type}%}
 
 function scriptDebugBroadcast(message: text):
 	scriptDebugBroadcastType("main", {_message})
@@ -116,28 +116,29 @@ function scriptDebugConsoleMessageType(type: string, message: text):
 command /rpgdebug <string> <boolean>:
 	trigger:
 		command executor has permission "rpg.control"
-		set {rpgSkript::debug::%arg 1%} to arg 2
+		set {-rpgSkript::debug::%arg 1%} to arg 2
 		send "&3Debug logging changed" to command executor
 
 command /rpgdebugged:
 	trigger:
 		command executor has permission "rpg.control"
-		loop {rpgSkript::debug::*}:
+		loop {-rpgSkript::debug::*}:
 			send "&3%loop-index% -> %loop-value%" to command executor
 
 command /rpgdebugreset:
 	trigger:
 		command executor has permission "rpg.control"
-		delete {rpgSkript::debug::*}
+		delete {-rpgSkript::debug::*}
 		send "&cEnabled debug types reset" to command executor
 
 command /killMobs:
 	trigger:
 		command executor has permission "rpg.control"
 		loop all entities:
+			isMonster(loop-entity)
 			loop-entity is not a player
 			kill loop-entity
-			wait 3 ticks
+			wait 1.5 ticks
 
 function giveItem(player: player, item: item) :: boolean:
 	{_player} doesn't have space for {_item}:
@@ -529,17 +530,17 @@ on join:
 
 function createWorldEffect(loc: location, name: text, duration: time span, creator: entity={_none}):
 	set {_id} to a random UUID
-	set {rpgSkript::worldeffects::%{_id}%} to 0
-	set {rpgSkript::worldeffects::%{_id}%::location} to {_loc}
-	set {rpgSkript::worldeffects::%{_id}%::name} to {_name}
-	set {rpgSkript::worldeffects::%{_id}%::duration} to {_duration}
-	set {rpgSkript::worldeffects::%{_id}%::creator} to {_creator}
-	set {rpgSkript::worldeffects::%{_id}%::started} to now
+	set {-rpgSkript::worldeffects::%{_id}%} to 0
+	set {-rpgSkript::worldeffects::%{_id}%::location} to {_loc}
+	set {-rpgSkript::worldeffects::%{_id}%::name} to {_name}
+	set {-rpgSkript::worldeffects::%{_id}%::duration} to {_duration}
+	set {-rpgSkript::worldeffects::%{_id}%::creator} to {_creator}
+	set {-rpgSkript::worldeffects::%{_id}%::started} to now
 	scriptDebugBroadcastType("world_effect", "Created world effect %{_name}% at %{_loc}% for %{_duration}%, created by %{_creator}%")
 
 function drawWorldEffect(index: text):
-	set {_loc} to {rpgSkript::worldeffects::%{_index}%::location}
-	set {_name} to {rpgSkript::worldeffects::%{_index}%::name}
+	set {_loc} to {-rpgSkript::worldeffects::%{_index}%::location}
+	set {_name} to {-rpgSkript::worldeffects::%{_index}%::name}
 
 	{_name} is "electric_smoke":
 		loop blocks in radius 12 around {_loc}:
@@ -603,16 +604,16 @@ function drawWorldEffect(index: text):
 			
 
 function handleWorldEffect(index: text):
-	set {_loc} to {rpgSkript::worldeffects::%{_index}%::location}
-	set {_name} to {rpgSkript::worldeffects::%{_index}%::name}
-	set {_started} to {rpgSkript::worldeffects::%{_index}%::started}
-	set {_duration} to {rpgSkript::worldeffects::%{_index}%::duration}
-	set {_creator} to {rpgSkript::worldeffects::%{_index}%::creator}
+	set {_loc} to {-rpgSkript::worldeffects::%{_index}%::location}
+	set {_name} to {-rpgSkript::worldeffects::%{_index}%::name}
+	set {_started} to {-rpgSkript::worldeffects::%{_index}%::started}
+	set {_duration} to {-rpgSkript::worldeffects::%{_index}%::duration}
+	set {_creator} to {-rpgSkript::worldeffects::%{_index}%::creator}
 
 	set {_diff} to difference between now and {_started}
 	{_diff} is greater than {_duration}:
-		delete {rpgSkript::worldeffects::%{_index}%::*}
-		delete {rpgSkript::worldeffects::%{_index}%}
+		delete {-rpgSkript::worldeffects::%{_index}%::*}
+		delete {-rpgSkript::worldeffects::%{_index}%}
 		scriptDebugBroadcastType("world_effect", "Deleted world effect %{_name}% at %{_loc}%")
 		stop
 
@@ -704,11 +705,11 @@ function handleWorldEffect(index: text):
 
 
 every 5 ticks:
-	loop {rpgSkript::worldeffects::*}:
+	loop {-rpgSkript::worldeffects::*}:
 		drawWorldEffect(loop-index)
 
 every 10 ticks:
-	loop {rpgSkript::worldeffects::*}:
+	loop {-rpgSkript::worldeffects::*}:
 		handleWorldEffect(loop-index)
 
 function generateIndex(entity: entity) :: text:
@@ -721,31 +722,31 @@ function generateIndex(entity: entity) :: text:
 
 function removeAllEffects(entity: entity):
 	set {_index} to generateIndex({_entity})
-	loop {rpgSkript::effects::%{_index}%::*}:
+	loop {-rpgSkript::effects::%{_index}%::*}:
 		removeEffect({_entity}, loop-index)
 
 function removeEffect(entity: entity, name: string):
 	scriptDebugBroadcastType("effect", "Removing Effect %{_name}% from %{_entity}%")
 	set {_index} to generateIndex({_entity})
-	delete {rpgSkript::effects::%{_index}%::%{_name}%}
-	delete {rpgSkript::effects::%{_index}%::%{_name}%::*}
+	delete {-rpgSkript::effects::%{_index}%::%{_name}%}
+	delete {-rpgSkript::effects::%{_index}%::%{_name}%::*}
 
 function applyEffect(entity: entity, name: string, duration: timespan):
 	scriptDebugBroadcastType("effect", "Applying Effect %{_name}% to %{_entity}% for %{_duration}%")
 	set {_index} to generateIndex({_entity})
-	set {rpgSkript::effects::%{_index}%::%{_name}%} to 0
-	set {rpgSkript::effects::%{_index}%::%{_name}%::duration} to {_duration}
-	set {rpgSkript::effects::%{_index}%::%{_name}%::applied} to now
+	set {-rpgSkript::effects::%{_index}%::%{_name}%} to 0
+	set {-rpgSkript::effects::%{_index}%::%{_name}%::duration} to {_duration}
+	set {-rpgSkript::effects::%{_index}%::%{_name}%::applied} to now
 
 function hasEffect(entity: entity, name: string) :: boolean:
 	{_entity} is a player:
 		hasImbue({_entity}, "%{_name}% effect") is true:
 			return true
 	set {_index} to generateIndex({_entity})
-	{rpgSkript::effects::%{_index}%::%{_name}%} is not set:
+	{-rpgSkript::effects::%{_index}%::%{_name}%} is not set:
 		return false
-	set {_diff} to difference between now and {rpgSkript::effects::%{_index}%::%{_name}%::applied}
-	{_diff} is greater than {rpgSkript::effects::%{_index}%::%{_name}%::duration}:
+	set {_diff} to difference between now and {-rpgSkript::effects::%{_index}%::%{_name}%::applied}
+	{_diff} is greater than {-rpgSkript::effects::%{_index}%::%{_name}%::duration}:
 		return false
 	return true
 
@@ -804,15 +805,15 @@ function drawEffects(entity: entity):
 		show rollDice(10, 3) (purple dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
 	hasEffect({_entity}, "dark shroud") is true:
 		hasEffect({_entity}, "invisible") is false
-		{rpgSkript::%{_entity}%::darkshroud} is greater than 4:
+		{-rpgSkript::%{_entity}%::darkshroud} is greater than 4:
 			show rollDice(10, 3) (purple dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector -1, 1, 0)
-		{rpgSkript::%{_entity}%::darkshroud} is greater than 3:
+		{-rpgSkript::%{_entity}%::darkshroud} is greater than 3:
 			show rollDice(10, 3) (purple dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 1, 1, 0)
-		{rpgSkript::%{_entity}%::darkshroud} is greater than 2:
+		{-rpgSkript::%{_entity}%::darkshroud} is greater than 2:
 			show rollDice(10, 3) (purple dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, -1)
-		{rpgSkript::%{_entity}%::darkshroud} is greater than 1:
+		{-rpgSkript::%{_entity}%::darkshroud} is greater than 1:
 			show rollDice(10, 3) (purple dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 1)
-		{rpgSkript::%{_entity}%::darkshroud} is greater than 0:
+		{-rpgSkript::%{_entity}%::darkshroud} is greater than 0:
 			show rollDice(10, 3) (purple dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 2.5, 0)
 	hasEffect({_entity}, "soulbond") is true:
 		hasEffect({_entity}, "invisible") is false:
@@ -827,6 +828,9 @@ function drawEffects(entity: entity):
 		show rollDice(10, 3) (green dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 1, 1, 1)
 		show rollDice(10, 3) (yellow dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 1, 1, -1)
 		show rollDice(10, 3) (yellow dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector -1, 1, 1)
+	hasEffect({_entity}, "firestorm") is true:
+		show rollDice(10, 3) (orange dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 2.5, 0)
+		show rollDice(10, 3) (red dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 2.5, 0)
 	hasEffect({_entity}, "mana leak") is true:
 		loop 5 times:
 			set {_x} to a random number between -0.5 and 0.5
@@ -846,7 +850,8 @@ every 1 seconds:
 		set line 15 of loop-player's scoreboard to "&a"
 		set line 14 of loop-player's scoreboard to "&3&l   RPG"
 		set line 13 of loop-player's scoreboard to "&a"
-		set line 12 of loop-player's scoreboard to "&3 Mana: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}%"
+		if hasClass(loop-player, "nethermancer") is false:
+			set line 12 of loop-player's scoreboard to "&3 Mana: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}%"
 
 		calculateMaxMinions(loop-player) > 0:
 			set line 10 of loop-player's scoreboard to "&d Minions: %getMinionCount(loop-player)% / %calculateMaxMinions(loop-player)%"
@@ -874,6 +879,9 @@ every 1 seconds:
 			set line 2 of loop-player's scoreboard to "Players: %countEntities(players within 50 meters of loop-player)%"
 			set line 1 of loop-player's scoreboard to "Items on Ground: %countEntities(dropped items within 30 meters of loop-player)%"
 
+		hasClass(loop-player, "nethermancer") is true:
+			set line 12 of loop-player's scoreboard to "&3 Mana & Heat Level: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}% & &4%{rpgSkript::heat::%loop-player%}% / 1000"
+
 every 4 ticks:
 	loop all players:
 		drawEffects(loop-player)
@@ -889,6 +897,15 @@ every 1 seconds:
 		set {_effectDamage} to 0
 		set {_ndamage} to {_effectDamage}
 		set {_odamage} to {_effectDamage}
+		hasEffect(loop-entity, "firestorm") is true:
+			hasClass(loop-entity, "nethermancer") is false
+			ignite loop-entity
+			wait 1 tick
+			loop-entity is on fire
+			set {_effectDamage} to {_effectDamage} + 1.5
+			loop all entities in radius 1.5 around loop-entity:
+				chance of 50%:
+					applyEffect(loop-entity-2, "firestorm", 10 seconds)
 		hasEffect(loop-entity, "hallowed") is true:
 			if isMonster(loop-entity) is true:
 				set {_effectDamage} to {_effectDamage} + 1
@@ -951,6 +968,10 @@ every 1 seconds:
 
 		hasEffect(loop-entity, "invisible") is true:
 			apply invisibility 1 without particles to the loop-entity for 5 seconds replacing the existing effect
+			hasClass(loop-entity, "rogue") is true:
+				apply swiftness 4 without particles to the loop-entity for 5 seconds replacing the existing effect
+				light level at loop-entity is less than 11
+				applyEffect(loop-entity, "invisible", 5 seconds)
 
 		hasEffect(loop-entity, "levitate") is true:
 			apply levitation 1 without particles to the loop-entity for 5 seconds replacing the existing effect
@@ -962,10 +983,10 @@ every 1 seconds:
 		hasEffect(loop-entity, "soulbond") is true:
 			applyEffect(loop-entity,"regen", 5 seconds)
 			chance of 10%:
-				apply saturation 2 without particles to the loop-entity for 5 seconds replacing the existing effect	
+				apply saturation 1 without particles to the loop-entity for 5 seconds replacing the existing effect
 		hasEffect(loop-entity, "soulbond") is false:
-			set {rpgSkript::%loop-entity%::soulbond} to false
-			set {rpgSkript::%loop-entity%::soulbondplayer} to false
+			set {-rpgSkript::%loop-entity%::soulbond} to false
+			set {-rpgSkript::%loop-entity%::soulbondplayer} to false
 
 		hasEffect(loop-entity, "meditated") is true:
 			applyEffect(loop-entity,"regen", 5 seconds)
@@ -979,7 +1000,7 @@ every 1 seconds:
 			heal(loop-entity, 0.05 * maximum health of loop-entity)
 			scriptDebugBroadcastType("regen", "Regenerating %loop-entity% for %0.05 * maximum health of loop-entity% of %maximum health of loop-entity% health")
 
-		{acidrain} is true:
+		{-acidrain} is true:
 			loop-entity is wet:
 				if isWearingNothing(loop-entity) is true:
 					damage loop-entity by 1
@@ -1033,6 +1054,25 @@ every 2 seconds:
 				apply weakness 1 to the loop-entity-2 for 20 seconds replacing the existing effect
 				chance of 30%:
 					applyEffect(loop-entity-2, "hallowed", 8 seconds)
+		hasClass(loop-player, "nethermancer") is true:
+			loop-player is in lava:
+				heal(loop-player, 1)
+			loop-player is on fire:
+				heal(loop-player, 0.5)
+			subMana(loop-player, 20, false) is true:
+				if {rpgSkript::heat::%loop-player%} is less than 500:
+					loop all entities in radius {rpgSkript::heat::%loop-player%} / 100 around loop-player:
+						loop-entity-2 is not loop-player
+						isMonster(loop-entity-2) is true
+						ignite loop-entity-2
+						regenHeat(loop-player, -3)
+				else:
+					loop all entities in radius {rpgSkript::heat::%loop-player%} / 50 around loop-player:
+						loop-entity-2 is not loop-player
+						isMonster(loop-entity-2) is true
+						applyEffect(loop-entity-2, "firestorm", 10 seconds)
+						regenHeat(loop-player, -5)
+						
 		hasClass(loop-player, "herobrine") is true:
 			heal(loop-player, 2)
 			loop-player's knockback resistance attribute is not 0.9:
@@ -1133,9 +1173,9 @@ every 2 seconds:
 						applyEffect(loop-player, "regen", 3 seconds)
 
 		hasClass(loop-player, "artificer") is true:
-			if {rpgSkript::%loop-player%::mineLocation} is set:
-				if {rpgSkript::%loop-player%::mineAuto} is true:
-					loop all entities in radius 5 around {rpgSkript::%loop-player%::mineLocation}:
+			if {-rpgSkript::%loop-player%::mineLocation} is set:
+				if {-rpgSkript::%loop-player%::mineAuto} is true:
+					loop all entities in radius 5 around {-rpgSkript::%loop-player%::mineLocation}:
 						isMonster(loop-entity-2) is true:
 							make loop-player execute command "/activate mine"
 
@@ -1144,12 +1184,12 @@ every 2 seconds:
 				set {rpgSkript::%loop-player%::lastButcher} to 30 minutes ago
 			difference between {rpgSkript::%loop-player%::lastButcher} and now is less than 15 minutes:
 				set {rpgSkript::%loop-player%::lastButcher} to now
-				set {_chance} to log({rpgdiff} / 4) / 10
+				set {_chance} to log({rpgdiff}) * 12.5 / 100
 				if {_chance} > 0:
 					chance of {_chance}:
 						scriptDebugBroadcastType("difficulty", "Attempting to spawn a butcher at %{_chance}% chance with %{rpgdiff}% difficulty")
 						send "&4You feel an evil presence watching... Waiting..." to loop-player
-						chance of {_chance}/4:
+						chance of {_chance}:
 							summonButcher(loop-player, 2)
 						
 			
@@ -1240,15 +1280,34 @@ on death:
 
 	hasEffect(victim, "soulbond") is true:
 		removeEffect( {rpgSkript::%victim%::soulbondplayer} , "soulbond")
-		set {rpgSkript::%victim%::soulbond} to false
-		set {rpgSkript::%victim%::soulbondplayer} to false
-		set {rpgSkript::%{rpgSkript::%victim%::soulbondplayer}%::soulbond} to false
-		set {rpgSkript::%{rpgSkript::%victim%::soulbondplayer}%::soulbondplayer} to false
+		set {-rpgSkript::%victim%::soulbond} to false
+		set {-rpgSkript::%victim%::soulbondplayer} to false
+		set {-rpgSkript::%{rpgSkript::%victim%::soulbondplayer}%::soulbond} to false
+		set {-rpgSkript::%{rpgSkript::%victim%::soulbondplayer}%::soulbondplayer} to false
 		
 	hasEffect(victim, "infected") is true:
 		isMonster(victim) is false:
 			becomeZombie(victim)
 
+	hasEffect(victim, "firestorm") is true:
+		loop all entities in radius 3 around victim:
+			if loop-entity is alive:
+				hasClass(loop-entity, "nethermancer") is false:
+					loop-entity is not a dropped item
+					damage loop-entity by 1.5
+					chance of 50%:
+						loop-entity is not a player
+						applyEffect(loop-entity, "firestorm", 10 seconds)
+					set {_vec} to vector between victim and loop-entity
+					set y component of {_vec} to 0
+					set {_vec} to normalized {_vec}
+					push loop-entity {_vec} with force 0.7
+					push loop-entity upwards with force 0.3
+			create a fake explosion at the victim
+
+	if {rpgSkript::heat::%victim%} is set:
+		set {rpgSkript::heat::%victim%} to 0
+		
 	removeAllEffects(victim)
 	
 	isMonster(victim) is true:
@@ -1297,7 +1356,7 @@ on experience change:
 			else:
 				exit 1 loop
 	hasEffect(event-player, "soulbond") is true:
-		add 2 experience to {rpgSkript::%event-player%::soulbondplayer}
+		add 2 experience to {-rpgSkript::%event-player%::soulbondplayer}
 
 on damage:
 	set {_odamage} to the damage
@@ -1308,17 +1367,17 @@ on damage:
 	hasEffect(victim, "void") is true:
 		set the damage to the damage * 1.5
 		set {_ndamage} to the damage
-		scriptDebugBroadcastType("damage", "%{_odamage}%: Void Damage Bonus x1.5 -> %{_ndamage}%")
+		scriptDebugBroadcastType("effectdamage", "%{_odamage}%: Void Damage Bonus x1.5 -> %{_ndamage}%")
 		set {_odamage} to the damage
 	hasEffect(victim, "levitate") is true:
 		set the damage to the damage * 1.5
 		set {_ndamage} to the damage
-		scriptDebugBroadcastType("damage", "%{_odamage}%: Levitate Damage Bonus x1.5 -> %{_ndamage}%")
+		scriptDebugBroadcastType("effectdamage", "%{_odamage}%: Levitate Damage Bonus x1.5 -> %{_ndamage}%")
 		set {_odamage} to the damage
 	hasEffect(attacker, "invisible") is true:
 		set the damage to the damage * 1.5
 		set {_ndamage} to the damage
-		scriptDebugBroadcastType("damage", "%{_odamage}%: Invisibility Damage Bonus x1.5 -> %{_ndamage}%")
+		scriptDebugBroadcastType("effectdamage", "%{_odamage}%: Invisibility Damage Bonus x1.5 -> %{_ndamage}%")
 		set {_odamage} to the damage
 		removeEffect(attacker, "invisible")
 	hasEffect(attacker, "spirit") is true:
@@ -1333,7 +1392,7 @@ on damage:
 					hasClass( victim, "endwarden") is false:
 						set the damage to the damage * 1.3
 						set {_ndamage} to the damage
-						scriptDebugBroadcastType("damage", "%{_odamage}%: EndWarden Fall x1.3 -> %{_ndamage}%")
+						scriptDebugBroadcastType("endwardendamage", "%{_odamage}%: EndWarden Fall x1.3 -> %{_ndamage}%")
 						set {_odamage} to the damage
 						exit 1 loop
 
@@ -1347,9 +1406,9 @@ on damage:
 			if hasEffect(victim, "infected") is true:
 				set the damage to the damage * 1.2
 				set {_ndamage} to the damage
-				scriptDebugBroadcastType("damage", "%{_odamage}%: Zombie Infected Damage Bonus x1.2 -> %{_ndamage}%")
+				scriptDebugBroadcastType("effectdamage", "%{_odamage}%: Zombie Infected Damage Bonus x1.2 -> %{_ndamage}%")
 				set {_odamage} to the damage
-		if {evilSkript::%attacker%::dunerev} is true:
+		if {-evilSkript::%attacker%::dunerev} is true:
 			applyEffect(victim,"Corrupting Dunes", 30 seconds)
 
 	isMonster(attacker) is true:
@@ -1360,13 +1419,13 @@ on damage:
 				hasClass(victim, "endwarden") is false
 				set the damage to the damage * 1.5
 				set {_ndamage} to the damage
-				scriptDebugBroadcastType("damage", "%{_odamage}%: Enderman Phased Damage Bonus x1.2 -> %{_ndamage}%")
+				scriptDebugBroadcastType("effectdamage", "%{_odamage}%: Enderman Phased Damage Bonus x1.2 -> %{_ndamage}%")
 				set {_odamage} to the damage
 
 	isMonster(victim) is true:
 		victim's off hand item is a shield:
 			set the damage to the damage * 0.75
-		{evilSkript::%victim%::isBoss} is true:
+		{-evilSkript::%victim%::isBoss} is true:
 			set the damage to the damage * 0.25
 			
 
@@ -1386,7 +1445,7 @@ on damage:
 			if victim has potion effect poison:
 				set the damage to the damage * 1.2
 				set {_ndamage} to the damage
-				scriptDebugBroadcastType("damage", "%{_odamage}%: Minion Spider Poison Bonus x1.2 -> %{_ndamage}%")
+				scriptDebugBroadcastType("effectdamage", "%{_odamage}%: Minion Spider Poison Bonus x1.2 -> %{_ndamage}%")
 				set {_odamage} to the damage
 			else:
 				chance of 20%:
@@ -1398,7 +1457,7 @@ on damage:
 				hasClass(victim, "endwarden") is false
 				set the damage to the damage * 1.5
 				set {_ndamage} to the damage
-				scriptDebugBroadcastType("damage", "%{_odamage}%: Enderman Phased Damage Bonus x1.2 -> %{_ndamage}%")
+				scriptDebugBroadcastType("effectdamage", "%{_odamage}%: Enderman Phased Damage Bonus x1.2 -> %{_ndamage}%")
 				set {_odamage} to the damage
 
 		hasClass(getSummoner(uuid of attacker), "necromancer") is true:
@@ -1406,12 +1465,15 @@ on damage:
 
 	attacker is a player:
 
+		hasClass(attacker, "nethermancer") is true:
+			chance of 30%:
+				applyEffect(victim, "firestorm", 10 seconds)
 		hasClass(attacker, "druid") is true:
 			if {rpgSkript::%attacker%::humanshape} is true:
 				attacker's held item is a stick:
 					set the damage to 2.0
 					set {_ndamage} to the damage
-					scriptDebugBroadcastType("damage", "%{_odamage}%: Druid Stick Damage =2 -> %{_ndamage}%")
+					scriptDebugBroadcastType("druiddamage", "%{_odamage}%: Druid Stick Damage =2 -> %{_ndamage}%")
 					set {_odamage} to the damage
 			else:
 				if attacker's held item is not air:
@@ -1421,7 +1483,7 @@ on damage:
 					if victim has potion effect poison:
 						set the damage to 1.5
 						set {_ndamage} to the damage
-						scriptDebugBroadcastType("damage", "%{_odamage}%: Druid Spider Poison Damage =1.5 -> %{_ndamage}%")
+						scriptDebugBroadcastType("druiddamage", "%{_odamage}%: Druid Spider Poison Damage =1.5 -> %{_ndamage}%")
 						set {_odamage} to the damage
 					else:
 						chance of 30%:
@@ -1429,49 +1491,49 @@ on damage:
 				else if {rpgSkript::%attacker%::wolfshape} is true:
 					set the damage to 1.5
 					set {_ndamage} to the damage
-					scriptDebugBroadcastType("damage", "%{_odamage}%: Druid Wolf Damage =1.5 -> %{_ndamage}%")
+					scriptDebugBroadcastType("druiddamage", "%{_odamage}%: Druid Wolf Damage =1.5 -> %{_ndamage}%")
 					set {_odamage} to the damage
 					applyEffect(victim, "bleeding", 8 seconds)
 				else if {rpgSkript::%attacker%::bearshape} is true:
 					set the damage to 3
 					set {_ndamage} to the damage
-					scriptDebugBroadcastType("damage", "%{_odamage}%: Druid Bear Damage =3 -> %{_ndamage}%")
+					scriptDebugBroadcastType("druiddamage", "%{_odamage}%: Druid Bear Damage =3 -> %{_ndamage}%")
 					set {_odamage} to the damage
 				else if {rpgSkript::%attacker%::batshape} is true:
 					set the damage to 0
 					set {_ndamage} to the damage
-					scriptDebugBroadcastType("damage", "%{_odamage}%: Druid Bat Damage =0 -> %{_ndamage}%")
+					scriptDebugBroadcastType("druiddamage", "%{_odamage}%: Druid Bat Damage =0 -> %{_ndamage}%")
 					set {_odamage} to the damage
 
 		hasClass(attacker, "rogue") is true:
 			canUseRogueAbilities(attacker) is true
 			set the damage to the damage * 2.0
 			set {_ndamage} to the damage
-			scriptDebugBroadcastType("damage", "%{_odamage}%: Rogue Damage Bonus x2 -> %{_ndamage}%")
+			scriptDebugBroadcastType("roguedamage", "%{_odamage}%: Rogue Damage Bonus x2 -> %{_ndamage}%")
 			set {_odamage} to the damage
 		hasClass(attacker, "herobrine") is true:
 			set the damage to the damage * 3.0
 			set {_ndamage} to the damage
-			scriptDebugBroadcastType("damage", "%{_odamage}%: Herobrine Damage Bonus x3 -> %{_ndamage}%")
+			scriptDebugBroadcastType("herobrinedamage", "%{_odamage}%: Herobrine Damage Bonus x3 -> %{_ndamage}%")
 			set {_odamage} to the damage
 		hasClass(attacker, "paladin") is true:
 			isMonster(victim) is true:
 				set the damage to the damage * 1.4
 				set {_ndamage} to the damage
-				scriptDebugBroadcastType("damage", "%{_odamage}%: Paladin Monster Bonus x1.4 -> %{_ndamage}%")
+				scriptDebugBroadcastType("paladindamage", "%{_odamage}%: Paladin Monster Bonus x1.4 -> %{_ndamage}%")
 				set {_odamage} to the damage
 				applyEffect(victim, "hallowed", 8 seconds)
 		hasClass(attacker, "barbarian") is true:
 			if event-projectile is set:
 				set the damage to the damage * 0.65
 				set {_ndamage} to the damage
-				scriptDebugBroadcastType("damage", "%{_odamage}%: Barbarian Projectile Reduction x0.65 -> %{_ndamage}%")
+				scriptDebugBroadcastType("barbariandamage", "%{_odamage}%: Barbarian Projectile Reduction x0.65 -> %{_ndamage}%")
 				set {_odamage} to the damage
 			else if canUseBarbarianAbilities( attacker ) is true:
 				set {_damageboost} to 1 + ( {rpgSkript::%attacker%::barbenemies} * 0.05 )
 				set the damage to the damage * ( 1.5 + {_damageboost} )
 				set {_ndamage} to the damage
-				scriptDebugBroadcastType("damage", "%{_odamage}%: Barbarian Damage Bonus w %{rpgSkript::%attacker%::barbenemies}% nearby entities x%1.5 + {_damageboost}% -> %{_ndamage}%")
+				scriptDebugBroadcastType("barbariandamage", "%{_odamage}%: Barbarian Damage Bonus w %{rpgSkript::%attacker%::barbenemies}% nearby entities x%1.5 + {_damageboost}% -> %{_ndamage}%")
 				set {_odamage} to the damage
 				attacker is holding air:
 					set {_vec} to vector between attacker and victim
@@ -1497,7 +1559,7 @@ on damage:
 		health of victim is equal to the maximum health of victim:
 			set the damage to the damage * 1.5
 			set {_ndamage} to the damage
-			scriptDebugBroadcastType("damage", "%{_odamage}%: Firststrike Damage Bonus x1.5 -> %{_ndamage}%")
+			scriptDebugBroadcastType("loredamage", "%{_odamage}%: Firststrike Damage Bonus x1.5 -> %{_ndamage}%")
 			set {_odamage} to the damage
 	if hasLore(attacker's held item, "siphon") is true:
 		if victim is a player:
@@ -1517,12 +1579,17 @@ on damage:
 			set the damage to the damage * 1.5
 			#send "&6You landed a critical hit!" to the attacker
 			set {_ndamage} to the damage
-			scriptDebugBroadcastType("damage", "%{_odamage}%: Critical Hit Damage Bonus x1.5 -> %{_ndamage}%")
+			scriptDebugBroadcastType("critdamage", "%{_odamage}%: Critical Hit Damage Bonus x1.5 -> %{_ndamage}%")
 			set {_odamage} to the damage
+			hasClass(attacker, "rogue") is true:
+				applyEffect(attacker, "dark shroud", 1 minute)
+				if {-rpgSkript::%attacker%::darkshroud} is not set:
+					set {-rpgSkript::%attacker%::darkshroud} to 0
+				set {-rpgSkript::%attacker%::darkshroud} to {-rpgSkript::%attacker%::darkshroud} + 1
 		chance of {_opchance}:
 			set the damage to the damage * 1.5
 			set {_ndamage} to the damage
-			scriptDebugBroadcastType("damage", "%{_odamage}%: Overpowered Attack Damage Bonus x1.5 -> %{_ndamage}%")
+			scriptDebugBroadcastType("opdamage", "%{_odamage}%: Overpowered Attack Damage Bonus x1.5 -> %{_ndamage}%")
 			set {_odamage} to the damage
 		#send "&6You landed an overpowered attack!" to the attacker
 
@@ -1534,10 +1601,39 @@ on damage:
 		setMaxHealth(the victim)
 			
 
+		hasClass(victim, "nethermancer") is true:
+			if at least one of:
+				damage cause is lava
+				damage cause is fire
+				damage cause is burn
+				damage cause is hot floor
+			then:
+				regenHeat(victim, 30)
+				cancel the event
+				stop
+			if attacker is set:
+				event-projectile is not set:
+					if {rpgSkript::heat::%victim%} is greater than 500:
+						applyEffect(attacker, "firestorm", 10 seconds)
+					else:
+						ignite the attacker
+			if event-projectile is set:
+				chance of 50%:
+					delete the projectile
+					cancel the event
+					stop
+			if 1 - (0.6 * (1 - ( {rpgSkript::heat::%victim%} / 1000 ) ) ) is less than 0:
+				set {_netherdmgreduction} to 0
+			else:
+				set {_netherdmgreduction} to 1 - (0.6 * (1 - ( {rpgSkript::heat::%victim%} / 1000 ) ) )
+			set the damage to the damage * {_netherdmgreduction}
+			set {_ndamage} to the damage
+			scriptDebugBroadcastType("nethermancerdamage", "%{_odamage}%: Nethermancer Damage Reduction x%{_netherdmgreduction}% -> %{_ndamage}%")
+			set {_odamage} to the damage
 		hasClass(victim, "herobrine") is true:
 			set the damage to the damage * 0.3
 			set {_ndamage} to the damage
-			scriptDebugBroadcastType("damage", "%{_odamage}%: Herobrine Damage Reduction x0.3 -> %{_ndamage}%")
+			scriptDebugBroadcastType("herobrinedamage", "%{_odamage}%: Herobrine Damage Reduction x0.3 -> %{_ndamage}%")
 			set {_odamage} to the damage
 			damage cause is fall:
 				cancel the event
@@ -1554,19 +1650,19 @@ on damage:
 		hasClass(victim, "warrior") is true:
 			set the damage to the damage * 0.65
 			set {_ndamage} to the damage
-			scriptDebugBroadcastType("damage", "%{_odamage}%: Warrior Damage Reduction x0.65 -> %{_ndamage}%")
+			scriptDebugBroadcastType("warriordamage", "%{_odamage}%: Warrior Damage Reduction x0.65 -> %{_ndamage}%")
 			set {_odamage} to the damage
 		hasClass(victim, "rogue") is true:
 			canUseRogueAbilities(victim) is true
 			damage cause is fall:
 				set the damage to the damage * 0.3
 				set {_ndamage} to the damage
-				scriptDebugBroadcastType("damage", "%{_odamage}%: Rogue Fall Damage Reduction x0.3 -> %{_ndamage}%")
+				scriptDebugBroadcastType("roguedamage", "%{_odamage}%: Rogue Fall Damage Reduction x0.3 -> %{_ndamage}%")
 				set {_odamage} to the damage
 			chance of 45%:
 				set the damage to 0
 				set {_ndamage} to the damage
-				scriptDebugBroadcastType("damage", "%{_odamage}%: Rogue Damage Negation =0 -> %{_ndamage}%")
+				scriptDebugBroadcastType("roguedamage", "%{_odamage}%: Rogue Damage Negation =0 -> %{_ndamage}%")
 				set {_odamage} to the damage
 				play sound "entity.player.attack.nodamage" at victim
 				send action bar "&2~ ~ DODGE ~ ~" to victim
@@ -1574,7 +1670,7 @@ on damage:
 			isMonster(attacker) is true:
 				set the damage to the damage * 0.6
 				set {_ndamage} to the damage
-				scriptDebugBroadcastType("damage", "%{_odamage}%: Paladin Monster Damage Reduction x0.6 -> %{_ndamage}%")
+				scriptDebugBroadcastType("paladindamage", "%{_odamage}%: Paladin Monster Damage Reduction x0.6 -> %{_ndamage}%")
 				set {_odamage} to the damage
 			damage cause is poison:
 				cancel the event
@@ -1584,7 +1680,7 @@ on damage:
 			event-projectile is set:
 				set the damage to the damage * 1.3
 				set {_ndamage} to the damage
-				scriptDebugBroadcastType("damage", "%{_odamage}%: Barbarian Projectile Weakness x1.3 -> %{_ndamage}%")
+				scriptDebugBroadcastType("barbariandamage", "%{_odamage}%: Barbarian Projectile Weakness x1.3 -> %{_ndamage}%")
 				set {_odamage} to the damage
 			canUseBarbarianAbilities(victim) is true:
 				set {_damagered} to 1 - ( {rpgSkript::%victim%::barbenemies} * 0.05 )
@@ -1592,7 +1688,7 @@ on damage:
 					set {_damagered} to 0.5
 				set the damage to the damage * {_damagered}
 				set {_ndamage} to the damage
-				scriptDebugBroadcastType("damage", "%{_odamage}%: Barbarian Damage Reduction x%{_damagered}% -> %{_ndamage}%")
+				scriptDebugBroadcastType("barbariandamage", "%{_odamage}%: Barbarian Damage Reduction x%{_damagered}% -> %{_ndamage}%")
 				set {_odamage} to the damage
 				if chance of 15%:
 					rageTrigger(victim)
@@ -1602,14 +1698,14 @@ on damage:
 					health of victim is less than damage:
 						set the damage to the damage / 2 
 						set {_ndamage} to the damage
-						scriptDebugBroadcastType("damage", "%{_odamage}%: Endwarden Teleport Damage Reduction x0.5 -> %{_ndamage}%")
+						scriptDebugBroadcastType("endwardendamage", "%{_odamage}%: Endwarden Teleport Damage Reduction x0.5 -> %{_ndamage}%")
 						set {_odamage} to the damage
 						applyEffect(victim, "phased", 5 seconds)
 				health of victim is less than damage:
 					chance of 30:
 						set the damage to the damage / 2 
 						set {_ndamage} to the damage
-						scriptDebugBroadcastType("damage", "%{_odamage}%: Endwarden Teleport Damage Reduction x0.5 -> %{_ndamage}%")
+						scriptDebugBroadcastType("endwardendamage", "%{_odamage}%: Endwarden Teleport Damage Reduction x0.5 -> %{_ndamage}%")
 						set {_odamage} to the damage		
 						applyEffect(victim, "phased", 5 seconds)
 						
@@ -1622,16 +1718,23 @@ on damage:
 				else if {rpgSkript::%victim%::batshape} is true:
 					set the damage to the damage * 1.25
 					set {_ndamage} to the damage
-					scriptDebugBroadcastType("damage", "%{_odamage}%: Druid Bat Weakness x1.25 -> %{_ndamage}%")
+					scriptDebugBroadcastType("druiddamage", "%{_odamage}%: Druid Bat Weakness x1.25 -> %{_ndamage}%")
 					set {_odamage} to the damage
 					damage cause is fall:
 						set the damage to 0
 
+		hasClass(victim, "nethermancer") is true:
+			if the damage is greater than 1:
+				regenHeat(victim, ceiling(the damage * 0.5))
+			else:
+				regenHeat(victim, 1)
+
 		# Needs to be very last
 		hasEffect(victim, "soulbond") is true:
-			{rpgSkript::%victim%::soulbondplayer} is alive:
+			{-rpgSkript::%victim%::soulbondplayer} is alive:
 				set the damage to the damage * 0.5
-				set health of {rpgSkript::%victim%::soulbondplayer} to health of {rpgSkript::%victim%::soulbondplayer} - the damage
+				set health of {-rpgSkript::%victim%::soulbondplayer} to health of {-rpgSkript::%victim%::soulbondplayer} - the damage
+				
 
 	hasImbue(victim, "mana shield") is true:
 		subMana(victim, the damage * 7.0, false) is true
@@ -1640,7 +1743,7 @@ on damage:
 			set {_reduction} to 0.5
 		set the damage to the damage * {_reduction}
 		set {_ndamage} to the damage
-		scriptDebugBroadcastType("damage", "%{_odamage}%: Mana Shield Reduction x%{_reduction}% -> %{_ndamage}%")
+		scriptDebugBroadcastType("imbuedamage", "%{_odamage}%: Mana Shield Reduction x%{_reduction}% -> %{_ndamage}%")
 		set {_odamage} to the damage
 
 	hasImbue(victim, "flame shield") is true:
@@ -1654,12 +1757,12 @@ on damage:
 		if damage cause is burn:
 			set the damage to the damage * 0.75
 			set {_ndamage} to the damage
-			scriptDebugBroadcastType("damage", "%{_odamage}%: Flame Shield Fire Reduction x0.75 -> %{_ndamage}%")
+			scriptDebugBroadcastType("imbuedamage", "%{_odamage}%: Flame Shield Fire Reduction x0.75 -> %{_ndamage}%")
 			set {_odamage} to the damage
 		else:
 			set the damage to the damage * 0.95
 			set {_ndamage} to the damage
-			scriptDebugBroadcastType("damage", "%{_odamage}%: Flame Shield Reduction x0.95 -> %{_ndamage}%")
+			scriptDebugBroadcastType("imbuedamage", "%{_odamage}%: Flame Shield Reduction x0.95 -> %{_ndamage}%")
 			set {_odamage} to the damage
 		ignite the attacker for 2 seconds
 
@@ -1671,12 +1774,12 @@ on damage:
 			if damage cause is freeze:
 				set the damage to the damage * 0.75
 				set {_ndamage} to the damage
-				scriptDebugBroadcastType("damage", "%{_odamage}%: Frost Shield Freeze Reduction x0.75 -> %{_ndamage}%")
+				scriptDebugBroadcastType("imbuedamage", "%{_odamage}%: Frost Shield Freeze Reduction x0.75 -> %{_ndamage}%")
 				set {_odamage} to the damage
 			else:
 				set the damage to the damage * 0.95
 				set {_ndamage} to the damage
-				scriptDebugBroadcastType("damage", "%{_odamage}%: Frost Shield Reduction x0.95 -> %{_ndamage}%")
+				scriptDebugBroadcastType("imbuedamage", "%{_odamage}%: Frost Shield Reduction x0.95 -> %{_ndamage}%")
 				set {_odamage} to the damage
 
 	hasImbue(victim, "iron will") is true:
@@ -1689,14 +1792,14 @@ on damage:
 			set {_reduction} to 1 - (0.15 * countImbue(victim, "iron will") )
 			set the damage to the damage * {_reduction}
 			set {_ndamage} to the damage
-			scriptDebugBroadcastType("damage", "%{_odamage}%: Iron Will DoT Reduction x%{_reduction}% -> %{_ndamage}%")
+			scriptDebugBroadcastType("effectdamage", "%{_odamage}%: Iron Will DoT Reduction x%{_reduction}% -> %{_ndamage}%")
 			set {_odamage} to the damage
 
 	hasEffect(victim, "dark shroud") is true:
-		if {rpgSkript::%victim%::darkshroud} is greater than 0:
+		if {-rpgSkript::%victim%::darkshroud} is greater than 0:
 			set the damage to the damage * 0.75
 			set {_ndamage} to the damage
-			scriptDebugBroadcastType("damage", "%{_odamage}%: Dark Shroud Damage Reduction x0.9 -> %{_ndamage}%")
+			scriptDebugBroadcastType("effectdamage", "%{_odamage}%: Dark Shroud Damage Reduction x0.9 -> %{_ndamage}%")
 			set {_odamage} to the damage
 			play sound "entity.ender_eye.death" with pitch 0.5 at the victim
 			loop all entities in radius 3 around victim:
@@ -1705,29 +1808,37 @@ on damage:
 				applyEffect(loop-entity, "void", 10 seconds)
 				damage loop-entity by 1
 				wait 1 tick
-			set {rpgSkript::%victim%::darkshroud} to {rpgSkript::%victim%::darkshroud} - 1
+			set {-rpgSkript::%victim%::darkshroud} to {-rpgSkript::%victim%::darkshroud} - 1
 
 	if the damage is greater than 0:
-		applyEffect(victim, "recentcombat", 5 seconds)
-		applyEffect(attacker, "recentcombat", 5 seconds)
+		applyEffect(victim, "recentcombat", 2 seconds)
+		applyEffect(attacker, "recentcombat", 2 seconds)
 	
 on target:
 
-	{evilSkript::%event-entity%::summoner} is true:
+	{-evilSkript::%event-entity%::summoner} is true:
 		{rpgSkript::%event-entity%::lastSummon} is not set:
 			set {rpgSkript::%event-entity%::lastSummon} to 30 minutes ago
-		difference between {rpgSkript::%event-entity%::lastSummon} and now is less than 30 seconds:
+		difference between {rpgSkript::%event-entity%::lastSummon} and now is less than 15 seconds:
 			stop
 		set {rpgSkript::%event-entity%::lastSummon} to now
-		loop {evilSkript::%event-entity%::summoncount} times:
+		loop {-evilSkript::%event-entity%::summoncount} times:
 			event-entity is a skeleton:
 				spawn 1 skeleton at event-entity
 			event-entity is a zombie:
 				spawn 1 zombie at event-entity
 			event-entity is a evoker:
 				spawn 1 pillager at event-entity
+			event-entity is a creeper:
+				spawn 1 creeper at event-entity:
+					makeLunatic(the creeper)
+			event-entity is a spider:
+				spawn 1 spider at event-entity:
+					set movement speed attribute of the spider to 2 * movement speed attribute of the spider
+					set attack damage attribute of the spider to 0.75 * attack damage attribute of the spider
+					set maximum health of the spider to 2.5				
 
-	{commandSkript::%target%::isTrainingDummy} is true:
+	{-commandSkript::%target%::isTrainingDummy} is true:
 		cancel the event
 				
 	isMinion(event-entity) is true:
@@ -1966,6 +2077,8 @@ function generateLore( item: item):: item:
 	then:
 		chance of 4%:
 			set {_item} to addImbue({_item}, "&8Necromancer Class")
+		chance of 4%:
+			set {_item} to addImbue({_item}, "&8Netheromancer Class")
 		chance of 4%:
 			set {_item} to addImbue({_item}, "&eCleric Class")
 		chance of 4%:
@@ -2395,21 +2508,24 @@ on death of a monster:
 		add 1 raw gold to the drops
 	if {_x} <= 45:
 		add 1 diamond to the drops
-	if {evilSkript::%victim%::isBoss} is true:
+	if {-evilSkript::%victim%::isBoss} is true:
+		set {_z} to 0.35
+		if {-evilSkript::%victim%::isButcher} is true:
+			set {_z} to 0.65
 		clear the drops
-		chance of 50%:
+		chance of {_z}%:
 			add helmet of victim to the drops
-		chance of 50%:
+		chance of {_z}%:
 			add chestplate of victim to the drops
-		chance of 50%:
+		chance of {_z}%:
 			add leggings of victim to the drops
-		chance of 50%:
+		chance of {_z}%:
 			add boots of victim to the drops
-		chance of 50%:
+		chance of {_z}%:
 			add held item of victim to the drops
-		chance of 50%:
+		chance of {_z}%:
 			add off hand item of victim to the drops
-		add 10 experience to the drops
+		add 30 experience to the drops
 
 on death of an animal:
 	attacker is a player:
@@ -2557,6 +2673,11 @@ function setupMana(player: player):
 		set {_newMax} to 400
 	else if hasClass({_player}, "druid") is true:
 		set {_newMax} to (level of {_player}) * 6 + 10
+	else if hasClass({_player}, "nethermancer") is true:
+		if world of {_player} is "world_nether":
+			set {_newMax} to 2000
+		else:
+			set {_newMax} to 1000
 	else if hasClass({_player}, "endwarden") is true:
 		set {_newMax} to 1500
 	else if hasClass({_player}, "cleric") is true:
@@ -2634,7 +2755,9 @@ function regenMana(player: player):
 				set {_absorb} to rollDice(3,6)
 				subMana(loop-entity, {_absorb}, false)
 				set {_add} to {_add} + {_absorb}
-				
+
+	if hasClass({_player}, "nethermancer") is true:
+		set {_add} to floor({rpgSkript::heat::%{_player}%} / 20) 
 				
 			
 
@@ -2860,8 +2983,9 @@ command /cast <text>:
 	description: Cast a spell
 	executable by: players
 	trigger:
-		( hasClass(player, "wizard") or hasClass(player, "sorceror") or hasClass(player, "endwarden" ) ) is true
+		( hasClass(player, "wizard") or hasClass(player, "sorceror") or hasClass(player, "endwarden" ) or hasClass(player, "nethermancer" )) is true
 		if arg 1 is "safe":
+			( hasClass(player, "wizard") or hasClass(player, "sorceror") or hasClass(player, "endwarden" )) is true
 			if subMana(command executor, 20) is false:
 				send "&cYou do not have enough Mana to cast the magic safe spell!" to command executor
 				stop
@@ -2871,23 +2995,24 @@ command /cast <text>:
 			loop 6*9 times:
 				set slot (loop-value)-1 of {_inv} to {rpgSkript::%player%::safe::%loop-value%}
 			open {_inv} to player
-		( hasClass(player, "wizard") or hasClass(player, "sorceror") ) is true
 		if arg 1 is "conjure":
+			( hasClass(player, "wizard") or hasClass(player, "sorceror") ) is true
 			if subMana(command executor, 1500) is false:
 				send "&cYou do not have enough Mana to cast the conjure spell!" to command executor
 				stop
 			send "&dYou whisper, and an iron golem materializes into existence!" to command executor
 			spawn 1 iron golem at the location 1 meter above command executor's targeted block
 		if arg 1 is "fireball":
+			( hasClass(player, "wizard") or hasClass(player, "sorceror")  or hasClass(player, "nethermancer")) is true
 			if subMana(command executor, 220) is false:
 				send "&cYou do not have enough Mana to cast the fireball spell!" to command executor
 				stop
 				
 			set {_c} to 1
 			while {_x} is not set:
-				if {rpgSkript::fireballs::%{_c}%} is not set:
+				if {-rpgSkript::fireballs::%{_c}%} is not set:
 					set {_x} to {_c}
-					set {rpgSkript::fireballs::%{_x}%} to "fireball"
+					set {-rpgSkript::fireballs::%{_x}%} to "fireball"
 				else:
 					set {_c} to {_c} + 1
 					
@@ -2903,11 +3028,11 @@ command /cast <text>:
 			
 			set {_loc} to ( {_loc} ~ {_first} )
 			
-			set {rpgSkript::fireballs::%{_x}%::loc} to {_loc}
-			set {rpgSkript::fireballs::%{_x}%::v} to {_v}
-			set {rpgSkript::fireballs::%{_x}%::time} to now
-			set {rpgSkript::fireballs::%{_x}%::caster} to player
-			set {rpgSkript::fireballs::%{_x}%} to 1
+			set {-rpgSkript::fireballs::%{_x}%::loc} to {_loc}
+			set {-rpgSkript::fireballs::%{_x}%::v} to {_v}
+			set {-rpgSkript::fireballs::%{_x}%::time} to now
+			set {-rpgSkript::fireballs::%{_x}%::caster} to player
+			set {-rpgSkript::fireballs::%{_x}%} to 1
 			play sound "item.firecharge.use" with pitch 0.7 at command executor
 			send "&dYou unleash a sphere of fiery destruction!" to command executor
 
@@ -2915,16 +3040,16 @@ command /fireballs:
 	trigger:
 		command executor has permission "rpg.control":
 			set {_x} to 0
-			loop {rpgSkript::fireballs::*}:
+			loop {-rpgSkript::fireballs::*}:
 				set {_x} to {_x} + 1
 			send "&cFireballs: %{_x}%" to command executor
 
 every tick:
-	loop {rpgSkript::fireballs::*}:
-		set {_loc} to {rpgSkript::fireballs::%loop-index%::loc}
+	loop {-rpgSkript::fireballs::*}:
+		set {_loc} to {-rpgSkript::fireballs::%loop-index%::loc}
 
-		if difference between {rpgSkript::fireballs::%loop-index%::time} and now is greater than 10 seconds:
-			delete {rpgSkript::fireballs::%loop-index%}
+		if difference between {-rpgSkript::fireballs::%loop-index%::time} and now is greater than 10 seconds:
+			delete {-rpgSkript::fireballs::%loop-index%}
 
 		y of (vector of {_loc}) is greater than 300:
 			explodeFireball(loop-index)
@@ -2935,9 +3060,9 @@ every tick:
 			rpgLog("Cleared stray fireball")
 			continue
 
-		set {_delta} to {rpgSkript::fireballs::%loop-index%::v}
+		set {_delta} to {-rpgSkript::fireballs::%loop-index%::v}
 		set vector length of {_delta} to 0.25
-		set {_distance} to vector length of {rpgSkript::fireballs::%loop-index%::v}
+		set {_distance} to vector length of {-rpgSkript::fireballs::%loop-index%::v}
 		while {_distance} > 0.25:
 			moveFireball(loop-index, {_delta})
 			set {_distance} to {_distance} - 0.25
@@ -2945,18 +3070,18 @@ every tick:
 		moveFireball(loop-index, {_delta})
 
 function moveFireball(index: string, v: vector):
-	if {rpgSkript::fireballs::%{_index}%} is not set:
+	if {-rpgSkript::fireballs::%{_index}%} is not set:
 		exit
-	show large smoke at ({rpgSkript::fireballs::%{_index}%::loc})
-	#broadcast "%{rpgSkript::fireballs::%{_index}%::loc}%"
-	set {rpgSkript::fireballs::%{_index}%::loc} to ({rpgSkript::fireballs::%{_index}%::loc} ~ {_v})
-	set {_loc} to {rpgSkript::fireballs::%{_index}%::loc}
-	#broadcast "%{rpgSkript::fireballs::%{_index}%::loc}%"
+	show large smoke at ({-rpgSkript::fireballs::%{_index}%::loc})
+	#broadcast "%{-rpgSkript::fireballs::%{_index}%::loc}%"
+	set {-rpgSkript::fireballs::%{_index}%::loc} to ({-rpgSkript::fireballs::%{_index}%::loc} ~ {_v})
+	set {_loc} to {-rpgSkript::fireballs::%{_index}%::loc}
+	#broadcast "%{-rpgSkript::fireballs::%{_index}%::loc}%"
 	show mob spawner flames at {_loc}
 	loop blocks in radius 1 around {_loc}:
 		#show mob spawner flames at loop-block
 		loop-block is water:
-			delete {rpgSkript::fireballs::%{_index}%}
+			delete {-rpgSkript::fireballs::%{_index}%}
 		loop-block is solid:
 			explodeFireball({_index})
 	loop all entities in radius 2 around {_loc}:
@@ -2964,9 +3089,9 @@ function moveFireball(index: string, v: vector):
 			explodeFireball({_index})
 
 function explodeFireball(index: string):
-	if {rpgSkript::fireballs::%{_index}%} is not set:
+	if {-rpgSkript::fireballs::%{_index}%} is not set:
 		exit
-	set {_loc} to {rpgSkript::fireballs::%{_index}%::loc}
+	set {_loc} to {-rpgSkript::fireballs::%{_index}%::loc}
 	playSoundToPlayers({_loc}, "entity.firework_rocket.blast", 90, 0.3)
 	explodeRadius(block at {_loc}, 1.5)
 	loop blocks in radius 2.5 around {_loc}:
@@ -2975,20 +3100,21 @@ function explodeFireball(index: string):
 	loop blocks in radius 5 around {_loc}:
 		loop-block is air:
 			set block at location of loop-block to fire
-	delete {rpgSkript::fireballs::%{_index}%}
+	delete {-rpgSkript::fireballs::%{_index}%}
 	loop all entities in radius 8 around ({_loc}):
 		loop-entity is not a dropped item
+		hasClass(loop-entity, "nethermancer") is false
 		damage loop-entity by 60
 	create an explosion with force 3 at {_loc}
-	if {rpgSkript::fireballs::%{_index}%::caster} is set:
-		add 5 experience to {rpgSkript::fireballs::%{_index}%::caster}
+	if {-rpgSkript::fireballs::%{_index}%::caster} is set:
+		add 5 experience to {-rpgSkript::fireballs::%{_index}%::caster}
 
 every tick:
-	loop {rpgSkript::cryoballs::*}:
-		set {_loc} to {rpgSkript::cryoballs::%loop-index%::loc}
+	loop {-rpgSkript::cryoballs::*}:
+		set {_loc} to {-rpgSkript::cryoballs::%loop-index%::loc}
 
-		if difference between {rpgSkript::cryoballs::%loop-index%::time} and now is greater than 10 seconds:
-			delete {rpgSkript::cryoballs::%loop-index%}
+		if difference between {-rpgSkript::cryoballs::%loop-index%::time} and now is greater than 10 seconds:
+			delete {-rpgSkript::cryoballs::%loop-index%}
 
 		y of (vector of {_loc}) is greater than 300:
 			explodeCryoball(loop-index)
@@ -2999,21 +3125,21 @@ every tick:
 			rpgLog("Cleared stray cryoball")
 			continue
 
-		set {_delta} to {rpgSkript::cryoballs::%loop-index%::v}
+		set {_delta} to {-rpgSkript::cryoballs::%loop-index%::v}
 		set vector length of {_delta} to 0.25
-		set {_distance} to vector length of {rpgSkript::cryoballs::%loop-index%::v}
+		set {_distance} to vector length of {-rpgSkript::cryoballs::%loop-index%::v}
 		while {_distance} > 0.25:
 			moveCryoball(loop-index, {_delta})
 			set {_distance} to {_distance} - 0.25
 		set vector length of {_delta} to {_distance}
 		moveCryoball(loop-index, {_delta})
-		set {rpgSkript::cryoballs::%loop-index%::v} to {rpgSkript::cryoballs::%loop-index%::v} -- (vector 0,0.1,0)
+		set {-rpgSkript::cryoballs::%loop-index%::v} to {-rpgSkript::cryoballs::%loop-index%::v} -- (vector 0,0.1,0)
 
 function moveCryoball(index: string, v: vector):
-	if {rpgSkript::cryoballs::%{_index}%} is not set:
+	if {-rpgSkript::cryoballs::%{_index}%} is not set:
 		exit
-	set {rpgSkript::cryoballs::%{_index}%::loc} to ({rpgSkript::cryoballs::%{_index}%::loc} ~ {_v})
-	set {_loc} to {rpgSkript::cryoballs::%{_index}%::loc}
+	set {-rpgSkript::cryoballs::%{_index}%::loc} to ({-rpgSkript::cryoballs::%{_index}%::loc} ~ {_v})
+	set {_loc} to {-rpgSkript::cryoballs::%{_index}%::loc}
 	show water splash at {_loc}
 	loop blocks in radius 1 around {_loc}:
 		show cloud at loop-block
@@ -3029,9 +3155,9 @@ function moveCryoball(index: string, v: vector):
 			explodeCryoball({_index})
 
 function explodeCryoball(index: string):
-	if {rpgSkript::cryoballs::%{_index}%} is not set:
+	if {-rpgSkript::cryoballs::%{_index}%} is not set:
 		exit
-	set {_loc} to {rpgSkript::cryoballs::%{_index}%::loc}
+	set {_loc} to {-rpgSkript::cryoballs::%{_index}%::loc}
 	playSoundToPlayers({_loc}, "entity.firework_rocket.blast", 50, 0.7)
 	loop blocks in radius 4 around {_loc}:
 		loop-block is air:
@@ -3043,13 +3169,13 @@ function explodeCryoball(index: string):
 	loop blocks in radius 10 around {_loc}:
 		loop-block is fire:
 			set loop-block to air
-	delete {rpgSkript::cryoballs::%{_index}%}
+	delete {-rpgSkript::cryoballs::%{_index}%}
 	loop all entities in radius 14 around ({_loc}):
 		loop-entity is not a dropped item
 		damage loop-entity by 3
 		apply slowness 3 to loop-entity for 8 seconds replacing the existing effect
-	if {rpgSkript::cryoballs::%{_index}%::caster} is set:
-		add 3 experience to {rpgSkript::cryoballs::%{_index}%::caster}
+	if {-rpgSkript::cryoballs::%{_index}%::caster} is set:
+		add 3 experience to {-rpgSkript::cryoballs::%{_index}%::caster}
 
 on inventory close:
 	if event-inventory's name is "&dSafe":
@@ -3123,7 +3249,7 @@ on right click with iron nugget:
 	show mob spawner flames at (the location 1 block above the player's location)
 
 on right click with magma cream:
-	( hasClass(player, "wizard") or hasClass(player, "sorceror") ) is true
+	( hasClass(player, "wizard") or hasClass(player, "sorceror") or hasClass(player, "nethermancer") ) is true
 	make player execute command "/cast fireball"
 
 on right click with flint:
@@ -3143,7 +3269,7 @@ on right click with flint:
 	show mob spawner flames at (the location 1 block above the player's location)
 
 on right click with blaze rod:
-	hasClass(player, "wizard") is true
+	( hasClass(player, "wizard") or hasClass(player, "nethermancer") ) is true
 	if subMana(event-player, 1000) is false:
 		send "&cYou do not have enough Mana to cast the devastating blast spell!" to event-player
 		stop
@@ -3353,9 +3479,9 @@ on right click with lapis lazuli:
 		
 	set {_c} to 1
 	while {_x} is not set:
-		if {rpgSkript::cryoballs::%{_c}%} is not set:
+		if {-rpgSkript::cryoballs::%{_c}%} is not set:
 			set {_x} to {_c}
-			set {rpgSkript::cryoballs::%{_x}%} to "cryoball"
+			set {-rpgSkript::cryoballs::%{_x}%} to "cryoball"
 		else:
 			set {_c} to {_c} + 1
 			
@@ -3371,11 +3497,11 @@ on right click with lapis lazuli:
 	
 	set {_loc} to ( {_loc} ~ {_first} )
 	
-	set {rpgSkript::cryoballs::%{_x}%::loc} to {_loc}
-	set {rpgSkript::cryoballs::%{_x}%::v} to {_v}
-	set {rpgSkript::cryoballs::%{_x}%::time} to now
-	set {rpgSkript::cryoballs::%{_x}%::caster} to player
-	set {rpgSkript::cryoballs::%{_x}%} to 1
+	set {-rpgSkript::cryoballs::%{_x}%::loc} to {_loc}
+	set {-rpgSkript::cryoballs::%{_x}%::v} to {_v}
+	set {-rpgSkript::cryoballs::%{_x}%::time} to now
+	set {-rpgSkript::cryoballs::%{_x}%::caster} to player
+	set {-rpgSkript::cryoballs::%{_x}%} to 1
 	play sound "item.bucket.empty" with pitch 0.7 at command executor
 	send "&dYou release a freezing orb of water!" to command executor
 
@@ -3386,7 +3512,7 @@ on right click with lapis lazuli:
 
 
 function isMinion(entity: entity) :: boolean:
-	{rpgSkript::minions::%uuid of {_entity}%} is set:
+	{-rpgSkript::minions::%uuid of {_entity}%} is set:
 		return true
 	return false
 
@@ -3399,7 +3525,7 @@ every 2 seconds:
 
 	set {_start} to now
 
-	loop {rpgSkript::minions::*}:
+	loop {-rpgSkript::minions::*}:
 	
 		set {_uuid} to loop-index
 		set {_entity} to getByUUID({_uuid})
@@ -3407,7 +3533,7 @@ every 2 seconds:
 			deleteMinion({_uuid})
 			continue loop
 			
-		set {_summoner} to {rpgSkript::minions::%{_uuid}%::summoner}
+		set {_summoner} to {-rpgSkript::minions::%{_uuid}%::summoner}
 		{_summoner} is not online:
 			killMinion({_uuid})
 			continue loop
@@ -3445,6 +3571,8 @@ on death:
 			hasClass(loop-player, "necromancer") is true:
 				add 1 experience to the loop-player
 
+	
+
 on explosion prime:
 	event-entity is a creeper:
 		isMinion(target of event-entity) is true:
@@ -3452,8 +3580,8 @@ on explosion prime:
 
 function deleteMinion(uuid: text):
 	#broadcast "&7Deleting minion"
-	delete {rpgSkript::minions::%{_uuid}%}
-	delete {rpgSkript::minions::%{_uuid}%::*}
+	delete {-rpgSkript::minions::%{_uuid}%}
+	delete {-rpgSkript::minions::%{_uuid}%::*}
 
 	set {_entity} to getByUUID({_uuid})
 	{_entity} is set:
@@ -3498,8 +3626,8 @@ command /ritual <text>:
 				stop
 			play sound "item.trident.thunder" with pitch 2.0 at player
 			send "&6You temporarily increase your mana and lifeforce!" to player
-			set {rpgSkript::%player%::ritualstr} to true
-			set {rpgSkript::%player%::ritualstrcount} to 3600
+			set {-rpgSkript::%player%::ritualstr} to true
+			set {-rpgSkript::%player%::ritualstrcount} to 3600
 			scriptDebugBroadcastType("ritual", "%player%: Strengthen Boolean -> %{rpgSkript::%player%::ritualstr}%")
 			scriptDebugBroadcastType("ritual", "%player%: Strengthen Count -> %{rpgSkript::%player%::ritualstrcount}%")
 		else if arg 1 is "minions":
@@ -3508,16 +3636,16 @@ command /ritual <text>:
 				stop
 			play sound "item.trident.thunder" with pitch 2.0 at player
 			send "&6You temporarily increase your minions power!" to player
-			set {rpgSkript::%player%::ritualmin} to true
-			set {rpgSkript::%player%::ritualmincount} to 3600
+			set {-rpgSkript::%player%::ritualmin} to true
+			set {-rpgSkript::%player%::ritualmincount} to 3600
 		else if arg 1 is "corpse":
 			takeItems(player, (16 bone and 32 rotten flesh and 4 spider eyes)) is false:
 				send "&cYou do not have the required items to grant yourself the 'Corpse Explosion' power (16 bone, 32 rotten flesh, 4 spider eyes)!" to player
 				stop
 			play sound "item.trident.thunder" with pitch 2.0 at player
 			send "&6You become the walking death!" to player
-			set {rpgSkript::%player%::ritualcor} to true
-			set {rpgSkript::%player%::ritualcorcount} to 3600
+			set {-rpgSkript::%player%::ritualcor} to true
+			set {-rpgSkript::%player%::ritualcorcount} to 3600
 		else:
 			send "&cUnrecognized ability" to player
 
@@ -3555,11 +3683,11 @@ on left click with bone:
 
 on left click with redstone:
 	hasClass(event-player, "necromancer") is true:
-		subMana(event-player, 200) is false:
+		subMana(event-player, 500) is false:
 			send "&4Not enough mana to use Blood Surge!" to event-player		
 			stop
-		if {rpgSkript::event-player::bloodcount} is not set:
-			set {rpgSkript::event-player::bloodcount} to 0
+		if {-rpgSkript::event-player::bloodcount} is not set:
+			set {-rpgSkript::event-player::bloodcount} to 0
 		set {_monsters} to 0
 		play sound "item.trident.riptide_3" with pitch 2 at event-player
 		loop all entities in radius 7 around event-player:
@@ -3573,14 +3701,14 @@ on left click with redstone:
 				send "&4Your blood has been drained!" to loop-entity
 		wait 3 ticks
 		if {_monsters} is greater than 0:
-			set {rpgSkript::event-player::bloodcount} to {rpgSkript::event-player::bloodcount} + 1
-		if {rpgSkript::event-player::bloodcount} is greater than 4:
+			set {-rpgSkript::event-player::bloodcount} to {-rpgSkript::event-player::bloodcount} + 1
+		if {-rpgSkript::event-player::bloodcount} is greater than 4:
 			set {_damage} to 5 * (1 + ({_monsters}/2) ) * 2
-			scriptDebugBroadcastType("damage", "Blood Damage Spread out Between %{_monsters}% entities with 5 stacks -> %{_damage}%")
-			set {rpgSkript::event-player::bloodcount} to 0
+			scriptDebugBroadcastType("necromancerdamage", "Blood Damage Spread out Between %{_monsters}% entities with 5 stacks -> %{_damage}%")
+			set {-rpgSkript::event-player::bloodcount} to 0
 		else:
 			set {_damage} to 5 * (1 + ({_monsters}/2) )
-			scriptDebugBroadcastType("damage", "Blood Damage Spread out Between %{_monsters}% entities -> %{_damage}%")
+			scriptDebugBroadcastType("necromancerdamage", "Blood Damage Spread out Between %{_monsters}% entities -> %{_damage}%")
 		loop all entities in radius 7 around event-player:
 			loop-entity is not event-player:
 				isMinion(loop-entity) is true:
@@ -3591,31 +3719,31 @@ on left click with redstone:
 		heal(event-player, 3 * {_monsters} )
 
 function setupMinion(entity: entity, summoner: player):
-	set {rpgSkript::minions::%uuid of {_entity}%} to 1
-	set {rpgSkript::minions::%uuid of {_entity}%::summoner} to {_summoner}
+	set {-rpgSkript::minions::%uuid of {_entity}%} to 1
+	set {-rpgSkript::minions::%uuid of {_entity}%::summoner} to {_summoner}
 	set {_entity}'s helmet to leather helmet
 	dye {_entity}'s helmet blue
 	enchant {_entity}'s helmet with protection 1
 	reset target of {_entity}
 
 function hasSameSummoner(entity: entity, entity2: entity) :: boolean:
-	{rpgSkript::minions::%uuid of {_entity}%::summoner} is {rpgSkript::minions::%uuid of {_entity2}%::summoner}:
+	{-rpgSkript::minions::%uuid of {_entity}%::summoner} is {-rpgSkript::minions::%uuid of {_entity2}%::summoner}:
 		return true
 	return false
 
 function getSummoner(uuid: text) :: player:
-	{rpgSkript::minions::%{_uuid}%::summoner} is set:
-		return {rpgSkript::minions::%{_uuid}%::summoner}
+	{-rpgSkript::minions::%{_uuid}%::summoner} is set:
+		return {-rpgSkript::minions::%{_uuid}%::summoner}
 
 function getMinionCount(summoner: player) :: number:
 	set {_count} to 0
-	loop {rpgSkript::minions::*}:
+	loop {-rpgSkript::minions::*}:
 		getSummoner(loop-index) is {_summoner}:
 			set {_count} to {_count} + 1
 	return {_count}
 
 function getMinionUUIDs(summoner: player) :: texts:
-	loop {rpgSkript::minions::*}:
+	loop {-rpgSkript::minions::*}:
 		getSummoner(loop-index) is {_summoner}:
 			add loop-index to {_list::*}
 	return {_list::*}
@@ -3643,7 +3771,7 @@ function calculateMaxMinions(summoner: player) :: number:
 
 function cullMinions(summoner: player):
 	set {_toRemove} to getMinionCount({_summoner}) - calculateMaxMinions({_summoner})
-	loop {rpgSkript::minions::*}:
+	loop {-rpgSkript::minions::*}:
 		{_toRemove} > 0:
 			getSummoner(loop-index) is {_summoner}:
 				killMinion(loop-index)
@@ -3740,17 +3868,19 @@ command /channel <text>:
 			subMana(player, 300) is false:
 				send "&cYou do not have enough mana to cure nearby allies!" to player
 				stop
-			loop players in radius 20 of player:
-				removeEffect(loop-player, "shocking")
-				removeEffect(loop-player, "bleeding")
-				removeEffect(loop-player, "disease")
-				removeEffect(loop-player, "infected")
-				removeEffect(loop-player, "phased")
-				removeEffect(loop-player, "void")
-				removeEffect(loop-player, "levitate")
-				cure loop-player
-				loop-player is not player:
-					send "&6A Cleric cures you of your ailments!" to loop-player
+			loop all entities in radius 20 of player:
+				isMonster(loop-entity) is false
+				removeEffect(loop-entity, "shocking")
+				removeEffect(loop-entity, "bleeding")
+				removeEffect(loop-entity, "disease")
+				removeEffect(loop-entity, "infected")
+				removeEffect(loop-entity, "phased")
+				removeEffect(loop-entity, "void")
+				removeEffect(loop-entity, "levitate")
+				removeEffect(loop-entity, "firestorm")
+				cure loop-entity
+				loop-entity is not player:
+					send "&6A Cleric cures you of your ailments!" to loop-entity
 			play sound "item.trident.thunder" with pitch 2.0 at player
 			send "&6You cure your allies of their ailments!" to player
 		else:
@@ -3774,8 +3904,8 @@ command /soulbond <player>:
 			send "&cYou do not have enough mana to create a soulbond!" to player
 			stop			
 		applyEffect(player, "soulbond", 10 minutes)
-		set {rpgSkript::%player%::soulbond} to true
-		set {rpgSkript::%player%::soulbondplayer} to arg 1
+		set {-rpgSkript::%player%::soulbond} to true
+		set {-rpgSkript::%player%::soulbondplayer} to arg 1
 		applyEffect(arg 1, "soulbond", 10 minutes)
 		set {rpgSkript::%arg 1%::soulbond} to true
 		set {rpgSkript::%arg 1%::soulbondplayer} to player
@@ -3787,8 +3917,8 @@ command /soulbond <player>:
 command /soulbondtp:
 	executable by: players
 	trigger:
-		{rpgSkript::%player%::soulbond} is true
-		teleport player to {rpgSkript::%player%::soulbondplayer}
+		{-rpgSkript::%player%::soulbond} is true
+		teleport player to {-rpgSkript::%player%::soulbondplayer}
 
 
 on right click with totem of undying:
@@ -4137,7 +4267,7 @@ on right click with shulker shell:
 		send "&4You do not have the required mana to cast the Dark Shroud spell!" to event-player
 		stop
 	applyEffect(event-player, "Dark Shroud", 20 minutes)
-	set {rpgSkript::%event-player%::darkshroud} to 5
+	set {-rpgSkript::%event-player%::darkshroud} to 5
 				
 on right click with purple dye:
 	hasClass(event-player, "endwarden") is true
@@ -4173,6 +4303,43 @@ on right click with glow ink sac:
 
 every 10 seconds:
 	loop all players:
+		hasClass(loop-player, "nethermancer") is true:
+			set {_addheat} to 0
+			set {_time} to time in world of loop-player
+			if world of loop-player is "world_nether":
+				set {_addheat} to {_addheat} + 50
+			if at least one of:
+				the biome of loop-player is desert
+				the biome of loop-player is savanna
+				the biome of loop-player is savanna plateau
+				the biome of loop-player is plains
+				the biome of loop-player is beach
+				the biome of loop-player is badlands
+			then:
+				set {_addheat} to {_addheat} + 20
+			if at least one of:
+				the biome of loop-player is ocean
+				the biome of loop-player is taiga
+				the biome of loop-player is frozen river
+				the biome of loop-player is snowy plains
+				the biome of loop-player is snowy taiga
+				the biome of loop-player is snowy slopes
+				the biome of loop-player is snowy beach
+			then:
+				set {_addheat} to {_addheat} - 20
+			if loop-player is wet:
+				set {_addheat} to {_addheat} - 250
+			if time in world of loop-player is between 06:00 and 18:00:
+				weather in world of loop-player is clear:
+					block above loop-player is air:
+						set {_addheat} to {_addheat}+ 10
+			else:
+				set {_addheat} to {_addheat} - 10
+			weather in world of loop-player is rain:
+				set {_addheat} to {_addheat} - 15	
+
+			regenHeat(loop-player, {_addheat})
+
 		hasClass(loop-player, "druid") is true:
 			canUseDruidAbilities(loop-player) is true:
 				if {rpgSkript::%loop-player%::humanshape} is true:
@@ -4582,39 +4749,39 @@ command /activate <text>:
 	trigger:
 		if hasClass(player, "artificer") is true:
 			if arg 1 is "Mine":
-				if {rpgSkript::%player%::mineLocation} is set:
-					if {rpgSkript::%player%::minePower} is "greater":			
-						detonate(block at {rpgSkript::%player%::mineLocation}, 4.99)
-						loop all entities in radius 5 around {rpgSkript::%player%::mineLocation}:
+				if {-rpgSkript::%player%::mineLocation} is set:
+					if {-rpgSkript::%player%::minePower} is "greater":			
+						detonate(block at {-rpgSkript::%player%::mineLocation}, 4.99)
+						loop all entities in radius 5 around {-rpgSkript::%player%::mineLocation}:
 							loop-entity is not a dropped item
-							set {_vec} to vector between block at {rpgSkript::%player%::mineLocation} and loop-entity
+							set {_vec} to vector between block at {-rpgSkript::%player%::mineLocation} and loop-entity
 							set y component of {_vec} to 0
 							set {_vec} to normalized {_vec}
 							push loop-entity {_vec} with force 1.4
 							push loop-entity upwards with force 0.9
 							damage loop-entity by 8.0
-						create a fake explosion at {rpgSkript::%player%::mineLocation}
+						create a fake explosion at {-rpgSkript::%player%::mineLocation}
 
-					else if {rpgSkript::%player%::minePower} is "lesser":			
-						detonate(block at {rpgSkript::%player%::mineLocation}, 2.99)
-						loop all entities in radius 3 around {rpgSkript::%player%::mineLocation}:
+					else if {-rpgSkript::%player%::minePower} is "lesser":			
+						detonate(block at {-rpgSkript::%player%::mineLocation}, 2.99)
+						loop all entities in radius 3 around {-rpgSkript::%player%::mineLocation}:
 							loop-entity is not a dropped item
-							set {_vec} to vector between block at {rpgSkript::%player%::mineLocation} and loop-entity
+							set {_vec} to vector between block at {-rpgSkript::%player%::mineLocation} and loop-entity
 							set y component of {_vec} to 0
 							set {_vec} to normalized {_vec}
 							push loop-entity {_vec} with force 1.2
 							push loop-entity upwards with force 0.7
 							damage loop-entity by 5.0
-						create a fake explosion at {rpgSkript::%player%::mineLocation}
+						create a fake explosion at {-rpgSkript::%player%::mineLocation}
 
-					if {rpgSkript::%player%::minePoison} is true:
-						createWorldEffect({rpgSkript::%player%::mineLocation}, "poison_gas", 20 seconds, player)	
+					if {-rpgSkript::%player%::minePoison} is true:
+						createWorldEffect({-rpgSkript::%player%::mineLocation}, "poison_gas", 20 seconds, player)	
 
 					send "&6Mine Detonated!" to the player
-					set {_rpgSkript::%player%::minePoison} to false
-					set {_rpgSkript::%player%::mineAuto} to false
-					clear {rpgSkript::%player%::mineLocation}
-					clear {rpgSkript::%player%::minePower}
+					set {-_rpgSkript::%player%::minePoison} to false
+					set {-_rpgSkript::%player%::mineAuto} to false
+					clear {-rpgSkript::%player%::mineLocation}
+					clear {-rpgSkript::%player%::minePower}
 			else:
 				send "&cNo Tool to Activate" to the player	
 		else:
@@ -4627,17 +4794,17 @@ on right click with gunpowder:
 			hasLore(event-player's held item, "greater mine") is true
 			hasLore(event-player's held item, "poison mine") is true
 		then:
-			set {rpgSkript::%event-player%::mineAuto} to "false"
-			set {rpgSkript::%event-player%::minePoison} to "false"
-			set {rpgSkript::%event-player%::mineLocation} to location of event-block
+			set {-rpgSkript::%event-player%::mineAuto} to "false"
+			set {-rpgSkript::%event-player%::minePoison} to "false"
+			set {-rpgSkript::%event-player%::mineLocation} to location of event-block
 			if hasLore(event-player's held item, "greater mine") is true:
-				set {rpgSkript::%event-player%::minePower} to "greater"
+				set {-rpgSkript::%event-player%::minePower} to "greater"
 			else if hasLore(event-player's held item, "lesser mine") is true:
-				set {rpgSkript::%event-player%::minePower} to "lesser"
+				set {-rpgSkript::%event-player%::minePower} to "lesser"
 			if hasLore(event-player's held item, "poison mine") is true:
-				set {rpgSkript::%event-player%::minePoison} to true
+				set {-rpgSkript::%event-player%::minePoison} to true
 			if hasLore(event-player's held item, "auto mine") is true:
-				set {rpgSkript::%event-player%::mineAuto} to true
+				set {-rpgSkript::%event-player%::mineAuto} to true
 			send "&6Mine Set!" to the event-player
 			
 
@@ -4799,7 +4966,32 @@ function detonate(block: block, range: number):
 
 # Bard
 
-# Nether
+# Nethermancer
+
+function regenHeat(player: player, amount: number):
+	hasClass({_player}, "nethermancer") is true
+	set {rpgSkript::heat::%{_player}%} to {rpgSkript::heat::%{_player}%} + {_amount}
+	if {rpgSkript::heat::%{_player}%} is greater than 1000:
+		set {rpgSkript::heat::%{_player}%} to 1000
+	if {rpgSkript::heat::%{_player}%} is less than 0:
+		set {rpgSkript::heat::%{_player}%} to 0
+	scriptDebugBroadcastType("heat", "%{_player}%'s heat levels increase by %{_amount}% to %{rpgSkript::heat::%{_player}%}%")
+on left click with lava bucket:
+	hasClass(event-player, "nethermancer") is true:
+		remove event-item from event-player's inventory
+		give bucket to event-player
+		apply saturation 2 without particles to event-player for 30 seconds replacing the existing effect
+		applyEffect(event-player, "regen", 5 minutes)	
+		regenHeat(event-player, 100)
+		send "&4You drink some lava for food and heat." to event-player
+
+on left click with water bucket:
+	hasClass(event-player, "nethermancer") is true:
+		remove event-item from event-player's inventory
+		give bucket to event-player
+		apply weakness 1 without particles to event-player for 1 minute replacing the existing effect	
+		regenHeat(event-player, -100)
+		send "&4You drink some water to cool down." to event-player
 
 # Arcanist
 
@@ -4810,16 +5002,16 @@ command /fistelement <text>:
 	trigger:
 		hasClass(player, "monk") is true
 		if arg 1 is "fire":
-			set {rpgSkript::%player%::fistelement} to "fire"
+			set {-rpgSkript::%player%::fistelement} to "fire"
 			send "&eFist Element set to Fire" to player
 		else if arg 1 is "frost":
-			set {rpgSkript::%player%::fistelement} to "frost"
+			set {-rpgSkript::%player%::fistelement} to "frost"
 			send "&eFist Element set to Frost" to player
 		else if arg 1 is "lightning":
-			set {rpgSkript::%player%::fistelement} to "lightning"
+			set {-rpgSkript::%player%::fistelement} to "lightning"
 			send "&eFist Element set to Lightning" to player
 		else if arg 1 is "holy":
-			set {rpgSkript::%player%::fistelement} to "holy"
+			set {-rpgSkript::%player%::fistelement} to "holy"
 			send "&eFist Element set to Holy" to player
 		else:
 			send "&cValid Elements are Fire, Frost, Lightning, or Holy." to player
