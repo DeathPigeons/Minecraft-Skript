@@ -12,33 +12,67 @@ on spawn:
   set {_chance} to log({rpgdiff}) * 12.5
   {_chance} <= 0:
     stop
-  entity is a zombie:
+  if entity is a zombie:
+    if {-netherbreach} is true:
+      spawn 1 zombified piglin at entity
+      spawn 1 piglin at entity
+      chance of 10%:
+        spawn 1 piglin brute at entity
     if entity is not a baby zombie:
-      chance of ({_chance}/25)%:
+      chance of ({_chance}/5)%:
         makeSpecial(entity)
-      chance of ({_chance}/25)%:
+      chance of ({_chance}/5)%:
         makeSummoner(entity)
     else:
-      chance of ({_chance}/25)%:
+      chance of ({_chance}/5)%:
         makeSpecial(entity)     
     
   else if entity is a skeleton:
-    chance of ({_chance}/25)%:
+    if {-netherbreach} is true:
+      spawn 1 wither skeleton at entity
+    chance of ({_chance}/5)%:
       makeSpecial(entity)
-    chance of ({_chance}/25)%:
+    chance of ({_chance}/5)%:
       makeSummoner(entity)
   else if entity is a spider:
-    chance of ({_chance}/25)%:
+    if {-netherbreach} is true:
+      spawn 1 hoglin at the entity
+    chance of ({_chance}/5)%:
       makeSpecial(entity)
   else if entity is a enderman:
-    chance of ({_chance}/25)%:
+    chance of ({_chance}/5)%:
       makeSpecial(entity)
   else if entity is a creeper:
-    chance of ({_chance}/25)%:
+    if {-netherbreach} is true:
+      spawn 1 blaze at entity
+    chance of ({_chance}/5)%:
       makeSpecial(entity)
+  else if entity is a slime:
+    if {-netherbreach} is true:
+      spawn 1 magma cube at entity
+  else if entity is a phantom:
+    if {-netherbreach} is true:
+      spawn 1 ghast at entity
   scriptDebugBroadcastType("difficulty", "Attempting to spawn a boss at %{_chance}% chance with %{rpgdiff}% difficulty")
   chance of ({_chance} / 50)%:
     makeBoss(entity)
+
+  isMonster(entity) is true:
+    set {_itemchance} to 5
+    if {-netherbreach} is true:
+      set {_itemchance} to 7.5
+    chance of {_itemchance}%:
+      set helmet of entity to generateLootHelmet()
+    chance of {_itemchance}%:
+      set chestplate of entity to generateLootChestplate()
+    chance of {_itemchance}%:
+      set leggings of entity to generateLootLeggings()
+    chance of {_itemchance}%:
+      set boots of entity to generateLootBoots()
+    chance of {_itemchance}%:
+      set held item of entity to generateLootSword()
+    chance of {_itemchance}%:
+      set off hand item of entity to generateLootShield() 
   
 
 on spawn:
@@ -68,37 +102,71 @@ on death:
 every 5 seconds:
   if {rpgdiff} is less than 0.05:
     set {rpgdiff} to 0.05
+  if time in world "world" is between 19:00 and 5:00:
+    if at least one of:
+      {-netherbreach} is false
+      {-netherbreach} is not set
+    then:
+      if {lastNetherBreach} is not set:
+        set {lastNetherBreach} to 1.5 hours ago
+      difference between {lastNetherBreach} and now is less than 1 hour:
+        set {lastNetherBreach} to now
+      set {_chance} to log({rpgdiff}) * 12.5 / 100
+      if {_chance} > 0:
+        chance of {_chance}%:
+          set {-netherbreach} to true
+          broadcast "&4A Nether Breach Opens..."
+  else:
+    if {-netherbreach} is true:
+      set {-netherbreach} to false
+      broadcast "&4A Nether Breach Closes..."
 
   
 on weather change to rain:
   chance of 15%:
-    set {-acidrain} to true
-    broadcast "&cAn Acid Rain Pours!"
+    set {-severestorms} to true
+    loop all players:
+      if at least one of:
+        biome of loop-player is desert
+        biome of loop-player is badlands
+      then:
+        send "&6A severe sandstorm picks up!" to loop-player
+      else:
+        send "&4An Acid Rain Pours!" to loop-player
 
 on weather change:
   weather is not rain:
-    if {-acidrain} is not false:
-      set {-acidrain} to false
-      broadcast "&cAn Acid Rain Ends..."
+    if {-severestorms} is not false:
+      {-severestorms} is true:
+        broadcast "&cSevere Storms End..."
+      set {-severestorms} to false
 
 command /worldevents <text> <boolean>:
   trigger:
     if command executor does not have permission "rpg.spawn":
       send "&cYou do not have access to that command." to command executor
       stop
-    if arg 1 is "acid rain":
-      set {-acidrain} to arg 2 
+    if arg 1 is "severe storms":
+      set {-severestorms} to arg 2 
       if arg 2 is true:
         set weather in "world" to rain
-      scriptDebugBroadcastType("worldevents", "Setting {-acidrain} to %arg 2%")
-      broadcast "&c{-acidrain} set to %arg 2%"
+      scriptDebugBroadcastType("worldevents", "Setting {-severestorms} to %arg 2%")
+      broadcast "&c{-severestorms} set to %arg 2%"
+    else if arg 1 is "nether breach":
+      set {-netherbreach} to arg 2
+      if arg 2 is true:
+        set time in "world" to 20:00
+      scriptDebugBroadcastType("worldevents", "Setting {-neatherbreach} to %arg 2%")
+      broadcast "&c{-netherbreach} set to %arg 2%"
+          
     else:
       send "&cInvalid World Event." to command executor 
 
 command /displayevents:
   trigger:
     broadcast "&cBroadcasting Events"
-    broadcast "&6Acid Rain is %{-acidrain}%"
+    broadcast "&6Severe Storms is %{-severestorms}%"
+    broadcast "&6Nether Breach is %{-netherbreach}%"
       
 function makeSpecial(entity: entity):
   {_entity} is a zombie:
@@ -168,8 +236,9 @@ function summonButcher(player:player, chance:number):
       set movement speed attribute of the zombie to 2.0 * movement speed attribute of the zombie
       set maximum health of the zombie to 200
       heal the zombie
-      set {-evilSkript::%the zombie%::isBoss} to true
-      set {-evilSkript::%the zombie%::isButcher} to true
+      set {_temp} to the zombie
+      set {-evilSkript::%{_temp}%::isBoss} to true
+      set {-evilSkript::%{_temp}%::isButcher} to true
       set helmet of the zombie to generateLootHelmet()
       set chestplate of the zombie to generateLootChestplate()
       set leggings of the zombie to generateLootLeggings()
@@ -192,9 +261,10 @@ command /spawnButcher <player> <number>:
 command /spawnrates:
   executable by: anyone
   trigger:
-    broadcast "Special Chance: log(%{rpgdiff}%) * 12.5 / 25 = %log({rpgdiff}) * 12.5 / 25% PERCENT"
+    broadcast "Special Chance: log(%{rpgdiff}%) * 12.5 / 5 = %log({rpgdiff}) * 12.5 / 5% PERCENT"
     broadcast "Boss Chance: log(%{rpgdiff}%) * 12.5 / 50 = %log({rpgdiff}) * 12.5 / 50% PERCENT"
     broadcast "Butcher Chance: log(%{rpgdiff}%) * 12.5 / 100 = %log({rpgdiff}) * 12.5 / 100% PERCENT"
+    broadcast "Netherbreach Chance: log(%{rpgdiff}%) * 12.5 / 100 = %log({rpgdiff}) * 12.5 / 100% PERCENT"
     broadcast "Mobs Attack Damage Bonus: %(1.1^({rpgdiff} - 1))%x"
     broadcast "Mobs Health Bonus: %(1.1^({rpgdiff} - 1))%x"
         
@@ -241,12 +311,22 @@ function creeperDetonate(entity:entity):
               else if {_odds} is less than 80:
                 set loop-block-1 to gold ore
               else if {_odds} is less than 85:
+                if {-netherbreach} is true:
+                  set loop-block-1 to glowstone block
+                  exit 1 loop
                 set loop-block-1 to redstone ore
               else if {_odds} is less than 95:
                 set loop-block-1 to lapis lazuli ore
+                if {-netherbreach} is true:
+                  set loop-block-1 to quartz ore
+                  exit 1 loop
               else if {_odds} is less than 98:
                 set loop-block-1 to diamond ore
               else:
+                if {-netherbreach} is true:
+                  chance of 30%:
+                    set loop-block-1 to ancient debris
+                    exit 1 loop
                 set loop-block-1 to emerald ore
                 
     loop all entities in radius 10 around {_entity}:
@@ -347,15 +427,6 @@ command /spawnBoss <text>:
         makeBoss(the spider)
     
     
-on target:
-  isMonster(event-entity) is true:
-    if {-evilSkript::%event-entity%::summoner} is true:
-      loop {-evilSkript::%event-entity%::summonercount} times:
-        if event-entity is a zombie:
-          spawn a zombie at event-entity
-        else if event-entity is a skeleton:
-          spawn a skeleton at event-entity
-        set {-evilSkript::%event-entity%::summonercount} to {-evilSkript::%event-entity%::summonercount} - 1
 
 every 10 seconds:
   loop all entities:
@@ -368,11 +439,37 @@ every 10 seconds:
       if {-evilSkript::%loop-entity%::isBoss} is true:
         loop all entities in radius 10 around loop-entity:
           loop-entity-2 is not loop-entity-1
+          loop-entity-2 is not a spider
           if chance of 30%:
             createWorldEffect(block at location of loop-entity-2, "cobweb", 5 seconds, loop-entity-1)
             exit 1 loop
           if chance of 30%:
-            createWorldEffect(block at location of loop-entity-2, "poison_gas", 5 seconds, loop-entity-1)            
+            createWorldEffect(block at location of loop-entity-2, "poison_gas", 5 seconds, loop-entity-1)    
+    if loop-entity is a zombie:
+      if {-evilSkript::%loop-entity%::isButcher} is true:
+        loop all entities in radius 15 around loop-entity-1:
+          loop-entity-2 is not a monster
+          loop-entity-2 is not a dropped item
+          loop-entity-2 is alive
+          chance of 30%:
+            set {_vec} to vector between loop-entity-2 and loop-entity-1
+            set y component of {_vec} to 0
+            set {_vec} to normalized {_vec}
+            push loop-entity-2 {_vec} with force 1.2
+            push loop-entity-2 upwards with force 0.3
+            exit loop
+
+every 3 seconds:
+  loop all entities:
+    if loop-entity is a husk:
+      if {-evilSkript::%loop-entity%::isBoss} is true:
+        loop all players in radius 15 around loop-entity-1:
+          chance of 50%:
+            set block 5 blocks above loop-player to sand
+          if block below loop-player is sand:
+            chance of 50%:
+              set block below loop-player to air
+    
       
     
 
