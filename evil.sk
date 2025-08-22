@@ -59,8 +59,28 @@ on spawn:
 
   if {-apocalypse} is true:
     isMonster(entity) is true:
-      spawn 2 zombie at entity
+      set {_n} to a random number between 1 and 10
+      loop {_n} times:
+        spawn 1 zombie at entity:
+          chance of ({_chance} / 5)%:
+            makeSpecial(entity)
 
+
+  
+
+on spawn:
+  isMinion(entity) is false
+  if at least one of:
+    entity is a monster
+    entity is an iron golem
+    entity is a wolf
+    entity is a polar bear
+  then:
+    if {rpgdiff} is not set:
+      set {rpgdiff} to 1
+    set attack damage attribute of entity to (1.1^({rpgdiff} - 1)) * attack damage attribute of entity
+    set maximum health of entity to (1.1^({rpgdiff} - 1)) * maximum health of entity
+    heal entity
   isMonster(entity) is true:
     set {_itemchance} to 5
     if at least one of:
@@ -80,21 +100,6 @@ on spawn:
       set held item of entity to generateLootSword()
     chance of {_itemchance}%:
       set off hand item of entity to generateLootShield() 
-  
-
-on spawn:
-  isMinion(entity) is false
-  if at least one of:
-    entity is a monster
-    entity is an iron golem
-    entity is a wolf
-    entity is a polar bear
-  then:
-    if {rpgdiff} is not set:
-      set {rpgdiff} to 1
-    set attack damage attribute of entity to (1.1^({rpgdiff} - 1)) * attack damage attribute of entity
-    set maximum health of entity to (1.1^({rpgdiff} - 1)) * maximum health of entity
-    heal entity
 
 on death:
   victim is a monster:
