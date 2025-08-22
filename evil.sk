@@ -57,9 +57,15 @@ on spawn:
   chance of ({_chance} / 50)%:
     makeBoss(entity)
 
+  if {-apocalypse} is true:
+    spawn 2 zombie at entity
+
   isMonster(entity) is true:
     set {_itemchance} to 5
-    if {-netherbreach} is true:
+    if at least one of:
+      {-netherbreach} is true
+      {-apocalypse} is true
+    then:
       set {_itemchance} to 7.5
     chance of {_itemchance}%:
       set helmet of entity to generateLootHelmet()
@@ -103,23 +109,32 @@ every 5 seconds:
   if {rpgdiff} is less than 0.05:
     set {rpgdiff} to 0.05
   if time in world "world" is between 19:00 and 5:00:
-    if at least one of:
-      {-netherbreach} is false
-      {-netherbreach} is not set
+    if:
+      {-netherbreach} is not true
+      {-apocalypse} is not true
     then:
-      if {lastNetherBreach} is not set:
-        set {lastNetherBreach} to 1.5 hours ago
-      difference between {lastNetherBreach} and now is less than 1 hour:
-        set {lastNetherBreach} to now
-      set {_chance} to log({rpgdiff}) * 12.5 / 100
-      if {_chance} > 0:
-        chance of {_chance}%:
-          set {-netherbreach} to true
-          broadcast "&4A Nether Breach Opens..."
+      if {lastInvasion} is not set:
+        set {lastInvasion} to 1.5 hours ago
+      difference between {lastInvision} and now is more than 1 hour:
+        set {_chance} to log({rpgdiff}) * 12.5 / 100
+        if {_chance} > 0:
+          chance of {_chance}%:
+            set {lastInvasion} to now
+            set {_odds} to random number between 1 and 100
+            if {_odds} is less than 60:
+              set {-netherbreach} to true
+              broadcast "&4A Nether Breach Opens..."
+            else if {_odds} is less than 100:
+              set {-apocalypse} to true
+              broadcast "&4The Undead Grow Restless..."
+              
   else:
     if {-netherbreach} is true:
       set {-netherbreach} to false
       broadcast "&4A Nether Breach Closes..."
+    if {-apocalypse} is true:
+      set {-apocalypse} to false
+      broadcast "&4The Undead are put to rest..."
 
   
 on weather change to rain:
@@ -158,6 +173,12 @@ command /worldevents <text> <boolean>:
         set time in "world" to 20:00
       scriptDebugBroadcastType("worldevents", "Setting {-neatherbreach} to %arg 2%")
       broadcast "&c{-netherbreach} set to %arg 2%"
+    else if arg 1 is "apocalypse":
+      set {-apocalypse} to arg 2
+      if arg 2 is true:
+        set time in "world" to 20:00
+      scriptDebugBroadcastType("worldevents", "Setting {-neatherbreach} to %arg 2%")
+      broadcast "&c{-apocalypse} set to %arg 2%"
           
     else:
       send "&cInvalid World Event." to command executor 
@@ -167,6 +188,8 @@ command /displayevents:
     broadcast "&cBroadcasting Events"
     broadcast "&6Severe Storms is %{-severestorms}%"
     broadcast "&6Nether Breach is %{-netherbreach}%"
+    broadcast "&6Apocalypse is %{-Apocalypse}%"
+    
       
 function makeSpecial(entity: entity):
   {_entity} is a zombie:
@@ -264,7 +287,7 @@ command /spawnrates:
     broadcast "Special Chance: log(%{rpgdiff}%) * 12.5 / 5 = %log({rpgdiff}) * 12.5 / 5% PERCENT"
     broadcast "Boss Chance: log(%{rpgdiff}%) * 12.5 / 50 = %log({rpgdiff}) * 12.5 / 50% PERCENT"
     broadcast "Butcher Chance: log(%{rpgdiff}%) * 12.5 / 100 = %log({rpgdiff}) * 12.5 / 100% PERCENT"
-    broadcast "Netherbreach Chance: log(%{rpgdiff}%) * 12.5 / 100 = %log({rpgdiff}) * 12.5 / 100% PERCENT"
+    broadcast "Netherbreach/Apocalypse Chance: log(%{rpgdiff}%) * 12.5 / 100 = %log({rpgdiff}) * 12.5 / 100% PERCENT"
     broadcast "Mobs Attack Damage Bonus: %(1.1^({rpgdiff} - 1))%x"
     broadcast "Mobs Health Bonus: %(1.1^({rpgdiff} - 1))%x"
         
