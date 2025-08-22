@@ -37,19 +37,94 @@ command /classinfo <text>:
 	trigger:
 		if arg 1 is "warrior":
 			send "Warrior Features:" to command executor
-			send "Damage Resistance and Increased Damage" to command executor
-			send "Power Attacks and Better Tool Crafting" to command executor
+			send "Damage/Resistances: x1 Damage & .35 resistance" to command executor
+			send "Mana: 0 Base Mana" to command executor
+			send "Abilties: Power Attacks and Enhanced Tool Crafting" to command executor
+			send "Health: Base 20, can be increased to 25" to command executor
+			send "Constraints: None, can wear any armor" to command executor
 		else if arg 1 is "rogue":
 			send "Rogue Features:" to command executor
-			send "Dodge Chances and Increased Damage" to command executor
-			send "Movement Speed, Invisibility, Enhanced Loot Pools, and Detection" to command executor		
+			send "Damage/Resistances: Innate x2 Damage, can be increased while Invisible & Chance to Dodge Damage" to command executor
+			send "Mana: 0" to command executor
+			send "Abilties: Can see information on surrounding items, mobs, and players. Critical hits give Dark Shroud" to command executor
+			send "Health: Base 20" to command executor
+			send "Constraints: Cannot use abilities while slowed, and can not wear heavy armor" to command executor
 		else if arg 1 is "wizard":
-
+			send "Wizard Features:" to command executor
+			send "Damage/Resistances:" to command executor
+			send "Mana" to command executor
+			send "Abilties" to command executor
+			send "Health" to command executor
+			send "Constraints" to command executor
 		else if arg 1 is "nethermancer":
 			send "Nethermancer Features:" to command executor
-			send "Accumulate Heat by taking damage, being on fire, drinking lava, and being in specific environments" to command executor
-			send "Spend heat to regenerate mana and radiate fire to nearby enemies" to command executor
-			send "Enjoy a base 0.40 damage reduction that declines as heat increases" to command executor
-			send "Use magma cream and blaze rods to access your spells" to command executor
+			send "Damage/Resistances:" to command executor
+			send "Mana" to command executor
+			send "Abilties" to command executor
+			send "Health" to command executor
+			send "Constraints" to command executor
+		else if arg 1 is "Paladin":
+			send "Paladin Features:" to command executor
+			send "Damage/Resistances:" to command executor
+			send "Mana" to command executor
+			send "Abilties" to command executor
+			send "Health" to command executor
+			send "Constraints" to command executor
+		else if arg 1 is "Cleric":
+			send "Cleric Features:" to command executor
+			send "Damage/Resistances:" to command executor
+			send "Mana" to command executor
+			send "Abilties" to command executor
+			send "Health" to command executor
+			send "Constraints" to command executor
+		else if arg 1 is "Druid":
+			send "Druid Features:" to command executor
+			send "Damage/Resistances:" to command executor
+			send "Mana" to command executor
+			send "Abilties" to command executor
+			send "Health" to command executor
+			send "Constraints" to command executor
+		else if arg 1 is "Monk":
+			send "Monk Features:" to command executor
+			send "Damage/Resistances:" to command executor
+			send "Mana" to command executor
+			send "Abilties" to command executor
+			send "Health" to command executor
+			send "Constraints" to command executor
+		else if arg 1 is "Endwarden":
+			send "Endwarden Features:" to command executor
+			send "Damage/Resistances:" to command executor
+			send "Mana" to command executor
+			send "Abilties" to command executor
+			send "Health" to command executor
+			send "Constraints" to command executor
+		else if arg 1 is "Necromancer":
+			send "Necromancer Features:" to command executor
+			send "Damage/Resistances:" to command executor
+			send "Mana" to command executor
+			send "Abilties" to command executor
+			send "Health" to command executor
+			send "Constraints" to command executor
+		else if arg 1 is "Barbarian":
+			send "Barbarian Features:" to command executor
+			send "Damage/Resistances:" to command executor
+			send "Mana" to command executor
+			send "Abilties" to command executor
+			send "Health" to command executor
+			send "Constraints" to command executor
+		else if arg 1 is "Sorceror":
+			send "Sorceror Features:" to command executor
+			send "Damage/Resistances:" to command executor
+			send "Mana" to command executor
+			send "Abilties" to command executor
+			send "Health" to command executor
+			send "Constraints" to command executor
+		else if arg 1 is "Artificer":
+			send "Artificer Features:" to command executor
+			send "Damage/Resistances:" to command executor
+			send "Mana" to command executor
+			send "Abilties" to command executor
+			send "Health" to command executor
+			send "Constraints" to command executor
 		else:
 			send "Not a Valid Class" to command executor
