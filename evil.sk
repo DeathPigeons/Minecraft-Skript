@@ -58,7 +58,8 @@ on spawn:
     makeBoss(entity)
 
   if {-apocalypse} is true:
-    spawn 2 zombie at entity
+    isMonster(entity) is true:
+      spawn 2 zombie at entity
 
   isMonster(entity) is true:
     set {_itemchance} to 5
