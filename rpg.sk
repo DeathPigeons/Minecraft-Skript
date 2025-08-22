@@ -987,18 +987,21 @@ every 1 seconds:
 		set {_ndamage} to {_effectDamage}
 		set {_odamage} to {_effectDamage}
 		hasEffect(loop-entity, "firestorm") is true:
-			hasClass(loop-entity, "nethermancer") is false
-			loop-entity is not a dropped item
-			ignite loop-entity
-			wait 1 tick
-			if loop-entity is on fire:
-				set {_effectDamage} to {_effectDamage} + 1.5
-				loop players in radius 15 around loop-entity:
-					hasClass(loop-player, "nethermancer") is true:
-						heal(loop-player, 0.1)
-			loop all entities in radius 1.5 around loop-entity:
-				chance of 50%:
-					applyEffect(loop-entity-2, "firestorm", 10 seconds)
+			if:
+				hasClass(loop-entity, "nethermancer") is false
+				hasClass(getSummoner(uuid of loop-entity), "nethermancer") is false
+			then:
+				loop-entity is not a dropped item
+				ignite loop-entity
+				wait 1 tick
+				if loop-entity is on fire:
+					set {_effectDamage} to {_effectDamage} + 1.5
+					loop players in radius 15 around loop-entity:
+						hasClass(loop-player, "nethermancer") is true:
+							heal(loop-player, 0.1)
+				loop all entities in radius 1.5 around loop-entity:
+					chance of 50%:
+						applyEffect(loop-entity-2, "firestorm", 10 seconds)
 		hasEffect(loop-entity, "hallowed") is true:
 			if isMonster(loop-entity) is true:
 				set {_effectDamage} to {_effectDamage} + 1
@@ -1302,7 +1305,7 @@ every 2 seconds:
 		if time in world of loop-player is between 19:00 and 5:00:
 			{rpgSkript::%loop-player%::lastButcher} is not set:
 				set {rpgSkript::%loop-player%::lastButcher} to 30 minutes ago
-			difference between {rpgSkript::%loop-player%::lastButcher} and now is less than 15 minutes:
+			difference between {rpgSkript::%loop-player%::lastButcher} and now is more than 15 minutes:
 				set {rpgSkript::%loop-player%::lastButcher} to now
 				set {_chance} to log({rpgdiff}) * 12.5 / 100
 				if {_chance} > 0:
@@ -1327,9 +1330,8 @@ every 2 seconds:
 				time in world of loop-player is not between 19:00 and 5:00:
 					set {_add} to 0.25 * countImbue(loop-player, "photosynthesis")
 					heal(loop-player, {_add})
-		hasImbue(loop-player, "speed") is true:
-			set {_c} to countImbue(loop-player, "speed") / 20
-			set movement speed attribute of loop-player to 0.1 + {_c}
+		if hasImbue(loop-player, "speed") is true:
+			apply swiftness 1 without particles to the loop-player for 5 seconds replacing the existing effect			
 
 
 			
@@ -1406,8 +1408,9 @@ on death:
 		set {-rpgSkript::%{rpgSkript::%victim%::soulbondplayer}%::soulbondplayer} to false
 		
 	hasEffect(victim, "infected") is true:
-		isMonster(victim) is false:
-			becomeZombie(victim)
+		isMonster(victim) is false
+		isMinion(victim) is false
+		becomeZombie(victim)
 
 	hasEffect(victim, "firestorm") is true:
 		set {_range} to 0.15 * maximum health of victim
@@ -1415,7 +1418,10 @@ on death:
 			set {_range} to 20
 		loop all entities in radius {_range} around victim:
 			if loop-entity is alive:
-				hasClass(loop-entity, "nethermancer") is false:
+				if:
+					hasClass(loop-entity, "nethermancer") is false
+					hasClass(getSummoner(uuid of loop-entity), "nethermancer") is false
+				then:
 					loop-entity is not a dropped item
 					damage loop-entity by {_range} / 4
 					chance of 50%:
@@ -1573,15 +1579,21 @@ on damage:
 			else:
 				chance of 20%:
 					apply poison 1 without particles to the victim for 5 seconds replacing the existing effect
-		attacker is an enderman:
-			chance of 35%:
-				applyEffect(victim, "phased", 20 seconds)
-			if hasEffect(victim, "phased") is true:
-				hasClass(victim, "endwarden") is false
-				set the damage to the damage * 1.5
-				set {_ndamage} to the damage
-				scriptDebugBroadcastType("effectdamage", "%{_odamage}%: Enderman Phased Damage Bonus x1.2 -> %{_ndamage}%")
-				set {_odamage} to the damage
+	attacker is an enderman:
+		chance of 35%:
+			applyEffect(victim, "phased", 20 seconds)
+		if hasEffect(victim, "phased") is true:
+			hasClass(victim, "endwarden") is false
+			set the damage to the damage * 1.5
+			set {_ndamage} to the damage
+			scriptDebugBroadcastType("effectdamage", "%{_odamage}%: Enderman Phased Damage Bonus x1.2 -> %{_ndamage}%")
+			set {_odamage} to the damage
+	if isMinion(victim) is true:
+		damage cause is fire:
+			if hasClass(getSummoner(uuid of victim), "nethermancer") is true:
+				cancel the event
+				stop
+				
 
 		hasClass(getSummoner(uuid of attacker), "necromancer") is true:
 			add 1 experience to getSummoner(uuid of attacker)
@@ -2448,7 +2460,11 @@ on spawn:
 				set maximum health of event-entity to 16
 				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
 				set armor attribute of event-entity to 5
-			fullHeal(event-entity)
+		hasClass({_caster}, "necromancer") is true:
+			event-entity is a skeleton:
+				set attack damage attribute of entity to (1.1^(level of {_caster} /15)) * attack damage attribute of entity
+				set maximum health of entity to (1.1^(level of {_caster} / 15)) * maximum health of entity
+		fullHeal(event-entity)
 
 
 
@@ -2646,15 +2662,16 @@ on inventory click:
 	populateRogueResearchMenu(player, event-inventory)
 
 on death of a monster:
-	attacker is a player
-	hasClass(attacker, "rogue") is true
-	set {_x} to a random number between 0 and 1000
-	if {_x} <= 350:
-		add 3 arrows to the drops
-	if {_x} <= 80:
-		add 1 raw gold to the drops
-	if {_x} <= 45:
-		add 1 diamond to the drops
+	attacker is a player:
+		hasClass(attacker, "rogue") is true
+		set {_x} to a random number between 0 and 1000
+		if {_x} <= 350:
+			add 3 arrows to the drops
+		if {_x} <= 80:
+			add 1 raw gold to the drops
+		if {_x} <= 45:
+			add 1 diamond to the drops	
+	isMinion(victim) is false
 	set {_z} to 0.05
 	if {-evilSkript::%victim%::isBoss} is true:
 		set {_z} to 0.35
