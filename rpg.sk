@@ -247,7 +247,7 @@ function canFly(player: player):: boolean:
 		return true
 	return false
 
-function getItemCostForImbue(imbue: text):: items:
+function getItemCostForImbue(imbue: text, item: item):: items:
 
 	# Artificer
 
@@ -282,6 +282,85 @@ function getItemCostForImbue(imbue: text):: items:
 	else if {_imbue} is "speed":
 		return (28 quartz and 24 copper ingot and 12 gold ingot)
 
+	else if {_imbue} is "reinforced":
+		if at least one of:
+			{_item} is a diamond pickaxe
+			{_item} is a diamond shovel
+			{_item} is a diamond hoe
+			{_item} is a diamond sword
+			{_item} is a diamond axe
+			{_item} is a diamond chestplate
+			{_item} is a diamond leggings
+			{_item} is a diamond boots
+			{_item} is a diamond helmet
+		then:
+			return (12 leather and 12 diamond)		
+		if at least one of:
+			{_item} is a iron pickaxe
+			{_item} is a iron shovel
+			{_item} is a iron hoe
+			{_item} is a iron sword
+			{_item} is a iron axe
+			{_item} is a iron chestplate
+			{_item} is a iron leggings
+			{_item} is a iron boots
+			{_item} is a iron helmet
+			{_item} is a shield
+			{_item} is a trident
+		then:
+			return (12 leather and 12 iron ingot)
+		if at least one of:
+			{_item} is a wood pickaxe
+			{_item} is a wood shovel
+			{_item} is a wood hoe
+			{_item} is a wood sword
+			{_item} is a wood axe
+			{_item} is a bow
+			{_item} is a crossbow
+		then:
+			return (12 leather)
+	if at least one of:
+		{_item} is a stone pickaxe
+		{_item} is a stone shovel
+		{_item} is a stone hoe
+		{_item} is a stone sword
+		{_item} is a stone axe
+		{_item} is a chain chestplate
+		{_item} is a chain leggings
+		{_item} is a chain boots
+		{_item} is a chain helmet
+	then:
+		return (12 leather and 12 cobblestone)
+	if at least one of:
+		{_item} is a netherite pickaxe
+		{_item} is a netherite shovel
+		{_item} is a netherite hoe
+		{_item} is a netherite sword
+		{_item} is a netherite axe
+		{_item} is a netherite chestplate
+		{_item} is a netherite leggings
+		{_item} is a netherite boots
+		{_item} is a netherite helmet
+	then:
+		return (12 leather and 12 netherite ingot)
+	if at least one of:
+		{_item} is a gold pickaxe
+		{_item} is a gold shovel
+		{_item} is a gold hoe
+		{_item} is a gold sword
+		{_item} is a gold axe
+		{_item} is a gold chestplate
+		{_item} is a gold leggings
+		{_item} is a gold boots
+		{_item} is a gold helmet
+	then:
+		return (12 leather and 12 gold ingot)
+
+
+
+
+	
+			
 	# Artificer Non-Weapons/Tools
 
 	else if {_imbue} is "lesser mine":
@@ -311,7 +390,7 @@ function getItemCostForImbue(imbue: text):: items:
 command /ingredients <text>:
 	executable by: players
 	trigger:
-		set {_cost::*} to getItemCostForImbue(arg 1)
+		set {_cost::*} to getItemCostForImbue(arg 1, player's held item)
 		{_cost::*} is set:
 			send "&e%arg 1 in lower case% costs: %{_cost::*}%" to the player
 		else:
@@ -322,6 +401,12 @@ function lastLoreLine(item: item) :: number:
 	loop lore of {_item}:
 		set {_x} to {_x} + 1
 	return {_x}
+
+command /addLore <text>:
+	executable by: players
+	trigger:
+		player has permission "rpg.control":
+			addImbue(player's held item, "arg 1")
 
 function hasAnyImbue(item: item) :: boolean:
 	if lastLoreLine({_item}) is 1:
@@ -343,10 +428,11 @@ function countImbue(player: player, text: text) :: number:
 		set {_c} to {_c} + 1
 	if hasLore({_player}'s boots, {_text}) is true:
 		set {_c} to {_c} + 1
-	if hasLore({_player}'s held item, {_text}) is true:
-		set {_c} to {_c} + 1
-	if hasLore({_player}'s off hand item, {_text}) is true:
-		set {_c} to {_c} + 1
+	if {_text} is not "reinforced":
+		if hasLore({_player}'s held item, {_text}) is true:
+			set {_c} to {_c} + 1
+		if hasLore({_player}'s off hand item, {_text}) is true:
+			set {_c} to {_c} + 1
 	return {_c}
 
 function hasImbue(player: player, text: text) :: boolean:
@@ -818,6 +904,9 @@ function drawEffects(entity: entity):
 	hasEffect({_entity}, "soulbond") is true:
 		hasEffect({_entity}, "invisible") is false:
 			show rollDice(10, 3) (yellow dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 3, 0)
+	hasEffect({_entity}, "manaboost") is true:
+		hasEffect({_entity}, "invisible") is false:
+			show rollDice(10, 3) (blue dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 2, 0)
 	hasEffect({_entity}, "corrupting dunes") is true:
 		show rollDice(10, 3) (brown dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector -1, 1, -1)
 		show rollDice(10, 3) (brown dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 1, 1, 1)
@@ -899,10 +988,14 @@ every 1 seconds:
 		set {_odamage} to {_effectDamage}
 		hasEffect(loop-entity, "firestorm") is true:
 			hasClass(loop-entity, "nethermancer") is false
+			loop-entity is not a dropped item
 			ignite loop-entity
 			wait 1 tick
-			loop-entity is on fire
-			set {_effectDamage} to {_effectDamage} + 1.5
+			if loop-entity is on fire:
+				set {_effectDamage} to {_effectDamage} + 1.5
+				loop players in radius 15 around loop-entity:
+					hasClass(loop-player, "nethermancer") is true:
+						heal(loop-player, 0.1)
 			loop all entities in radius 1.5 around loop-entity:
 				chance of 50%:
 					applyEffect(loop-entity-2, "firestorm", 10 seconds)
@@ -1000,14 +1093,37 @@ every 1 seconds:
 			heal(loop-entity, 0.05 * maximum health of loop-entity)
 			scriptDebugBroadcastType("regen", "Regenerating %loop-entity% for %0.05 * maximum health of loop-entity% of %maximum health of loop-entity% health")
 
-		{-acidrain} is true:
-			loop-entity is wet:
+		{-severestorms} is true:
+			if at least one of:
+				biome of loop-entity is desert
+				biome of loop-entity is badlands
+			then:
+				if sunlight level at loop-entity is greater than 10:
+					apply weakness 1 without particles to the loop-entity for 5 seconds replacing the existing effect
+					apply slowness 2 without particles to the loop-entity for 5 seconds replacing the existing effect				
+					apply blindness 1 without particles to the loop-entity for 5 seconds replacing the existing effect
+					chance of 10%:
+						set {_effectDamage} to {_effectDamage} + 0.75
+						set {_ndamage} to {_effectDamage}
+						scriptDebugBroadcastType("effect", "%{_odamage}%: Sandstorm +0.75 -> %{_ndamage}%")
+						set {_odamage} to {_effectDamage}						
+			else:
+				sunlight level at loop-entity is greater than 10
 				if isWearingNothing(loop-entity) is true:
-					damage loop-entity by 1
+					set {_effectDamage} to {_effectDamage} + 1
+					set {_ndamage} to {_effectDamage}
+					scriptDebugBroadcastType("effect", "%{_odamage}%: Acid Rain +0.1 -> %{_ndamage}%")
+					set {_odamage} to {_effectDamage}			
 				else if isWearingLightOrLess(loop-entity) is true:
-					damage loop-entity by 0.75
+					set {_effectDamage} to {_effectDamage} + 0.75
+					set {_ndamage} to {_effectDamage}
+					scriptDebugBroadcastType("effect", "%{_odamage}%: Acid Rain +0.75 -> %{_ndamage}%")
+					set {_odamage} to {_effectDamage}			
 				else:
-					damage loop-entity by 0.5
+					set {_effectDamage} to {_effectDamage} + 0.5
+					set {_ndamage} to {_effectDamage}
+					scriptDebugBroadcastType("effect", "%{_odamage}%: Acid Rain +0.5 -> %{_ndamage}%")
+					set {_odamage} to {_effectDamage}			
 
 
 		if {_effectDamage} is not 0:
@@ -1016,7 +1132,11 @@ every 1 seconds:
 			set {_ndamage} to {_effectDamage}
 			scriptDebugBroadcastType("effect", "%{_odamage}%: Iron Will Reduction x%{_reduction}% -> %{_ndamage}%")
 			set {_odamage} to {_effectDamage}
-			damage loop-entity by {_effectDamage} * {_reduction}
+			if {-evilSkript::%loop-entity%::isBoss} is false:
+				set health of loop-entity to health of loop-entity - {_effectDamage} * {_reduction}
+			else:
+				set health of loop-entity to health of loop-entity - ({_effectDamage} * {_reduction}) * 0.5
+			
 
 
 
@@ -1290,19 +1410,22 @@ on death:
 			becomeZombie(victim)
 
 	hasEffect(victim, "firestorm") is true:
-		loop all entities in radius 3 around victim:
+		set {_range} to 0.15 * maximum health of victim
+		if {_range} is greater than 20:
+			set {_range} to 20
+		loop all entities in radius {_range} around victim:
 			if loop-entity is alive:
 				hasClass(loop-entity, "nethermancer") is false:
 					loop-entity is not a dropped item
-					damage loop-entity by 1.5
+					damage loop-entity by {_range} / 4
 					chance of 50%:
 						loop-entity is not a player
 						applyEffect(loop-entity, "firestorm", 10 seconds)
 					set {_vec} to vector between victim and loop-entity
 					set y component of {_vec} to 0
 					set {_vec} to normalized {_vec}
-					push loop-entity {_vec} with force 0.7
-					push loop-entity upwards with force 0.3
+					push loop-entity {_vec} with force 0.2 * {_range}
+					push loop-entity upwards with force 0.1 * {_range}
 			create a fake explosion at the victim
 
 	if {rpgSkript::heat::%victim%} is set:
@@ -1795,6 +1918,13 @@ on damage:
 			scriptDebugBroadcastType("effectdamage", "%{_odamage}%: Iron Will DoT Reduction x%{_reduction}% -> %{_ndamage}%")
 			set {_odamage} to the damage
 
+	hasImbue(victim, "reinforced") is true:
+		set {_reduction} to 1 - (0.05 * countImbue(victim, "reinforced") )
+		set the damage to the damage * {_reduction}
+		set {_ndamage} to the damage
+		scriptDebugBroadcastType("effectdamage", "%{_odamage}%: Reinforced Reduction x%{_reduction}% -> %{_ndamage}%")
+		set {_odamage} to the damage		
+
 	hasEffect(victim, "dark shroud") is true:
 		if {-rpgSkript::%victim%::darkshroud} is greater than 0:
 			set the damage to the damage * 0.75
@@ -1828,10 +1958,19 @@ on target:
 			event-entity is a zombie:
 				spawn 1 zombie at event-entity
 			event-entity is a evoker:
-				spawn 1 pillager at event-entity
-			event-entity is a creeper:
-				spawn 1 creeper at event-entity:
-					makeLunatic(the creeper)
+				set {_chance} to a random number between 1 and 100
+				if {_chance} is greater than 90:
+					spawn 1 ravager at event-entity
+				else if {_chance} is greater than 75:
+					spawn 1 vindicator at event-entity
+				else if {_chance} is greater than 60:
+					spawn 1 evoker at event-entity
+				else if {_chance} is greater than 45:
+					spawn 1 witch at event-entity
+				else if {_chance} is greater than 25:
+					spawn 2 pillager at event-entity
+				else:
+					spawn 3 vex at event-entity
 			event-entity is a spider:
 				spawn 1 spider at event-entity:
 					set movement speed attribute of the spider to 2 * movement speed attribute of the spider
@@ -1906,6 +2045,10 @@ on item damage:
 			stop
 	hasClass(player, "rogue") is true:
 		chance of 25%:
+			cancel the event
+			stop
+	hasLore(event-item, "reinforced") is true:
+		chance of 50%:
 			cancel the event
 			stop
 
@@ -2078,7 +2221,7 @@ function generateLore( item: item):: item:
 		chance of 4%:
 			set {_item} to addImbue({_item}, "&8Necromancer Class")
 		chance of 4%:
-			set {_item} to addImbue({_item}, "&8Netheromancer Class")
+			set {_item} to addImbue({_item}, "&8Nethermancer Class")
 		chance of 4%:
 			set {_item} to addImbue({_item}, "&eCleric Class")
 		chance of 4%:
@@ -2121,6 +2264,8 @@ function generateLore( item: item):: item:
 			set {_item} to addImbue({_item}, "&9Speed")
 		chance of 4%:
 			set {_item} to addImbue({_item}, "&fUnbreakable")
+		chance of 4%:
+			set {_item} to addImbue({_item}, "&7Reinforced")
 	if at least one of:
 		{_item} is any sword
 		{_item} is any axe
@@ -2146,6 +2291,8 @@ function generateLore( item: item):: item:
 			set {_item} to addImbue({_item}, "&9Mana Leak")
 		chance of 4%:
 			set {_item} to addImbue({_item}, "&fUnbreakable")
+		chance of 4%:
+			set {_item} to addImbue({_item}, "&7Reinforced")
 
 	return {_item}
 
@@ -2508,6 +2655,7 @@ on death of a monster:
 		add 1 raw gold to the drops
 	if {_x} <= 45:
 		add 1 diamond to the drops
+	set {_z} to 0.05
 	if {-evilSkript::%victim%::isBoss} is true:
 		set {_z} to 0.35
 		if {-evilSkript::%victim%::isButcher} is true:
@@ -2595,6 +2743,19 @@ on death of a player:
 		hasLore(loop-item, "ethereal") is true:
 			remove loop-item from the drops
 			add loop-item to {rpgSkript::onRespawn::%victim%::*}
+
+	loop players in radius 15 around victim:
+		loop-player is not victim
+		hasClass(loop-player, "paladin") is true:
+			loop-player does not have potion effect weakness
+			subMana(loop-player, {rpgSkript::maxMana::%loop-player%}/3, false) is true 
+			set health of loop-player to health of loop-player / 2
+			apply weakness 1 without particles to loop-player for 1 minute replacing the existing effect
+			apply slowness 1 without particles to loop-player for 1 minute replacing the existing effect		
+			send "You spend your lifeforce to save the innocent!" to loop-player
+			heal(victim, 1)
+			stop
+			cancel the event
 		
 
 on respawn:
@@ -2696,6 +2857,9 @@ function setupMana(player: player):
 	if hasImbue({_player}, "Mana Boost") is true:
 		set {_newMax} to {_newMax} + 0.25 * {_newMax} * countImbue({_player}, "Mana Boost")
 
+	if hasEffect({_player}, "manaboost") is true:
+		set {_newMax} to {_newMax} * 1.25
+
 	set {_newMax} to floor({_newMax})
 	if {_newMax} is not {rpgSkript::maxMana::%{_player}%}:
 		set {rpgSkript::maxMana::%{_player}%} to {_newMax}
@@ -2765,6 +2929,9 @@ function regenMana(player: player):
 		sun light level at {_player} is greater than 5:
 			time in world of {_player} is not between 19:00 and 5:00:
 				set {_add} to {_add} * ( 1 + 0.1 * countImbue({_player}, "photosynthesis"))
+
+	if hasEffect({_player}, "manaboost") is true:
+		set {_add} to {_add} * 1.25
 	
 	addMana( {_player}, {_add} )
 
@@ -2844,7 +3011,7 @@ function arcaneSense(message: text):
 on death of a player:
     hasClass(victim, "wizard") is true:
         keep the experience
-        send "&dYou use your magic powers to keep your experience!" to the victim		
+        send "&dYou use your magic powers to keep your experience!" to the victim	
 
 command /imbue <text>:
 	description: Imbue an item with powerful magic properties
@@ -2855,14 +3022,14 @@ command /imbue <text>:
 			send "&cYou do not have enough mana to imbue an item with magic!"
 			stop
 		if arg 1 is "health":
-			if takeItems( player, getItemCostForImbue("health") ) is true:
+			if takeItems( player, getItemCostForImbue("health", player's held item) ) is true:
 				set line lastLoreLine(player's held item) of (player's held item)'s lore to "&cHealth Boost"
 				send "&dYou imbue the item in your hand with Health Boost!"
 			else:
 				send "&cYou do not have the required items for that property!"
 				stop
 		else if arg 1 is "mana":
-			if takeItems( player, getItemCostForImbue("mana")) is true:
+			if takeItems( player, getItemCostForImbue("mana", player's held item)) is true:
 				set line lastLoreLine(player's held item) of (player's held item)'s lore to "&3Mana Boost"
 				send "&dYou imbue the item in your hand with Mana Boost!"
 			else:
@@ -3883,6 +4050,16 @@ command /channel <text>:
 					send "&6A Cleric cures you of your ailments!" to loop-entity
 			play sound "item.trident.thunder" with pitch 2.0 at player
 			send "&6You cure your allies of their ailments!" to player
+		else if arg 1 is "mana":
+			subMana(player, 300) is false:
+				send "&cYou do not have enough mana to manaboost nearby allies!" to player
+				stop
+			loop all players in radius 20 of player:
+				applyEffect(loop-player, "manaboost", 1800 seconds)
+				loop-player is not player:
+					send "&6A A Cleric boosts your mana capabilities!" to loop-player
+			play sound "item.trident.thunder" with pitch 2.0 at player
+			send "&6You boost your allies mana capabilities!" to player
 		else:
 			send "&cUnrecognized ability" to player
 		scriptDebugBroadcastType("cleric", "%player% attempts channeling %arg 1%")
@@ -4668,7 +4845,12 @@ command /fix:
 command /artifice <text>:
 	executable by: players
 	trigger:
-		if hasClass(player, "artificer") is true:
+		if at least one of:
+			hasClass(player, "artificer") is true
+			arg 1 is "reinforced"
+		then:
+			player's held item is not air
+			set {_item} to player's held item
 			canArtifice(player's held item) is false:
 				send "&cThis item has been artificed the max amount of times!" to the player
 				stop
@@ -4684,7 +4866,7 @@ command /artifice <text>:
 					player's held item is any armor
 					player's held item is a shield
 				then:
-					if takeItems(player, getItemCostForImbue({_imbue})) is true:
+					if takeItems(player, (getItemCostForImbue({_imbue}, {_item}))) is true:
 						set player's held item to addImbue({_item}, "&b%{_imbue}%")
 					else:
 						send "&cYou do not have the required items to add that imbuement!" to player
@@ -4698,7 +4880,7 @@ command /artifice <text>:
 					player's held item is a crossbow
 					player's held item is a trident
 				then:
-					if takeItems(player, getItemCostForImbue({_imbue})) is true:
+					if takeItems(player, getItemCostForImbue({_imbue}, {_item})) is true:
 						set player's held item to addImbue({_item}, "&b%{_imbue}%")
 					else:
 						send "&cYou do not have the required items to add that imbuement!" to player
@@ -4712,7 +4894,7 @@ command /artifice <text>:
 					player's held item is a hoe
 					player's held item are shears
 				then:
-					if takeItems(player, getItemCostForImbue({_imbue})) is true:
+					if takeItems(player, getItemCostForImbue({_imbue}, {_item})) is true:
 						set player's held item to addImbue({_item}, "&b%{_imbue}%")
 					else:
 						send "&cYou do not have the required items to add that imbuement!" to player
@@ -4725,7 +4907,7 @@ command /artifice <text>:
 					{_imbue} is "auto mine"
 					{_imbue} is "poison mine"
 				then:
-					if takeItems(player, getItemCostForImbue({_imbue})) is true:
+					if takeItems(player, getItemCostForImbue({_imbue}, {_item})) is true:
 						set player's held item to addImbue({_item}, "&b%{_imbue}%")				
 				else:
 					send "&cWrong item for that Artifice!" to the player			
@@ -4816,6 +4998,7 @@ function isArmorArtificeImbue(imbue: text) :: boolean:
 		{_imbue} is "frost shield"
 		{_imbue} is "iron will"
 		{_imbue} is "speed"
+		{_imbue} is "reinforced"
 	then:
 		return true
 	return false
@@ -4831,6 +5014,7 @@ function isWeaponArtificeImbue(imbue: text) :: boolean:
 		{_imbue} is "firststrike"
 		{_imbue} is "detonate"
 		{_imbue} is "enlighten"
+		{_imbue} is "reinforced"
 	then:
 		return true
 	return false
@@ -4839,12 +5023,13 @@ function isToolArtificeImbue(imbue: text) :: boolean:
 	if at least one of:
 		{_imbue} is "excavation"
 		{_imbue} is "enlighten"
+		{_imbue} is "reinforced"
 	then:
 		return true
 	return false
 
 function canArtifice(item: item) :: boolean:
-	if lastLoreLine({_item}) > 3:
+	if lastLoreLine({_item}) > 4:
 		return false
 	return true
 
@@ -4992,6 +5177,10 @@ on left click with water bucket:
 		apply weakness 1 without particles to event-player for 1 minute replacing the existing effect	
 		regenHeat(event-player, -100)
 		send "&4You drink some water to cool down." to event-player
+
+#on right click with nether wart:
+#	hasClass(event-player, "nethermancer") is true:
+
 
 # Arcanist
 
