@@ -82,12 +82,12 @@ on spawn:
     set maximum health of entity to (1.1^({rpgdiff} - 1)) * maximum health of entity
     heal entity
   isMonster(entity) is true:
-    set {_itemchance} to 5
+    set {_itemchance} to 2.5
     if at least one of:
       {-netherbreach} is true
       {-apocalypse} is true
     then:
-      set {_itemchance} to 7.5
+      set {_itemchance} to 5
     chance of {_itemchance}%:
       set helmet of entity to generateLootHelmet()
     chance of {_itemchance}%:
@@ -120,7 +120,7 @@ every 5 seconds:
       {-apocalypse} is not true
     then:
       if {lastInvasion} is not set:
-        set {lastInvasion} to 1.5 hours ago
+        set {lastInvasion} to 0.5 hours ago
       difference between {lastInvision} and now is more than 1 hour:
         set {_chance} to log({rpgdiff}) * 12.5 / 100
         if {_chance} > 0:
@@ -430,8 +430,24 @@ function makeBoss(entity:entity):
     set held item of {_entity} to generateLootSword()
     set off hand item of {_entity} to generateLootShield()
     heal {_entity}
-
-    add uuid of {_entity} to {-evilSkript::bossMobs::*}
+  {_entity} is a zombie:
+    set {_entity}'s display name to "&aRotwalker"
+    set movement speed attribute of {_entity} to 0.8 * movement speed attribute of {_entity}
+    set attack damage attribute of {_entity} to 2.0 * attack damage attribute of {_entity}
+    set maximum health of {_entity} to 150
+    set {-evilSkript::%{_entity}%::isBoss} to true
+    set {-evilSkript::%{_entity}%::Rotwalker} to true
+    set {-evilSkript::%{_entity}%::summoner} to true
+    set {-evilSkript::%{_entity}%::summoncount} to 3
+    set helmet of {_entity} to generateLootHelmet()
+    set chestplate of {_entity} to generateLootChestplate()
+    set leggings of {_entity} to generateLootLeggings()
+    set boots of {_entity} to generateLootBoots()
+    set held item of {_entity} to generateLootSword()
+    set off hand item of {_entity} to generateLootShield()
+    heal {_entity}
+    
+  add uuid of {_entity} to {-evilSkript::bossMobs::*}
   
 function makeLunatic(entity:entity):
   set {_entity}'s display name to "&8Lunatic"
@@ -454,6 +470,9 @@ command /spawnBoss <text>:
     else if arg 1 is "Broodmother":
       spawn a spider at the player:
         makeBoss(the spider)
+    else if arg 1 is "Rotwalker":
+      spawn a zombie at the player:
+        makeBoss(the zombie)
     
     
 
@@ -487,6 +506,9 @@ every 10 seconds:
             push loop-entity-2 {_vec} with force 1.2
             push loop-entity-2 upwards with force 0.3
             exit loop
+      if {-evilSkript::%loop-entity%::Rotwalker} is true:
+        applyEffect(loop-entity, "disease", 10 seconds)
+        createWorldEffect(block at location of loop-entity, "disease", 5 seconds, loop-entity)
 
 every 3 seconds:
   loop all entities:
@@ -498,7 +520,6 @@ every 3 seconds:
           if block below loop-player is sand:
             chance of 50%:
               set block below loop-player to air
-    
       
     
 
