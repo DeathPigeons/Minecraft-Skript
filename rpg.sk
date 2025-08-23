@@ -226,7 +226,7 @@ function setMaxHealth(player: player):
 
 	hasEffect({_player}, "disease") is true:
 		hasImbue({_player}, "iron will") is false:
-			set {_newMax} to {_newMax} * 0.8
+			set {_newMax} to {_newMax} * 0.65
 
 	hasEffect({_player}, "soulbond") is true:
 		set {_newMax} to {_newMax} * 1.05
@@ -1049,7 +1049,7 @@ every 1 seconds:
 			loop-entity is not a zombie
 			loop-entity is not a skeleton
 			chance of 10%:
-				set {_effectDamage} to {_effectDamage} + 1.5
+				set {_effectDamage} to {_effectDamage} + 2.5
 				set {_ndamage} to {_effectDamage}
 				scriptDebugBroadcastType("effect", "%{_odamage}%: Disease +1.5 -> %{_ndamage}%")
 				set {_odamage} to {_effectDamage}
@@ -1304,7 +1304,7 @@ every 2 seconds:
 
 		if time in world of loop-player is between 19:00 and 5:00:
 			{rpgSkript::%loop-player%::lastButcher} is not set:
-				set {rpgSkript::%loop-player%::lastButcher} to 30 minutes ago
+				set {rpgSkript::%loop-player%::lastButcher} to 10 minutes ago
 			difference between {rpgSkript::%loop-player%::lastButcher} and now is more than 15 minutes:
 				set {rpgSkript::%loop-player%::lastButcher} to now
 				set {_chance} to log({rpgdiff}) * 12.5 / 100
@@ -1400,6 +1400,11 @@ on inventory close:
 
 on death:
 
+	loop all entities in radius 15 around victim:
+		if {-evilSkript::%loop-entity%::Rotwalker} is true:
+			createWorldEffect(block at location of victim, "disease", 10 seconds, loop-entity)
+			stop
+
 	hasEffect(victim, "soulbond") is true:
 		removeEffect( {rpgSkript::%victim%::soulbondplayer} , "soulbond")
 		set {-rpgSkript::%victim%::soulbond} to false
@@ -1409,6 +1414,7 @@ on death:
 		
 	hasEffect(victim, "infected") is true:
 		isMonster(victim) is false
+		victim is not an animal
 		isMinion(victim) is false
 		becomeZombie(victim)
 
@@ -1987,7 +1993,14 @@ on target:
 				spawn 1 spider at event-entity:
 					set movement speed attribute of the spider to 2 * movement speed attribute of the spider
 					set attack damage attribute of the spider to 0.75 * attack damage attribute of the spider
-					set maximum health of the spider to 2.5				
+					set maximum health of the spider to 2.5			
+			event-entity is a zombie:
+				spawn 1 zombie at event-entity:
+					if {-evilSkript::%event-entity%::Rotwalker} is true:
+						set movement speed attribute of the zombie to 2 * movement speed attribute of the zombie
+						set attack damage attribute of the spider to 1.5 * attack damage attribute of the spider
+						set maximum health of the spider to 5						
+						applyEffect(the zombie, "disease", 1 hour)
 
 	{-commandSkript::%target%::isTrainingDummy} is true:
 		cancel the event
@@ -2672,24 +2685,30 @@ on death of a monster:
 		if {_x} <= 45:
 			add 1 diamond to the drops	
 	isMinion(victim) is false
-	set {_z} to 0.05
+	set {_z} to 5
 	if {-evilSkript::%victim%::isBoss} is true:
-		set {_z} to 0.35
+		set {_z} to 20
 		if {-evilSkript::%victim%::isButcher} is true:
-			set {_z} to 0.65
+			set {_z} to 40
 		clear the drops
 		chance of {_z}%:
-			add helmet of victim to the drops
+			add helmet of victim to the drops		
+			set {_z} to {_z} - 5	
 		chance of {_z}%:
 			add chestplate of victim to the drops
+			set {_z} to {_z} - 5	
 		chance of {_z}%:
 			add leggings of victim to the drops
+			set {_z} to {_z} - 5	
 		chance of {_z}%:
 			add boots of victim to the drops
+			set {_z} to {_z} - 5	
 		chance of {_z}%:
 			add held item of victim to the drops
+			set {_z} to {_z} - 5	
 		chance of {_z}%:
 			add off hand item of victim to the drops
+			set {_z} to {_z} - 5	
 		add 30 experience to the drops
 
 on death of an animal:
@@ -2769,10 +2788,12 @@ on death of a player:
 			set health of loop-player to health of loop-player / 2
 			apply weakness 1 without particles to loop-player for 1 minute replacing the existing effect
 			apply slowness 1 without particles to loop-player for 1 minute replacing the existing effect		
-			send "You spend your lifeforce to save the innocent!" to loop-player
-			heal(victim, 1)
-			stop
+			send "You spend your lifeforce to save %victim%!" to loop-player
+			applyEffect(victim, "spirit", 10 seconds)
+			play sound "block.bell.use" with pitch 2.0 at loop-player
+			send "&3%loop-player% revives you!" to victim
 			cancel the event
+			stop
 		
 
 on respawn:
