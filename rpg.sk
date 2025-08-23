@@ -1001,6 +1001,7 @@ every 1 seconds:
 							heal(loop-player, 0.1)
 				loop all entities in radius 1.5 around loop-entity:
 					chance of 50%:
+						loop-entity-2 is not loop-entity-1
 						applyEffect(loop-entity-2, "firestorm", 10 seconds)
 		hasEffect(loop-entity, "hallowed") is true:
 			if isMonster(loop-entity) is true:
@@ -2985,6 +2986,8 @@ function subMana(player: player, amount: number, print: boolean=true) :: boolean
 		return true
 	if {rpgSkript::mana::%{_player}%} is not set:
 		return false
+	if hasEffect({_player}, "mana leak") is true:
+		set {_amount} to {_amount} * 1.2
 	if hasMana({_player}, {_amount}, {_print}) is true:
 		set {rpgSkript::mana::%{_player}%} to {rpgSkript::mana::%{_player}%} - {_amount}
 		checkMana({_player})
