@@ -4,7 +4,7 @@ on script unload:
   delete {-evilSkript::bossMobs::*}
 
 function killBoss(uuid: text):
-	kill getByUUID({_uuid})
+	delete getByUUID({_uuid})
   
 on spawn:
   spawn reason is natural
