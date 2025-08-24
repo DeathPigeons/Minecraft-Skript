@@ -1313,8 +1313,8 @@ every 2 seconds:
 					chance of {_chance}:
 						scriptDebugBroadcastType("difficulty", "Attempting to spawn a butcher at %{_chance}% chance with %{rpgdiff}% difficulty")
 						send "&4You feel an evil presence watching... Waiting..." to loop-player
-						chance of {_chance}:
-							summonButcher(loop-player, 2)
+						wait 15 seconds
+						summonButcher(loop-player, 100)
 						
 			
 
