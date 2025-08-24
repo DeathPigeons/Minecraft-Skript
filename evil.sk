@@ -54,7 +54,11 @@ on spawn:
     if {-netherbreach} is true:
       spawn 1 ghast at entity
   scriptDebugBroadcastType("difficulty", "Attempting to spawn a boss at %{_chance}% chance with %{rpgdiff}% difficulty")
+  {-lastBoss} is not set:
+    set {-lastBoss} to 10 minutes ago
   chance of ({_chance} / 50)%:
+    difference between {-lastBoss} and now is more than 15 minutes:
+      set {-lastBoss} to now 
     makeBoss(entity)
 
   if {-apocalypse} is true:
@@ -357,11 +361,17 @@ function creeperDetonate(entity:entity):
                     exit 1 loop
                 set loop-block-1 to emerald ore
                 
-    loop all entities in radius 10 around {_entity}:
+    loop all entities in radius 24 around {_entity}:
       loop-entity is not a dropped item
       loop-entity is alive
-      damage loop-entity by 500
+      set {_v} to vector between {_entity} and loop-entity
+      set y component of {_vec} to 0
+      set {_vec} to normalized {_vec}
+      push loop-entity {_vec} with force 3
+      push loop-entity upwards with force 1.2
+      damage loop-entity by 50 - (length of {_v} * 2)
     broadcast "&eDetonator Explosion!"
+    
     
 function makeSummoner(entity:entity):
   if at least one of:
