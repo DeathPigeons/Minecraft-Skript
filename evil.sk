@@ -258,7 +258,7 @@ function summonButcher(player:player, chance:number):
   set {_loc} to location of {_player}
   chance of {_chance}%:
     broadcast "A presence of evil surrounds %{_player}%!" 
-    wait 5 seconds
+    wait 15 seconds
     spawn 1 zombie at the location above {_loc}:
       set the zombie's display name to "&4The Butcher"
       set attack damage attribute of the zombie to 2.5 * attack damage attribute of the zombie
@@ -275,7 +275,6 @@ function summonButcher(player:player, chance:number):
       set held item of the zombie to generateLootSword()
       set off hand item of the zombie to generateLootShield() 
       scriptDebugBroadcastType("difficulty", "Spawning a Butcher at %{_player}%")  
-      stop  
       add uuid of the zombie to {-evilSkript::bossMobs::*}
 
 command /spawnButcher <player> <number>:
