@@ -194,6 +194,10 @@ function isFriendlyMob(entity: entity) :: boolean:
 		return true
 	{_entity} is a villager:
 		return true
+	{_entity} is a wolf:
+		return true
+	{_entity} is a cat:
+		return true
 	return false
 
 function setMaxHealth(player: player):
@@ -1136,7 +1140,7 @@ every 1 seconds:
 						scriptDebugBroadcastType("effect", "%{_odamage}%: Sandstorm +0.75 -> %{_ndamage}%")
 						set {_odamage} to {_effectDamage}						
 			else:
-				sunlight level at loop-entity is greater than 10
+				sunlight level at loop-entity is greater than or equal to 15
 				if isWearingNothing(loop-entity) is true:
 					set {_effectDamage} to {_effectDamage} + 1
 					set {_ndamage} to {_effectDamage}
