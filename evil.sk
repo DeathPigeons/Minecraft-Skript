@@ -57,6 +57,9 @@ on spawn:
   {-lastBoss} is not set:
     set {-lastBoss} to 10 minutes ago
   chance of ({_chance} / 50)%:
+    set {_v} to the vector between entity and spawn
+    if the length of {_v} is less than 101:
+      stop
     difference between {-lastBoss} and now is more than 15 minutes:
       set {-lastBoss} to now 
     makeBoss(entity)
@@ -199,6 +202,18 @@ command /displayevents:
     broadcast "&6Severe Storms is %{-severestorms}%"
     broadcast "&6Nether Breach is %{-netherbreach}%"
     broadcast "&6Apocalypse is %{-Apocalypse}%"
+
+command /clearSpawn:
+  executable by: anyone
+  trigger:
+    if command executor does not have permission "rpg.spawn":
+      send "&cYou do not have access to that command." to command executor
+      stop    
+    else:
+      loop all entities in radius 100 around spawn:
+        loop-entity is not a player
+        isFriendlyMob(loop-entity) is false
+        delete loop-entity
     
       
 function makeSpecial(entity: entity):
@@ -486,6 +501,8 @@ command /spawnBoss <text>:
     
 
 every 10 seconds:
+
+  
   loop all entities:
     {-evilSkript::%loop-entity%::summoner} is true:
       set {-evilSkript::%loop-entity%::summonercount} to {-evilSkript::%loop-entity%::summonercount} + 1
