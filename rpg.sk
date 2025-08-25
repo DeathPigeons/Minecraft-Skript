@@ -198,6 +198,8 @@ function isFriendlyMob(entity: entity) :: boolean:
 		return true
 	{_entity} is a cat:
 		return true
+	{_entity} is a horse:
+		return true
 	return false
 
 function setMaxHealth(player: player):
