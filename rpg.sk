@@ -2732,7 +2732,10 @@ on right click:
 	set {_didHit} to false
 	set {_can_power_attack} to false
 	
-	subEnergy(player, 5) is true
+	if {rpgSkript::%player%::powerattack_time} is not set:
+		set {_can_power_attack} to true
+	if difference between now and {rpgSkript::%player%::powerattack_time} is more than 4 seconds:
+		set {_can_power_attack} to true
 
 	if {_can_power_attack} is true:
 		player is holding a sword:
