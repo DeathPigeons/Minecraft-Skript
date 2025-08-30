@@ -486,36 +486,39 @@ function hasLore(item: item, text: text) :: boolean:
 	return false
 
 function isWearingLightOrLess(player: player) :: boolean:
+	if isWearingNothing({_player}) is true:
+		return true
 	hasLore(helmet of {_player}, "light") is false:
-		helmet of {_player} is not (leather helmet or air):
+		helmet of {_player} is not (leather helmet or air or chainmail helmet):
 			return false
 	hasLore(chestplate of {_player}, "light") is false:
-		chestplate of {_player} is not (leather chestplate or air):
+		chestplate of {_player} is not (leather chestplate or air or chainmail chestplate):
 			return false
 	hasLore(leggings of {_player}, "light") is false:
-		leggings of {_player} is not (leather leggings or air):
+		leggings of {_player} is not (leather leggings or air or chainmail leggings):
 			return false
 	hasLore(boots of {_player}, "light") is false:
-		boots of {_player} is not (leather boots or air):
+		boots of {_player} is not (leather boots or air or chainmail boots):
 			return false
-	hasLore(off hand item of {_player}, "light") is false:
-		off hand item of {_player} is shield:
-			return false
+	if checkOffHandType({_player}) is not ("weightless" or "light"):
+		return false
 	return true
 
 function isWearingNothing(player: player) :: boolean:
-	hasLore(helmet of {_player}, "shapeshifter") is false:
+	hasLore(helmet of {_player}, "weightless") is false:
 		helmet of {_player} is not (air):
 			return false
-	hasLore(chestplate of {_player}, "shapeshifter") is false:
+	hasLore(chestplate of {_player}, "weightless") is false:
 		chestplate of {_player} is not (air):
 			return false
-	hasLore(leggings of {_player}, "shapeshifter") is false:
+	hasLore(leggings of {_player}, "weightless") is false:
 		leggings of {_player} is not (air):
 			return false
-	hasLore(boots of {_player}, "shapeshifter") is false:
+	hasLore(boots of {_player}, "weightless") is false:
 		boots of {_player} is not (air):
 			return false
+	if checkOffHandType({_player}) is not "weightless":
+		return false
 	return true
 
 function isWearingMediumOrLess(player: player) :: boolean:
@@ -533,10 +536,54 @@ function isWearingMediumOrLess(player: player) :: boolean:
 	hasLore(boots of {_player}, "light") is false:
 		boots of {_player} is (diamond boots or netherite boots):
 			return false
+	if checkOffHandType({_player}) is not ("weightless" or "light" or "medium"):
+		return false
 	return true
 
 function isWearingHeavyOrLess(player: player) :: boolean:
 	return true
+
+function checkOffHandType(player: player) :: string:
+	hasLore(off hand item of {_player}, "weightless") is true:
+		return "weightless"
+	hasLore(off hand item of {_player}, "light") is true:
+		return "light"
+	if at least one of:
+		off hand item of {_player} is netherite helmet
+		off hand item of {_player} is netherite chestplate
+		off hand item of {_player} is netherite leggings
+		off hand item of {_player} is netherite boots
+		off hand item of {_player} is diamond helmet
+		off hand item of {_player} is diamond chestplate
+		off hand item of {_player} is diamond leggings
+		off hand item of {_player} is diamond boots
+	then:
+		return "heavy"
+	if at least one of:
+		off hand item of {_player} is gold helmet
+		off hand item of {_player} is gold chestplate
+		off hand item of {_player} is gold leggings
+		off hand item of {_player} is gold boots
+		off hand item of {_player} is iron helmet
+		off hand item of {_player} is iron chestplate
+		off hand item of {_player} is iron leggings
+		off hand item of {_player} is iron boots
+		off hand item of {_player} is shield
+	then:
+		return "medium"
+	if at least one of:
+		off hand item of {_player} is leather helmet
+		off hand item of {_player} is leather chestplate
+		off hand item of {_player} is leather leggings
+		off hand item of {_player} is leather boots
+		off hand item of {_player} is chainmail helmet
+		off hand item of {_player} is chainmail chestplate
+		off hand item of {_player} is chainmail leggings
+		off hand item of {_player} is chainmail boots
+	then:
+		return "light"
+	return "weightless"
+	
 
 function rollDie(sides: number) :: number:
 	set {_value} to a random integer between 1 and {_sides}
@@ -2382,6 +2429,9 @@ function generateLore( item: item):: item:
 			set {_item} to addImbue({_item}, "&fUnbreakable")
 		chance of 4%:
 			set {_item} to addImbue({_item}, "&7Reinforced")
+		chance of 4%:
+			set {_item} to addImbue({_item}, "&7Weightless")
+			
 	if at least one of:
 		{_item} is any sword
 		{_item} is any axe
@@ -5175,6 +5225,7 @@ function isArmorArtificeImbue(imbue: text) :: boolean:
 		{_imbue} is "iron will"
 		{_imbue} is "speed"
 		{_imbue} is "reinforced"
+		{_imbue} is "enlighten"
 	then:
 		return true
 	return false
