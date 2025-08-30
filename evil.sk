@@ -71,7 +71,7 @@ on spawn:
     if size of {-evilSkript::bossMobs::*} is greater than 3:
       stop
     loop {evilSkript::bed::*}:
-      set {_v} to the vector between entity and spawn
+      set {_v} to the vector between entity and location of loop-index
       if the length of {_v} is less than 101: 
         stop
     difference between {-lastBoss} and now is more than 15 minutes:
