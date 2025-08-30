@@ -39,7 +39,7 @@ on join:
 	send "&3 - New Class: Paladin. Evil falters in their presence!" to player
 	send "&3 - New Class: Necromancer. Command the undead to do your bidding" to player
 	send "&3 - New Class: Endwarden. Tap into the power of the void to massacre your enemies!" to player
-	send "&3 - New Class: Barbarian. Use a new type of energy 'Rage' in order to tank and obliterate your enemies!" to player
+	send "&3 - New Class: Barbarian. Use a new type of energy 'Energy' in order to tank and obliterate your enemies!" to player
 	send "&3 - New Class: Druid. Protect the Natural Order with your skills and a trusty companion!" to player
 	send "&3 - New Class: Cleric. Channel divine powers to smite your foes!" to player
 	send "&3 - New Class: Artificer. Manipulate magic and technology!" to player
@@ -966,39 +966,41 @@ every 1 seconds:
 		clear loop-player's scoreboard
 		set title of loop-player's scoreboard to "&eInformation"
 		set line 15 of loop-player's scoreboard to "&a"
-		set line 14 of loop-player's scoreboard to "&3&l   RPG"
-		set line 13 of loop-player's scoreboard to "&a"
+		set line 14 of loop-player's scoreboard to "&a"
 		if hasClass(loop-player, "nethermancer") is false:
-			set line 12 of loop-player's scoreboard to "&3 Mana: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}%"
-
+			set line 13 of loop-player's scoreboard to "&3 Mana: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}%"
+		else:
+			set line 13 of loop-player's scoreboard to "&3 Mana & Heat Level: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}% & &4%{rpgSkript::heat::%loop-player%}% / 1000"
+		if at least one of:
+			hasClass(loop-player, "barbarian") is true
+			hasClass(loop-player, "warrior") is true
+			hasClass(loop-player, "rogue") is true
+			hasClass(loop-player, "monk") is true
+		then:
+			set line 12 of loop-player's scoreboard to "&4 Energy: %{rpgSkript::%loop-player%::Energy}% / %{rpgSkript::%loop-player%::maxEnergy}%"
 		calculateMaxMinions(loop-player) > 0:
-			set line 10 of loop-player's scoreboard to "&d Minions: %getMinionCount(loop-player)% / %calculateMaxMinions(loop-player)%"
+			set line 11 of loop-player's scoreboard to "&d Minions: %getMinionCount(loop-player)% / %calculateMaxMinions(loop-player)%"
 
 		hasClass(loop-player, "druid") is true:
-			set line 8 of loop-player's scoreboard to "&6 Wildshape: %{rpgSkript::%loop-player%::wildshape}% / %{rpgSkript::%loop-player%::maxWildshape}%"
+			set line 10 of loop-player's scoreboard to "&6 Wildshape: %{rpgSkript::%loop-player%::wildshape}% / %{rpgSkript::%loop-player%::maxWildshape}%"
 			if {rpgSkript::%loop-player%::batshape} is true:
-				set line 7 of loop-player's scoreboard to "&a Current Form: Bat"
-			if {rpgSkript::%loop-player%::wolfshape} is true:
-				set line 7 of loop-player's scoreboard to "&a Current Form: wolf"
-			if {rpgSkript::%loop-player%::spidershape} is true:
-				set line 7 of loop-player's scoreboard to "&a Current Form: Spider"
-			if {rpgSkript::%loop-player%::horseshape} is true:
-				set line 7 of loop-player's scoreboard to "&a Current Form: Horse"
-			if {rpgSkript::%loop-player%::bearshape} is true:
-				set line 7 of loop-player's scoreboard to "&a Current Form: Bear"
-			if {rpgSkript::%loop-player%::humanshape} is true:
-				set line 7 of loop-player's scoreboard to "&a Current Form: Human"
-		hasClass(loop-player, "barbarian") is true:
-			set line 11 of loop-player's scoreboard to "&4 Rage: %{rpgSkript::%loop-player%::rage}% / %{rpgSkript::%loop-player%::maxRage}%"
+				set line 9 of loop-player's scoreboard to "&a Current Form: Bat"
+			else if {rpgSkript::%loop-player%::wolfshape} is true:
+				set line 9 of loop-player's scoreboard to "&a Current Form: Wolf"
+			else if {rpgSkript::%loop-player%::spidershape} is true:
+				set line 9 of loop-player's scoreboard to "&a Current Form: Spider"
+			else if {rpgSkript::%loop-player%::horseshape} is true:
+				set line 9 of loop-player's scoreboard to "&a Current Form: Horse"
+			else if {rpgSkript::%loop-player%::bearshape} is true:
+				set line 9 of loop-player's scoreboard to "&a Current Form: Bear"
+			else if {rpgSkript::%loop-player%::humanshape} is true:
+				set line 9 of loop-player's scoreboard to "&a Current Form: Human"
 
 		hasClass(loop-player, "rogue") is true:
-			set line 4 of loop-player's scoreboard to "Monsters: %countEntities(monsters within 20 meters of loop-player)%"
-			set line 3 of loop-player's scoreboard to "Animals: %countEntities(animals within 30 meters of loop-player)%"
-			set line 2 of loop-player's scoreboard to "Players: %countEntities(players within 50 meters of loop-player)%"
-			set line 1 of loop-player's scoreboard to "Items on Ground: %countEntities(dropped items within 30 meters of loop-player)%"
-
-		hasClass(loop-player, "nethermancer") is true:
-			set line 12 of loop-player's scoreboard to "&3 Mana & Heat Level: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}% & &4%{rpgSkript::heat::%loop-player%}% / 1000"
+			set line 8 of loop-player's scoreboard to "Monsters: %countEntities(monsters within 20 meters of loop-player)%"
+			set line 7 of loop-player's scoreboard to "Animals: %countEntities(animals within 30 meters of loop-player)%"
+			set line 6 of loop-player's scoreboard to "Players: %countEntities(players within 50 meters of loop-player)%"
+			set line 5 of loop-player's scoreboard to "Items on Ground: %countEntities(dropped items within 30 meters of loop-player)%"
 
 every 4 ticks:
 	loop all players:
@@ -1159,6 +1161,11 @@ every 1 seconds:
 					scriptDebugBroadcastType("effect", "%{_odamage}%: Acid Rain +0.5 -> %{_ndamage}%")
 					set {_odamage} to {_effectDamage}			
 
+		hasClass(loop-entity, "monk") is true:
+			set {_effectDamage} to {_effectDamage} * 0.65
+			set {_ndamage} to {_effectDamage}
+			scriptDebugBroadcastType("effect", "%{_odamage}%: Monk Reduction x%{_reduction}% -> %{_ndamage}%")
+			set {_odamage} to {_effectDamage}
 
 		if {_effectDamage} is not 0:
 			set {_reduction} to 1 - (0.15 * countImbue(loop-entity, "iron will") )
@@ -1166,6 +1173,7 @@ every 1 seconds:
 			set {_ndamage} to {_effectDamage}
 			scriptDebugBroadcastType("effect", "%{_odamage}%: Iron Will Reduction x%{_reduction}% -> %{_ndamage}%")
 			set {_odamage} to {_effectDamage}
+			
 			if {-evilSkript::%loop-entity%::isBoss} is false:
 				set health of loop-entity to health of loop-entity - {_effectDamage} * {_reduction}
 			else:
@@ -1185,7 +1193,7 @@ every 2 seconds:
 		setupMana(loop-player)
 		regenMana(loop-player)
 
-		setupRage(loop-player)
+		setupEnergy(loop-player)
 		setupWildshape(loop-player)
 
 		cullMinions(loop-player)
@@ -1235,14 +1243,14 @@ every 2 seconds:
 			apply strength 4 without particles to the loop-player for 30 seconds replacing the existing effect
 		hasClass(loop-player, "barbarian") is true:
 			canUseBarbarianAbilities(loop-player) is true:
-				regenRage(loop-player)
+				regenEnergy(loop-player)
 				set {rpgSkript::%loop-player%::barbenemies} to 0
 				loop all entities in radius 10 around loop-player:
 					loop-entity-2 is not loop-player
 					set {rpgSkript::%loop-player%::barbenemies} to {rpgSkript::%loop-player%::barbenemies} + 1
 				if {rpgSkript::%loop-player%::barbenemies} is greater than 4:
 					chance of 30%:
-						rageTrigger(loop-player)
+						EnergyTrigger(loop-player)
 					
 					
 		hasClass(loop-player, "necromancer") is true:
@@ -1681,21 +1689,21 @@ on damage:
 			if {-rpgSkript::%attacker%::consecutiveHits} is not set:
 				set {-rpgSkript::%attacker%::consecutiveHits} to 0
 			attacker's held item is air
-			set the damage to the damage * 3
+			set the damage to the damage * 2
 			if the damage is greater than 0:
 				set {-rpgSkript::%attacker%::consecutiveHits} to {-rpgSkript::%attacker%::consecutiveHits} + 1
 			if mod({-rpgSkript::%attacker%::consecutiveHits}, 3) is 0:
 				if attacker's held item is air:
-					set the damage to the damage * 3
+					set the damage to the damage * 2
 				set {_vec} to vector between attacker and victim
 				set y component of {_vec} to 0
 				set {_vec} to normalized {_vec}
-				push victim {_vec} with force 1.2
+				push victim {_vec} with force 1.6
 				push victim upwards with force 0.4
 			else if mod({-rpgSkript::%attacker%::consecutiveHits}, 2) is 0:
 				apply slowness 255 to the victim for 3 seconds replacing the existing effect
 				if attacker's held item is air:
-					set the damage to the damage * 2
+					set the damage to the damage * 1.5
 			else:
 				if health of attacker is equal to maximum health of attacker:
 					apply absorption 2 without particles to the attacker for 10 seconds replacing the existing effect
@@ -1832,16 +1840,14 @@ on damage:
 			scriptDebugBroadcastType("nethermancerdamage", "%{_odamage}%: Nethermancer Damage Reduction x%{_netherdmgreduction}% -> %{_ndamage}%")
 			set {_odamage} to the damage
 		hasClass(victim, "monk") is true:
+			damage cause is fall:
+				set the damage to the damage * 0.5
 			if {-rpgSkript::%victim%::consecutiveVictim} is not set:
 				set {-rpgSkript::%victim%::consecutiveVictim} to 0
-			if at least one of:
-				isMonster(attacker) is true
-				isMinion(attacker) is true
-				attacker is a player
-			then:
+			if attacker is set:
 				if the damage is greater than 0:
 					set {-rpgSkript::%victim%::consecutiveVictim} to {-rpgSkript::%victim%::consecutiveVictim} + 1
-					if {-rpgSkript::%victim%::consecutiveVictim} is 3:
+					if {-rpgSkript::%victim%::consecutiveVictim} is 5:
 						set {-rpgSkript::%victim%::consecutiveVictim} to 0
 						set the damage to 0
 						send "&eParried!" to victim
@@ -1910,7 +1916,7 @@ on damage:
 				scriptDebugBroadcastType("barbariandamage", "%{_odamage}%: Barbarian Damage Reduction x%{_damagered}% -> %{_ndamage}%")
 				set {_odamage} to the damage
 				if chance of 15%:
-					rageTrigger(victim)
+					EnergyTrigger(victim)
 		hasClass(victim, "endwarden") is true:
 			canUseEndwardenAbilities(victim) is true:
 				damage cause is fall:
@@ -2365,7 +2371,7 @@ function generateLore( item: item):: item:
 		chance of 4%:
 			set {_item} to addImbue({_item}, "&4Health Boost")
 		chance of 4%:
-			set {_item} to addImbue({_item}, "&4Rage Boost")
+			set {_item} to addImbue({_item}, "&4Energy Boost")
 		chance of 4%:
 			set {_item} to addImbue({_item}, "&9Mana Boost")
 		chance of 4%:
@@ -2526,6 +2532,13 @@ on hunger meter change:
 		else:
 			chance of 80%:
 				cancel the event
+	else if hasClass(player, "monk") is true:
+		if {rpgSkript::%player%::eating} is true:
+			set {rpgSkript::%player%::eating} to false
+			stop
+		else:
+			chance of 80%:
+				cancel the event
 
 on consume:
 	set {rpgSkript::%player%::eating} to true
@@ -2669,10 +2682,7 @@ on right click:
 	set {_didHit} to false
 	set {_can_power_attack} to false
 	
-	if {rpgSkript::%player%::powerattack_time} is not set:
-		set {_can_power_attack} to true
-	if difference between now and {rpgSkript::%player%::powerattack_time} is more than 4 seconds:
-		set {_can_power_attack} to true
+	subEnergy(player, 5) is true
 
 	if {_can_power_attack} is true:
 		player is holding a sword:
@@ -2970,8 +2980,6 @@ function setupMana(player: player):
 		set {_newMax} to getMaxArtificerMana({_player})
 	else if hasClass({_player}, "paladin") is true:
 		set {_newMax} to 30
-	else if hasClass({_player}, "monk") is true:
-		set {_newMax} to 10
 
 	if hasClass({_player}, "necromancer") is true:
 		if {rpgSkript::%{_player}%::ritualstr} is true:
@@ -3021,8 +3029,6 @@ function regenMana(player: player):
 		set {_add} to {rpgSkript::maxMana::%{_player}%} / 200
 	else if hasClass({_player}, "paladin") is true:
 		set {_add} to {rpgSkript::maxMana::%{_player}%} / 6
-	else if hasClass({_player}, "monk") is true:
-		set {_add} to {rpgSkript::maxMana::%{_player}%} / {rpgSkript::maxMana::%{_player}%}
 
 	if hasClass({_player}, "endwarden") is true:
 		set {_add} to 0
@@ -4291,86 +4297,104 @@ on left click with totem of undying:
 				
 # Barbarian
 
+on right click with axe:
+	hasClass(event-player, "barbarian") is true
+	canUseBarbarianAbilities(event-player) is true
+	event-player's targetted block is not a log
+	subEnergy(event-player, 2) is true
+	
 
 
-function rageTrigger(player: player):
+functionenergyTrigger(player: player):
 	play sound "entity.player.attack.nodamage" at {_player}
 	apply resistance 1 without particles to {_player} for 60 seconds replacing the existing effect
 	apply swiftness 1 without particles to {_player} for 60 seconds replacing the existing effect
 	apply strength 2 without particles to {_player} for 60 seconds replacing the existing effect
 	apply regeneration 1 without particles to {_player} for 60 seconds replacing the existing effect
 
-function setupRage(player: player):
-	if {rpgSkript::%{_player}%::rage} is not set:
-		set {rpgSkript::%{_player}%::rage} to 0
-	if {rpgSkript::%{_player}%::maxRage} is not set:
-		set {rpgSkript::%{_player}%::maxRage} to 0
+function setupEnergy(player: player):
+	if {rpgSkript::%{_player}%::Energy} is not set:
+		set {rpgSkript::%{_player}%::Energy} to 0
+	if {rpgSkript::%{_player}%::maxEnergy} is not set:
+		set {rpgSkript::%{_player}%::maxEnergy} to 0
 
-	set {_newRage} to 0
-	if hasClass({_player}, "barbarian") is true:
-		set {_newRage} to 5
+	set {_newEnergy} to 0
+	if hasClass({_player}, "monk") is true:
+		set {_newEnergy} to 20
+	else if hasClass({_player}, "rogue") is true:
+		set {_newEnergy} to 15
+	else if hasClass({_player}, "warrior") is true:
+		set {_newEnergy} to 10
+	else if hasClass({_player}, "barbarian") is true:
+		set {_newEnergy} to 5
 
-	if hasImbue({_player}, "Rage Boost") is true:
-		set {_newRage} to {_newRage} + 0.25 * {_newRage} * countImbue({_player}, "Rage Boost")
+	if hasImbue({_player}, "Energy Boost") is true:
+		set {_newEnergy} to {_newEnergy} + 0.25 * {_newEnergy} * countImbue({_player}, "Energy Boost")
 
-	set {_newRage} to floor({_newRage})
-	if {_newRage} is not {rpgSkript::%{_player}%::maxRage}:
-		set {rpgSkript::%{_player}%::maxRage} to {_newRage}
-		send "&4Your maximum Rage has changed to %{_newRage}%" to {_player}
+	set {_newEnergy} to floor({_newEnergy})
+	if {_newEnergy} is not {rpgSkript::%{_player}%::maxEnergy}:
+		set {rpgSkript::%{_player}%::maxEnergy} to {_newEnergy}
+		send "&4Your maximumenergy has changed to %{_newEnergy}%" to {_player}
 
-function checkRage(player: player):
-	setupRage({_player})
-	if {rpgSkript::%{_player}%::rage} > {rpgSkript::%{_player}%::maxRage}:
-		set {rpgSkript::%{_player}%::rage} to {rpgSkript::%{_player}%::maxRage}
-	if {rpgSkript::%{_player}%::rage} < 0:
-		set {rpgSkript::%{_player}%::rage} to 0
+function checkEnergy(player: player):
+	setupEnergy({_player})
+	if {rpgSkript::%{_player}%::Energy} > {rpgSkript::%{_player}%::maxEnergy}:
+		set {rpgSkript::%{_player}%::Energy} to {rpgSkript::%{_player}%::maxEnergy}
+	if {rpgSkript::%{_player}%::Energy} < 0:
+		set {rpgSkript::%{_player}%::Energy} to 0
 
-function regenRage(player: player):
-	if {rpgSkript::%{_player}%::rage} is not set:
-		setupRage({_player})
-	if {rpgSkript::%{_player}%::maxRage} is not set:
-		setupRage({_player})
+function regenEnergy(player: player):
+	if {rpgSkript::%{_player}%::Energy} is not set:
+		setupEnergy({_player})
+	if {rpgSkript::%{_player}%::maxEnergy} is not set:
+		setupEnergy({_player})
 
 	set {_add} to 0
-	if hasClass({_player}, "barbarian") is true:
-		set {_add} to {rpgSkript::%{_player}%::maxRage} / 150
+	if hasClass({_player}, "monk") is true:
+		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 75
+	else if hasClass({_player}, "rogue") is true:
+		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 100
+	else if hasClass({_player}, "warrior") is true:
+		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 125
+	else if hasClass({_player}, "barbarian") is true:
+		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 150
 		
-	addRage( {_player}, {_add} )
+	addEnergy( {_player}, {_add} )
 
-function addRage(player: player, amount: number):
-	set {_before} to {rpgSkript::%{_player}%::rage}
-	set {rpgSkript::%{_player}%::rage} to {rpgSkript::%{_player}%::rage} + {_amount}
-	checkRage({_player})
-	if abs( {rpgSkript::%{_player}%::rage} - {_before} ) > 0.01:
-		displayRage({_player})
+function addEnergy(player: player, amount: number):
+	set {_before} to {rpgSkript::%{_player}%::Energy}
+	set {rpgSkript::%{_player}%::Energy} to {rpgSkript::%{_player}%::Energy} + {_amount}
+	checkEnergy({_player})
+	if abs( {rpgSkript::%{_player}%::Energy} - {_before} ) > 0.01:
+		displayEnergy({_player})
 
-function subRage(player: player, amount: number, print: boolean=true) :: boolean:
+function subEnergy(player: player, amount: number, print: boolean=true) :: boolean:
 	{_player} has permission "rpg.control":
 		return true
-	if {rpgSkript::%{_player}%::rage} is not set:
+	if {rpgSkript::%{_player}%::Energy} is not set:
 		return false
-	if hasRage({_player}, {_amount}, {_print}) is true:
-		set {rpgSkript::%{_player}%::rage} to {rpgSkript::%{_player}%::rage} - {_amount}
-		checkRage({_player})
-		displayRage({_player})
+	if hasEnergy({_player}, {_amount}, {_print}) is true:
+		set {rpgSkript::%{_player}%::Energy} to {rpgSkript::%{_player}%::Energy} - {_amount}
+		checkEnergy({_player})
+		displayEnergy({_player})
 		return true
 	else:
 		return false
 
-function hasRage(player: player, amount: number, print: boolean=true) :: boolean:
+function hasEnergy(player: player, amount: number, print: boolean=true) :: boolean:
 	{_player} has permission "rpg.control":
 		return true
 	if {_print} is true:
-		send "&4Rage: Have %{rpgSkript::%{_player}%::rage}%, Need %{_amount}%" to {_player}
-	if {rpgSkript::%{_player}%::rage} - {_amount} > -0.01:
+		send "&4Energy: Have %{rpgSkript::%{_player}%::Energy}%, Need %{_amount}%" to {_player}
+	if {rpgSkript::%{_player}%::Energy} - {_amount} > -0.01:
 		return true
 	return false
 
-function displayRage(player: player):
-	set {_dispR} to {rpgSkript::%{_player}%::rage}
+function displayEnergy(player: player):
+	set {_dispR} to {rpgSkript::%{_player}%::Energy}
 	if {_dispR} < 0:
 		set {_dispR} to 0
-	send action bar "&4Rage: %{_dispR}% / %{rpgSkript::%{_player}%::maxRage}%" to {_player}
+	send action bar "&4Energy: %{_dispR}% / %{rpgSkript::%{_player}%::maxEnergy}%" to {_player}
 
 command /barbarianresearch:
 	executable by: players
@@ -4464,8 +4488,8 @@ function canUseBarbarianAbilities(player: player) :: boolean:
 on right click with red dye:
 	hasClass(event-player, "barbarian") is true
 	canUseBarbarianAbilities(event-player) is true
-	subRage(event-player, 1) is true:
-		rageTrigger(event-player)
+	subEnergy(event-player, 1) is true:
+		EnergyTrigger(event-player)
 
 on right click with glowstone dust:
 	player is sprinting
@@ -4473,7 +4497,7 @@ on right click with glowstone dust:
 	if hasClass(player, "barbarian") is true:
 		if canUseBarbarianAbilities(player) is true:
 			if hasResearch(player, "leap") is true:
-				subRage(player, 1) is true:
+				subEnergy(player, 1) is true:
 					push player horizontally forward with force 1.9
 					push player upwards with force 0.95
 					send "&cYou leap!" to player
@@ -4493,32 +4517,44 @@ on right click with glowstone dust:
 
 on right click with rabbit's foot:
 	player is on the ground
-	if hasClass(player, "barbarian") is true:
-		if canUseBarbarianAbilities(player) is true:
-			subRage(player, 1) is true:
-				push player horizontally forward with force 5.0
-				send "&cYou charge!" to player
-				wait 5 ticks
-				send "&cYou charge into your enemies!" to player
-				loop all entities in radius 3 around player:
-					loop-entity is not player
-					damage loop-entity by 6
-					apply slowness 1 to loop-entity for 5 seconds replacing the existing effect
-					set {_vec} to vector between player and loop-entity
-					set y component of {_vec} to 0
-					set {_vec} to normalized {_vec}
-					push loop-entity {_vec} with force 1.6
-				loop all blocks in radius 2.99 around player:
-					if at least one of:
-						loop-block is gravel
-						loop-block is dirt
-						loop-block is grass block
-						loop-block is sand
-						loop-block is any leaves
-					then:
-						y coordinate of loop-block - y coordinate of player is less than 3:
-							y coordinate of loop-block - y coordinate of player is greater than 0:							
-								break loop-block naturally
+	if at least one of:
+		hasClass(player, "barbarian") is true:
+		hasClass(player, "monk") is true:
+	then:
+		if hasClass(player, "barbarian") is true:
+			canUseBarbarianAbilities(player) is false:
+				stop
+		else if hasClass(player, "monk") is true:
+			canUseMonkAbilities(player) is false:
+				stop
+			subEnergy(player, 1) is true:
+				send "&cYou dash!" to player
+				if hasClass(player, "barbarian") is true:
+					push player horizontally forward with force 5.0
+					wait 5 ticks
+					loop all entities in radius 3 around player:
+						loop-entity is not player
+						damage loop-entity by 6
+						apply slowness 1 to loop-entity for 5 seconds replacing the existing effect
+						set {_vec} to vector between player and loop-entity
+						set y component of {_vec} to 0
+						set {_vec} to normalized {_vec}
+						push loop-entity {_vec} with force 1.6
+					loop all blocks in radius 2.99 around player:
+						if at least one of:
+							loop-block is gravel
+							loop-block is dirt
+							loop-block is grass block
+							loop-block is sand
+							loop-block is any leaves
+						then:
+							y coordinate of loop-block - y coordinate of player is less than 3:
+								y coordinate of loop-block - y coordinate of player is greater than 0:							
+									break loop-block naturally
+				if hasClass(player, "monk") is true:
+					push player horizontally forward with force 7.0
+					push player upwards with force 0.5
+					
 						
 
 
