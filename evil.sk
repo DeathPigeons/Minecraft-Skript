@@ -6,11 +6,11 @@ on script unload:
 function killBoss(uuid: text):
 	delete getByUUID({_uuid})
 
-on place of bed:
+on place of any bed:
 	add event-block to {evilSkript::bed::*}
 	rpgLog("%player% placed bed in %world% at %location of block%")
 
-on break of bed:
+on break of any bed:
 	remove event-block from {evilSkript::bed::*}
 	rpgLog("%player% broke bed in %world% at %location of block%")
   
@@ -73,7 +73,7 @@ on spawn:
     loop {evilSkript::bed::*}:
       set {_v} to the vector between entity and spawn
       if the length of {_v} is less than 101: 
-          stop
+        stop
     difference between {-lastBoss} and now is more than 15 minutes:
       set {-lastBoss} to now 
     makeBoss(entity)
@@ -93,20 +93,20 @@ on spawn:
   if {-bigraid} is true:
     isMonster(entity) is true:
       set {_odds} to a random number between 1 and 100
-			if {_odds} is greater than 90:
-				spawn 1 ravager at entity
-			else if {_odds is greater than 75:
-				spawn 1 vindicator at entity
-			else if {_odds} is greater than 60:
-				spawn 1 evoker at entity:
+      if {_odds} is greater than 90:
+        spawn 1 ravager at entity
+      else if {_odds} is greater than 75:
+        spawn 1 vindicator at entity
+      else if {_odds} is greater than 60:
+        spawn 1 evoker at entity:
           chance of ({_chance} / 50)%:
             makeBoss(entity)	
-			else if {_odds} is greater than 45:
-				spawn 1 witch at entity
-			else if {_odds} is greater than 25:
-				spawn 2 pillager at entity
-			else:
-				spawn 3 vex at entity
+      else if {_odds} is greater than 45:
+        spawn 1 witch at entity
+      else if {_odds} is greater than 25:
+        spawn 2 pillager at entity
+      else:
+        spawn 3 vex at entity
 
 
   
@@ -641,3 +641,5 @@ command /spawnSpecial <text> <number>:
       loop arg 2 times:
         spawn a skeleton at player:
           makeSpecial(the skeleton)
+  
+     
