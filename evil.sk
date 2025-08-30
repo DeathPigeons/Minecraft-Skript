@@ -5,6 +5,14 @@ on script unload:
 
 function killBoss(uuid: text):
 	delete getByUUID({_uuid})
+
+on place of bed:
+	add event-block to {evilSkript::bed::*}
+	rpgLog("%player% placed bed in %world% at %location of block%")
+
+on break of bed:
+	remove event-block from {evilSkript::bed::*}
+	rpgLog("%player% broke bed in %world% at %location of block%")
   
 on spawn:
   spawn reason is natural
@@ -60,6 +68,12 @@ on spawn:
     set {_v} to the vector between entity and spawn
     if the length of {_v} is less than 101:
       stop
+    if size of {-evilSkript::bossMobs::*} is greater than 3:
+      stop
+    loop {evilSkript::bed::*}:
+      set {_v} to the vector between entity and spawn
+      if the length of {_v} is less than 101: 
+          stop
     difference between {-lastBoss} and now is more than 15 minutes:
       set {-lastBoss} to now 
     makeBoss(entity)
@@ -67,10 +81,32 @@ on spawn:
   if {-apocalypse} is true:
     isMonster(entity) is true:
       set {_n} to a random number between 1 and 10
+      if (1.1^({rpgdiff} - 1)) is greater than 2:
+        set {_n} to {_n} * 2
+      else:
+        set {_n} to floor({_n} * (1.1^({rpgdiff} - 1)))
       loop {_n} times:
         spawn 1 zombie at entity:
           chance of ({_chance} / 5)%:
             makeSpecial(entity)
+
+  if {-bigraid} is true:
+    isMonster(entity) is true:
+      set {_odds} to a random number between 1 and 100
+			if {_odds} is greater than 90:
+				spawn 1 ravager at entity
+			else if {_odds is greater than 75:
+				spawn 1 vindicator at entity
+			else if {_odds} is greater than 60:
+				spawn 1 evoker at entity:
+          chance of ({_chance} / 50)%:
+            makeBoss(entity)	
+			else if {_odds} is greater than 45:
+				spawn 1 witch at entity
+			else if {_odds} is greater than 25:
+				spawn 2 pillager at entity
+			else:
+				spawn 3 vex at entity
 
 
   
@@ -110,6 +146,8 @@ on spawn:
 
 on death:
   victim is a monster:
+    remove victim from {-evilSkript::bossMobs::*}
+    
     set {rpgdiff} to {rpgdiff} + 0.0025
     if mod({rpgdiff}, 0.2) is 0:
       broadcast "Difficulty is now: %{rpgdiff}%"	
@@ -125,6 +163,7 @@ every 5 seconds:
     if:
       {-netherbreach} is not true
       {-apocalypse} is not true
+      {-bigraid} is not true
     then:
       if {lastInvasion} is not set:
         set {lastInvasion} to 0.5 hours ago
@@ -139,8 +178,7 @@ every 5 seconds:
               broadcast "&4A Nether Breach Opens..."
             else if {_odds} is less than 100:
               set {-apocalypse} to true
-              broadcast "&4The Undead Grow Restless..."
-              
+              broadcast "&4The Undead Grow Restless..."              
   else:
     if {-netherbreach} is true:
       set {-netherbreach} to false
@@ -148,6 +186,29 @@ every 5 seconds:
     if {-apocalypse} is true:
       set {-apocalypse} to false
       broadcast "&4The Undead are put to rest..."
+
+  if time in world "world" is between 7:00 and 17:00:
+    if:
+      {-netherbreach} is not true
+      {-apocalypse} is not true
+      {-bigraid} is not true
+    then:
+      if {lastInvasion} is not set:
+        set {lastInvasion} to 0.5 hours ago
+      difference between {lastInvision} and now is more than 1 hour:
+        set {_chance} to log({rpgdiff}) * 12.5 / 100
+        if {_chance} > 0:
+          chance of {_chance}%:
+            set {lastInvasion} to now
+            set {_odds} to random number between 1 and 100
+            if {_odds} is less than 100:
+              set {-bigraid} to true
+              broadcast "&4Pillager raiding parties cometh..."
+  else:
+    if {-bigraid} is true:
+      set {-bigraid} to false
+      broadcast "&4The raiding parties retreat..."
+  
 
   
 on weather change to rain:
