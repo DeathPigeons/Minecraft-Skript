@@ -1250,7 +1250,7 @@ every 2 seconds:
 					set {rpgSkript::%loop-player%::barbenemies} to {rpgSkript::%loop-player%::barbenemies} + 1
 				if {rpgSkript::%loop-player%::barbenemies} is greater than 4:
 					chance of 30%:
-						EnergyTrigger(loop-player)
+						energyTrigger(loop-player)
 					
 					
 		hasClass(loop-player, "necromancer") is true:
@@ -1916,7 +1916,7 @@ on damage:
 				scriptDebugBroadcastType("barbariandamage", "%{_odamage}%: Barbarian Damage Reduction x%{_damagered}% -> %{_ndamage}%")
 				set {_odamage} to the damage
 				if chance of 15%:
-					EnergyTrigger(victim)
+					energyTrigger(victim)
 		hasClass(victim, "endwarden") is true:
 			canUseEndwardenAbilities(victim) is true:
 				damage cause is fall:
@@ -4297,15 +4297,7 @@ on left click with totem of undying:
 				
 # Barbarian
 
-on right click with axe:
-	hasClass(event-player, "barbarian") is true
-	canUseBarbarianAbilities(event-player) is true
-	event-player's targetted block is not a log
-	subEnergy(event-player, 2) is true
-	
-
-
-functionenergyTrigger(player: player):
+function energyTrigger(player: player):
 	play sound "entity.player.attack.nodamage" at {_player}
 	apply resistance 1 without particles to {_player} for 60 seconds replacing the existing effect
 	apply swiftness 1 without particles to {_player} for 60 seconds replacing the existing effect
@@ -4489,7 +4481,7 @@ on right click with red dye:
 	hasClass(event-player, "barbarian") is true
 	canUseBarbarianAbilities(event-player) is true
 	subEnergy(event-player, 1) is true:
-		EnergyTrigger(event-player)
+		energyTrigger(event-player)
 
 on right click with glowstone dust:
 	player is sprinting
@@ -4518,8 +4510,8 @@ on right click with glowstone dust:
 on right click with rabbit's foot:
 	player is on the ground
 	if at least one of:
-		hasClass(player, "barbarian") is true:
-		hasClass(player, "monk") is true:
+		hasClass(player, "barbarian") is true
+		hasClass(player, "monk") is true
 	then:
 		if hasClass(player, "barbarian") is true:
 			canUseBarbarianAbilities(player) is false:
