@@ -38,48 +38,48 @@ command /classinfo <text>:
 		if arg 1 is "warrior":
 			send "Warrior Features:" to command executor
 			send "Damage/Resistances: x1 Damage & .35 resistance" to command executor
-			send "Mana: 0 Base Mana" to command executor
+			send "Resource: 0 Base Mana / 10 Base Energy" to command executor
 			send "Abilties: Power Attacks and Enhanced Tool Crafting" to command executor
 			send "Health: Base 20, can be increased to 25" to command executor
 			send "Constraints: None, can wear any armor" to command executor
 		else if arg 1 is "rogue":
 			send "Rogue Features:" to command executor
 			send "Damage/Resistances: Innate x2 Damage, can be increased while Invisible & Chance to Dodge Damage" to command executor
-			send "Mana: 0" to command executor
+			send "Resource: 0 Base Mana / 15 Base Energy" to command executor
 			send "Abilties: Can see information on surrounding items, mobs, and players. Critical hits give Dark Shroud" to command executor
 			send "Health: Base 20" to command executor
 			send "Constraints: Cannot use abilities while slowed, and can not wear heavy armor" to command executor
 		else if arg 1 is "wizard":
 			send "Wizard Features:" to command executor
-			send "Damage/Resistances:" to command executor
-			send "Mana" to command executor
-			send "Abilties" to command executor
-			send "Health" to command executor
-			send "Constraints" to command executor
+			send "Damage/Resistances: None" to command executor
+			send "Resource: Increasing Mana with Levels / 0 Base Energy" to command executor
+			send "Abilties: Magma Cream (Fireball Spell), Lapis Lazuli (Ice Ball Spell), Diamond (Lightning Bolt Spell), Ameythst Shard (Teleport Spell), Location Memorization, Storage" to command executor
+			send "Health: Base 16" to command executor
+			send "Constraints: Cannot wear armor heavier than light" to command executor
 		else if arg 1 is "nethermancer":
 			send "Nethermancer Features:" to command executor
-			send "Damage/Resistances:" to command executor
-			send "Mana" to command executor
-			send "Abilties" to command executor
-			send "Health" to command executor
-			send "Constraints" to command executor
+			send "Damage/Resistances: Damage Resistance is Inversely Related to Heat, Immune to Fire Damage" to command executor
+			send "Resource: Base 1000 Mana / 0 Base Energy / 1000 Base Heat" to command executor
+			send "Abilties: Heat Radiance, Firestorm, Magma Cream (Fireball Spell), Health Regeneration based on Heat, can drink Lava/Water " to command executor
+			send "Health: Base 12" to command executor
+			send "Constraints: Constantly Changing Heat" to command executor
 		else if arg 1 is "Paladin":
 			send "Paladin Features:" to command executor
-			send "Damage/Resistances:" to command executor
-			send "Mana" to command executor
-			send "Abilties" to command executor
-			send "Health" to command executor
-			send "Constraints" to command executor
+			send "Damage/Resistances: Increased Damage to and Decreased Damage from Mobs" to command executor
+			send "Resource: 30 Base Mana / 0 Base Energy" to command executor
+			send "Abilties: Hallowed Radiance, Preventing Death of Players, Totem of Undying (Dampen Spell), Fast Healing" to command executor
+			send "Health: Base 20" to command executor
+			send "Constraints: None" to command executor
 		else if arg 1 is "Cleric":
 			send "Cleric Features:" to command executor
-			send "Damage/Resistances:" to command executor
-			send "Mana" to command executor
-			send "Abilties" to command executor
-			send "Health" to command executor
-			send "Constraints" to command executor
+			send "Damage/Resistances: None" to command executor
+			send "Mana: 1000 Base Mana" to command executor
+			send "Abilties: /Channel (Regen, Absorb, Cleanse, Mana, Cure, or Haste), Totem of Undying (Dampen Spell / Revive Spell), /Pray (Food / Strength ), & /soulbond(tp)" to command executor
+			send "Health: Base 20" to command executor
+			send "Constraints: Limited Mana Regen" to command executor
 		else if arg 1 is "Druid":
 			send "Druid Features:" to command executor
-			send "Damage/Resistances:" to command executor
+			send "Damage/Resistances: Various Effects Depending on Form" to command executor
 			send "Mana" to command executor
 			send "Abilties" to command executor
 			send "Health" to command executor
@@ -128,3 +128,19 @@ command /classinfo <text>:
 			send "Constraints" to command executor
 		else:
 			send "Not a Valid Class" to command executor
+
+command /classes:
+	trigger:
+		send "Warrior - Versatility" to command executor
+		send "Rogue - Stealthy Fighter" to command executor
+		send "Wizard - Exponential Spellcaster" to command executor
+		send "Sorceror - Inherent Spellcaster" to command executor
+		send "Paladin - Bane of Evil" to command executor
+		send "Barbarian - Physical Crowd Control" to command executor	
+		send "Cleric - Support" to command executor
+		send "Monk - Hand to Hand Fighter" to command executor
+		send "Druid - Shapeshifter" to command executor
+		send "Endwarden - Magical Crowd Control" to command executor
+		send "Nethermancer - Versatile Crowd Control" to command executor
+		send "Nethermancer - Summoner" to command executor	
+		send "Artificer - Crafting" to command executor					
