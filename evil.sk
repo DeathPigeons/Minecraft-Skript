@@ -253,6 +253,12 @@ command /worldevents <text> <boolean>:
         set time in "world" to 20:00
       scriptDebugBroadcastType("worldevents", "Setting {-neatherbreach} to %arg 2%")
       broadcast "&c{-apocalypse} set to %arg 2%"
+    else if arg 1 is "big raid":
+      set {-bigraid} to arg 2
+      if arg 2 is true:
+        set time in "world" to 8:00
+      scriptDebugBroadcastType("worldevents", "Setting {-bigraid} to %arg 2%")
+      broadcast "&c{-bigraid} set to %arg 2%"
           
     else:
       send "&cInvalid World Event." to command executor 
@@ -539,24 +545,29 @@ function makeLunatic(entity:entity):
   set movement speed attribute of {_entity} to 2 * movement speed attribute of {_entity}
   set maximum health of {_entity} to 5
     
-command /spawnBoss <text>:
+command /spawnBoss <text> <player>:
   executable by: players
   trigger:
     command executor has permission "rpg.spawn"
     if arg 1 is "DuneRevenant":
-      spawn a husk at the player:
+      wait 5 seconds
+      spawn a husk at location of arg 2:
         makeBoss(the husk)
     else if arg 1 is "Detonator":
-      spawn a creeper at the player:
+      wait 5 seconds
+      spawn a creeper at location of arg 2:
         makeBoss(the creeper)
     else if arg 1 is "PillagerCaptain":
-      spawn a evoker at the player:
+      wait 5 seconds
+      spawn a evoker at location of arg 2:
         makeBoss(the evoker)
     else if arg 1 is "Broodmother":
-      spawn a spider at the player:
+      wait 5 seconds
+      spawn a spider at location of arg 2:
         makeBoss(the spider)
     else if arg 1 is "Rotwalker":
-      spawn a zombie at the player:
+      wait 5 seconds
+      spawn a zombie at location of arg 2:
         makeBoss(the zombie)
     
     
@@ -596,6 +607,13 @@ every 10 seconds:
       if {-evilSkript::%loop-entity%::Rotwalker} is true:
         applyEffect(loop-entity, "disease", 10 seconds)
         createWorldEffect(block at location of loop-entity, "disease", 5 seconds, loop-entity)
+
+  loop all players:
+    if {-bigraid} is true:
+      chance of 25%:
+        set {_loc} to location of loop-player
+        wait 5 seconds
+        spawn 3 pillagers at {_loc}
 
 every 3 seconds:
   loop all entities:
