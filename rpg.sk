@@ -215,7 +215,7 @@ function setMaxHealth(player: player):
 	else if hasClass({_player}, "druid") is true:
 		set {_newMax} to 15
 	else if hasClass({_player}, "nethermancer") is true:
-		set {_newMax} to 15 - (( 9 * {rpgSkript::heat::%{_player}%} ) / 1000)
+		set {_newMax} to 12
 	else if hasClass({_player}, "wizard") is true:
 		set {_newMax} to 8
 	else if hasClass({_player}, "sorceror") is true:
@@ -777,7 +777,7 @@ function drawWorldEffect(index: text):
 					show white dust at loop-block
 				chance of 5%:
 					show yellow dust at loop-block
-			set {_loctemp} to 5 meters above {_loctemp}
+			set {_loctemp} to the location 5 blocks above {_loctemp}
 			
 
 function handleWorldEffect(index: text):
@@ -865,7 +865,8 @@ function handleWorldEffect(index: text):
 				loop all entities in radius 8 around ({_loc}):
 					loop-entity-2 is not a dropped item
 					damage loop-entity-2 by 10
-					create an explosion with force 3 at {_loc}
+					chance of 50%:
+						create an explosion with force 3 at {_loc}
 					set {_diff} to {_duration} + 1
 					wait 5 ticks
 	{_name} is "levitate":
@@ -879,6 +880,17 @@ function handleWorldEffect(index: text):
 		loop all entities in radius 15 around {_loc}:
 			loop-entity is a monster
 			damage loop-entity by 3
+
+	{_name} is "dampen":
+		loop all entities in radius 10 around {_loc}:
+			if loop-entity is a projectile:
+				delete loop-entity
+			else:
+				if at least one of:
+					isFriendlyMob(loop-entity) is true
+					loop-entity is a player
+				then:
+					applyEffect(loop-entity, "shielded", 5 seconds)
 			
 	
 				
@@ -1000,9 +1012,9 @@ function drawEffects(entity: entity):
 	hasEffect({_entity}, "soulbond") is true:
 		hasEffect({_entity}, "invisible") is false:
 			show rollDice(10, 3) (yellow dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 3, 0)
-	hasEffect({_entity}, "manaboost") is true:
+	hasEffect({_entity}, "resourceboost") is true:
 		hasEffect({_entity}, "invisible") is false:
-			show rollDice(10, 3) (blue dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 2, 0)
+			show rollDice(10, 3) (purple dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 2, 0)
 	hasEffect({_entity}, "corrupting dunes") is true:
 		show rollDice(10, 3) (brown dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector -1, 1, -1)
 		show rollDice(10, 3) (brown dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 1, 1, 1)
@@ -1126,6 +1138,7 @@ every 1 seconds:
 			set {_loss} to ({rpgSkript::maxMana::%loop-entity%} / 40) / 2
 			subMana(loop-entity, {_loss}, false)
 		hasEffect(loop-entity, "shocking") is true:
+			hasClass(loop-entity, "monk") is false
 			apply slowness 255 without particles to the loop-entity for 2 seconds replacing the existing effect
 			loop all entities in radius 5 around loop-entity:
 				loop-entity-2 is not loop-entity-1
@@ -1183,16 +1196,20 @@ every 1 seconds:
 			set {-rpgSkript::%loop-entity%::soulbond} to false
 			set {-rpgSkript::%loop-entity%::soulbondplayer} to false
 
-		hasEffect(loop-etntiy, "rage") is true:
+		hasEffect(loop-entity, "rage") is true:
+			applyEffect(loop-entity, "regen", 5 seconds)
 			apply resistance 1 without particles to loop-entity for 5 seconds replacing the existing effect
 			apply swiftness 1 without particles to loop-entity for 5 seconds replacing the existing effect
 			apply strength 1 without particles to loop-entity for 5 seconds replacing the existing effect
 			apply jump boost 2 without particles to loop-entity for 5 seconds replacing the existing effect
 
 		hasEffect(loop-entity, "regen") is true:
-			hasEffect(loop-entity, "recentcombat") is false
-			heal(loop-entity, 0.05 * maximum health of loop-entity)
-			scriptDebugBroadcastType("regen", "Regenerating %loop-entity% for %0.05 * maximum health of loop-entity% of %maximum health of loop-entity% health")
+			if hasEffect(loop-entity, "recentcombat") is true:
+				heal(loop-entity, 0.05 * maximum health of loop-entity)
+				scriptDebugBroadcastType("regen", "Regenerating %loop-entity% for %0.05 * maximum health of loop-entity% of %maximum health of loop-entity% health")
+			else:
+				heal(loop-entity, 0.1 * maximum health of loop-entity)
+				scriptDebugBroadcastType("regen", "Regenerating %loop-entity% for %0.1 * maximum health of loop-entity% of %maximum health of loop-entity% health")
 
 		{-severestorms} is true:
 			isFriendlyMob(loop-entity) is false
@@ -1233,6 +1250,13 @@ every 1 seconds:
 			scriptDebugBroadcastType("effect", "%{_odamage}%: Monk Reduction x%{_reduction}% -> %{_ndamage}%")
 			set {_odamage} to {_effectDamage}
 
+		if hasEffect(loop-entity, "shielded") is true:
+			set {_effectDamage} to 0
+			set {_ndamage} to {_effectDamage}
+			scriptDebugBroadcastType("effect", "%{_odamage}%: Shielded Damage Reduction =0 -> %{_ndamage}%")
+			set {_odamage} to {_effectDamage}
+			stop
+			
 		if {_effectDamage} is not 0:
 			set {_reduction} to 1 - (0.15 * countImbue(loop-entity, "iron will") )
 			set {_effectDamage} to {_effectDamage} * {_reduction}
@@ -1260,6 +1284,8 @@ every 2 seconds:
 		regenMana(loop-player)
 
 		setupEnergy(loop-player)
+		regenEnergy(loop-player)
+		
 		setupWildshape(loop-player)
 
 		cullMinions(loop-player)
@@ -1309,7 +1335,6 @@ every 2 seconds:
 			apply strength 4 without particles to the loop-player for 30 seconds replacing the existing effect
 		hasClass(loop-player, "barbarian") is true:
 			canUseBarbarianAbilities(loop-player) is true:
-				regenEnergy(loop-player)
 				set {rpgSkript::%loop-player%::barbenemies} to 0
 				loop all entities in radius 10 around loop-player:
 					loop-entity-2 is not loop-player
@@ -1507,8 +1532,10 @@ on death:
 
 	loop all entities in radius 15 around victim:
 		if {-evilSkript::%loop-entity%::Rotwalker} is true:
-			createWorldEffect(block at location of victim, "disease", 10 seconds, loop-entity)
+			createWorldEffect(location of victim, "disease", 10 seconds, loop-entity)
 			stop
+		if hasClass(loop-entity, "barbarian") is true:
+			addEnergy(loop-entity, 0.5)
 
 	hasEffect(victim, "soulbond") is true:
 		removeEffect( {rpgSkript::%victim%::soulbondplayer} , "soulbond")
@@ -1585,6 +1612,7 @@ on death:
 				if victim is a spider:
 					chance of 30%:
 						add 1 spider eye to the drops
+		
 
 
 
@@ -1605,6 +1633,12 @@ on damage:
 	{commandSkript::%victim%::isTrainingDummy} is true:
 		send "&6You hit the dummy for %{_odamage}% points of damage!" to the attacker
 	set {_ndamage} to the damage
+
+	hasEffect(victim, "shielded") is true:
+		set the damage to the damage * 0.5
+		set {_ndamage} to the damage
+		scriptDebugBroadcastType("effectdamage", "%{_odamage}%: Shielded Damage Reduction x0.5 -> %{_ndamage}%")
+		set {_odamage} to the damage
 
 	hasEffect(victim, "void") is true:
 		set the damage to the damage * 1.5
@@ -1652,6 +1686,14 @@ on damage:
 				set {_odamage} to the damage
 		if {-evilSkript::%attacker%::dunerev} is true:
 			applyEffect(victim,"Corrupting Dunes", 30 seconds)
+
+		loop players in radius 15 around victim:
+			loop-player is not victim
+			hasClass(loop-player, "paladin") is true:
+				set the damage to the damage * 0.85
+				set {_ndamage} to the damage
+				scriptDebugBroadcastType("paladindamage", "%{_odamage}%: Friendly Paladin Damage Resistance x0.85 -> %{_ndamage}%")
+				set {_odamage} to the damage
 
 	isMonster(attacker) is true:
 		attacker is an enderman:
@@ -1757,7 +1799,9 @@ on damage:
 				set {-rpgSkript::%attacker%::consecutiveHits} to 0
 			canUseMonkAbilities(attacker)
 			attacker's held item is air
-			set the damage to the damage * 2
+			chance of 15%:
+				applyEffect(victim, "shocking", 3 seconds)
+			set the damage to the damage * 3
 			if the damage is greater than 0:
 				set {-rpgSkript::%attacker%::consecutiveHits} to {-rpgSkript::%attacker%::consecutiveHits} + 1
 			if mod({-rpgSkript::%attacker%::consecutiveHits}, 3) is 0:
@@ -1766,15 +1810,15 @@ on damage:
 				set {_vec} to vector between attacker and victim
 				set y component of {_vec} to 0
 				set {_vec} to normalized {_vec}
-				push victim {_vec} with force 1.6
-				push victim upwards with force 0.4
+				push victim {_vec} with force 1
+				push victim upwards with force 0.7
 			else if mod({-rpgSkript::%attacker%::consecutiveHits}, 2) is 0:
 				apply slowness 255 to the victim for 3 seconds replacing the existing effect
 				if attacker's held item is air:
 					set the damage to the damage * 1.5
 			else:
 				if health of attacker is equal to maximum health of attacker:
-					apply absorption 2 without particles to the attacker for 10 seconds replacing the existing effect
+					apply absorption 3 without particles to the attacker for 10 seconds replacing the existing effect
 				else:
 					heal(attacker, 2)
 				
@@ -1819,11 +1863,11 @@ on damage:
 					push victim {_vec} with force 1.2
 					push victim upwards with force 0.8
 				chance of 10%:
-					applyEffect(victim, "bleeding")
+					applyEffect(victim, "bleeding", 5 seconds)
 
 		#this needs to go last
 		if victim is a player:
-			set the damage to the damage * 0.5
+			set the damage to the damage * 0.2
 
 	if hasLore(attacker's held item, "vampiric") is true:
 		set {_heal} to 0.5 * countImbue(attacker, "vampiric")
@@ -1991,7 +2035,7 @@ on damage:
 				set {_ndamage} to the damage
 				scriptDebugBroadcastType("barbariandamage", "%{_odamage}%: Barbarian Surrounded Damage Reduction x%{_damagered}% -> %{_ndamage}%")
 				set {_odamage} to the damage
-				set {_damagered} to 0.2 + ( health of victim / maxium health of victim )
+				set {_damagered} to 0.2 + ( health of victim / maximum health of victim )
 				if {_damagered} is greater than 1:
 					set {_damagered} to 1
 				set the damage to the damage * {_damagered}
@@ -2001,8 +2045,9 @@ on damage:
 				if hasResearch(victim, "Thorns") is true:
 					chance of 35%:
 						damage attacker by 0.5 + ( 1 - (health of attacker / maximum health of attacker ) )
-				chance of 30%:
-					rageTrigger(victim)
+				attacker is set:
+					chance of 30%:
+						rageTrigger(victim)
 		hasClass(victim, "endwarden") is true:
 			canUseEndwardenAbilities(victim) is true:
 				damage cause is fall:
@@ -2254,7 +2299,7 @@ function calculateCritical(hit:entity, damaged:entity) :: number:
 	set {_crit} to 0.05
 	hasClass({_hit}, "rogue") is true:
 		set {_crit} to {_crit} + 0.15
-	hasClass({_hit}, "monk") is true:\
+	hasClass({_hit}, "monk") is true:
 		{_hit}'s held item is air
 		set {_crit} to {_crit} + 0.15
 	hasClass({_hit}, "warrior") is true:
@@ -2970,12 +3015,25 @@ on death of a player:
 			remove loop-item from the drops
 			add loop-item to {rpgSkript::onRespawn::%victim%::*}
 
+	hasClass(victim, "barbarian") is true:
+		hasEffect(victim, "rage") is true
+		subEnergy(victim, 2.5, false) is true
+		chance of 75%:
+			send "You power through the pain!" to victim	
+			heal(victim, 5)
+			chance of 50%:
+				rageTrigger(victim)
+			cancel the event
+			stop		
+
 	loop players in radius 15 around victim:
 		loop-player is not victim
 		hasClass(loop-player, "paladin") is true:
 			loop-player does not have potion effect weakness
 			subMana(loop-player, {rpgSkript::maxMana::%loop-player%}/3, false) is true 
-			set health of loop-player to health of loop-player / 2
+			if health of loop-player is less than 5:
+				stop
+			set health of loop-player to health of loop-player - 5
 			apply weakness 1 without particles to loop-player for 1 minute replacing the existing effect
 			apply slowness 1 without particles to loop-player for 1 minute replacing the existing effect		
 			send "You spend your lifeforce to save %victim%!" to loop-player
@@ -3083,7 +3141,7 @@ function setupMana(player: player):
 	if hasImbue({_player}, "Mana Boost") is true:
 		set {_newMax} to {_newMax} + 0.25 * {_newMax} * countImbue({_player}, "Mana Boost")
 
-	if hasEffect({_player}, "manaboost") is true:
+	if hasEffect({_player}, "resourceboost") is true:
 		set {_newMax} to {_newMax} * 1.25
 
 	set {_newMax} to floor({_newMax})
@@ -3154,7 +3212,7 @@ function regenMana(player: player):
 			time in world of {_player} is not between 19:00 and 5:00:
 				set {_add} to {_add} * ( 1 + 0.1 * countImbue({_player}, "photosynthesis"))
 
-	if hasEffect({_player}, "manaboost") is true:
+	if hasEffect({_player}, "resourceboost") is true:
 		set {_add} to {_add} * 1.25
 	
 	addMana( {_player}, {_add} )
@@ -4275,16 +4333,16 @@ command /channel <text>:
 				send "&6A Cleric cures you of your ailments!" to loop-player
 			play sound "item.trident.thunder" with pitch 2.0 at player
 			send "&6You cure your allies of their ailments!" to player
-		else if arg 1 is "mana":
+		else if arg 1 is "resource":
 			subMana(player, 300) is false:
-				send "&cYou do not have enough mana to manaboost nearby allies!" to player
+				send "&cYou do not have enough mana to resource boost nearby allies!" to player
 				stop
 			loop all players in radius 20 of player:
-				applyEffect(loop-player, "manaboost", 1800 seconds)
+				applyEffect(loop-player, "resourceboost", 1800 seconds)
 				loop-player is not player:
-					send "&6A A Cleric boosts your mana capabilities!" to loop-player
+					send "&6A A Cleric boosts your resource capabilities!" to loop-player
 			play sound "item.trident.thunder" with pitch 2.0 at player
-			send "&6You boost your allies mana capabilities!" to player
+			send "&6You boost your allies resource capabilities!" to player
 		else if arg 1 is "cleanse":
 			subMana(player, 1000) is false:
 				send "&cYou do not have enough mana to cleanse the area!" to player
@@ -4292,7 +4350,7 @@ command /channel <text>:
 			loop all entities in radius 30 around player:
 				if isMonster(loop-entity) is true:
 					{-evilSkript::%loop-entity%::isBoss} is not true
-					delete loop-entity
+					kill loop-entity
 				else:
 					removeEffect(loop-entity, "shocking")
 					removeEffect(loop-entity, "bleeding")
@@ -4387,31 +4445,16 @@ on right click with totem of undying:
 	set {_dead} to false
 
 on left click with totem of undying:
-	hasClass(event-player, "cleric") is true
-	scriptDebugBroadcastType("cleric", "%player% attempts casting Regeneration!")
-	if subMana(event-player, 200) is false:
-		send "&cNot enough mana to cast the Regeneration spell!" to event-player
-		stop
-	loop all players in radius 15 around event-player:
-		if distance between event-player and loop-player is less than 6:
-			applyEffect(loop-player, "regen", 10 seconds)	
-			apply saturation 2 without particles to loop-player for 10 seconds replacing the existing effect	
-			apply absorption 1 without particles to loop-player for 10 seconds replacing the existing effect	
-			loop-player is not event-player:
-				scriptDebugBroadcastType("cleric", "%player% casts High Regeneration on %loop-player%!")	
-		else if distance between event-player and loop-player is less than 11:
-			applyEffect(loop-player, "regen", 10 seconds)	
-			apply saturation 1 without particles to loop-player for 10 seconds replacing the existing effect	
-			loop-player is not event-player:
-				scriptDebugBroadcastType("cleric", "%player% casts Moderate Regeneration on %loop-player%!")
-		else:
-			applyEffect(loop-player, "regen", 10 seconds)
-			loop-player is not event-player:
-				scriptDebugBroadcastType("cleric", "%player% casts Low Regeneration on %loop-player%!")
-		loop-player is not event-player:
-			play sound "block.bell.use" with pitch 2.0 at loop-player
-			send "&3You are healed by %event-player%!" to loop-player
-			send "&3You regenerate %loop-player%!" to event-player
+	if at least one of:
+		hasClass(event-player, "cleric") is true
+		hasClass(event-player, "paladin") is true
+	then:
+		scriptDebugBroadcastType("cleric", "%player% attempts casting Regeneration!")
+		if subMana(event-player, {rpgSkript::maxMana::%event-player%} / 3 ) is false:
+			send "&cNot enough mana to cast the Dampen spell!" to event-player
+			stop
+		createWorldEffect(location of event-player, "dampen", 60 seconds, event-player)
+		send "&3You cast the Dampen Spell!" to event-player
 		play sound "block.bell.use" with pitch 2.0 at event-player
 		add 5 experience to event-player
 				
@@ -4419,7 +4462,22 @@ on left click with totem of undying:
 
 function rageTrigger(player: player):
 	play sound "entity.player.attack.nodamage" at {_player}
-	applyEffect(player, "rage", 30 seconds)
+	if hasEffect({_player}, "rage") is true:
+		heal({_player}, 3)
+		loop all entities in radius 5 around {_player}:
+			chance of 50%:
+				loop-entity is not {_player}
+				isMonster(loop-entity)
+				damage loop-entity by 1
+				applyEffect(loop-entity, "bleeding", 2 seconds)
+				apply slowness 1 to loop-entity for 5 seconds replacing the existing effect
+				apply weakness 1 to loop-entity for 5 seconds replacing the existing effect
+				set {_vec} to vector between {_player} and loop-entity
+				set y component of {_vec} to 0
+				set {_vec} to normalized {_vec}
+				push loop-entity {_vec} with force 1.1
+				push loop-entity upwards with force 0.6
+	applyEffect({_player}, "rage", 30 seconds)
 
 function setupEnergy(player: player):
 	if {rpgSkript::%{_player}%::Energy} is not set:
@@ -4439,6 +4497,9 @@ function setupEnergy(player: player):
 
 	if hasImbue({_player}, "Energy Boost") is true:
 		set {_newEnergy} to {_newEnergy} + 0.25 * {_newEnergy} * countImbue({_player}, "Energy Boost")
+
+	if hasEffect({_player}, "resourceboost") is true:
+		set {_newMax} to {_newMax} * 1.25
 
 	set {_newEnergy} to floor({_newEnergy})
 	if {_newEnergy} is not {rpgSkript::%{_player}%::maxEnergy}:
@@ -4467,6 +4528,9 @@ function regenEnergy(player: player):
 		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 125
 	else if hasClass({_player}, "barbarian") is true:
 		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 150
+
+	if hasEffect({_player}, "resourceboost") is true:
+		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 100
 		
 	addEnergy( {_player}, {_add} )
 
@@ -4548,8 +4612,8 @@ on inventory click:
 	cancel event
 
 	if index of event-slot is 30:
-		if hasResearch(player, "thorns") is true:
-			deleteResearch(player, "thorns")
+		if hasResearch(player, "Thorns") is true:
+			deleteResearch(player, "Thorns")
 		else:
 			takeItems( player, (24 iron ingot) ) is false:
 				send "&4~ ~ Need 24 iron ingot for this Research ~ ~" to player
@@ -5464,7 +5528,7 @@ on left click with water bucket:
 #	hasClass(event-player, "nethermancer") is true:
 
 
-# Arcanist
+# Warlock
 
 # Monk
 function canUseMonkAbilities(player: player) :: boolean:
@@ -5472,11 +5536,24 @@ function canUseMonkAbilities(player: player) :: boolean:
 		return true
 	return false
 
-on right click with air:
-	player's held item is air
-	hasClass(player, "monk") is true
-	canUseMonkAbilities(player) is true
-	set {_loc} to player's targetted block
-	set {_vec} to the vector between player and {_loc}
-	push player {_vec} with force 1.2
-	push player upwards with force 0.8
+on right click with firework star:
+	if hasClass(player, "monk") is true:
+		if canUseMonkAbilities(player) is false:
+			send "&4You cannot cast the smoke grenade spell!" to player
+			stop
+	else if hasClass(player, "rogue") is true:
+		if canUseRogueAbilities(player) is false:
+			send "&4You cannot cast the smoke grenade spell!" to player
+			stop
+	else:
+		send "&4You cannot cast the smoke grenade spell!" to player
+
+	if subEnergy(player, 5) is false:
+		send "&4You cannot cast the smoke grenade spell!" to player
+		stop
+	else:
+		send "&4You cast the smoke grenade spell!" to player
+		applyEffect(player, "invisible", 10 seconds)
+		loop entities in radius 10 around player:
+			loop-entity is not player
+			apply blindness 2 to the loop-entity for 5 seconds replacing the existing effect
