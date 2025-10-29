@@ -605,8 +605,11 @@ every 10 seconds:
             push loop-entity-2 upwards with force 0.3
             exit loop
       if {-evilSkript::%loop-entity%::Rotwalker} is true:
-        applyEffect(loop-entity, "disease", 10 seconds)
-        createWorldEffect(block at location of loop-entity, "disease", 5 seconds, loop-entity)
+        loop all players in radius 20 around loop-entity:
+          chance of 30%:
+            applyEffect(loop-player, "radiated", 30 seconds)
+            send "&aYou feel your blood boil!" to loop-player
+
 
   loop all players:
     if {-bigraid} is true:
