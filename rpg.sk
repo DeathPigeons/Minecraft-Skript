@@ -4539,7 +4539,7 @@ function setupEnergy(player: player):
 		set {_newEnergy} to {_newEnergy} + 0.25 * {_newEnergy} * countImbue({_player}, "Energy Boost")
 
 	if hasEffect({_player}, "resourceboost") is true:
-		set {_newEnergy} to {_newEnergy} * 1.25
+		set {_newEnergy} to {_newEnergy} + 5
 
 	set {_newEnergy} to floor({_newEnergy})
 	if {_newEnergy} is not {rpgSkript::%{_player}%::maxEnergy}:
