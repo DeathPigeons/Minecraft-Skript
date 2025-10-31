@@ -947,6 +947,19 @@ function hasEffect(entity: entity, name: string) :: boolean:
 		return false
 	return true
 
+function convertTimespanToSeconds(span: timespan) :: number:
+	set {_toRet} to 0
+	set {_jump} to 1000
+
+	while {_jump} is greater than or equal to 0.1:
+		add {_jump} to {_toRet}
+		set {_parse} to "%{_toRet}% seconds" parsed as timespan
+		if {_parse} is greater than {_span}:
+			subtract {_jump} from {_toRet}
+			set {_jump} to {_jump} / 10
+
+	return {_toRet}
+
 function fractionOfEffectRun(entity: entity, name: string) :: number:
 	if hasEffect({_entity}, {_name}) is false:
 		scriptDebugBroadcastType("health", "Effect Complete/Non Existent")
@@ -955,17 +968,25 @@ function fractionOfEffectRun(entity: entity, name: string) :: number:
 	{-rpgSkript::effects::%{_index}%::%{_name}%} is not set:
 		scriptDebugBroadcastType("health", "Effect Complete/Non Existent")
 		return 1
+		
 	if {-rpgSkript::effects::%{_index}%::%{_name}%::duration} is 0:
-		return 0
+		return 1
+		
 	set {_t1} to unix timestamp of 0 seconds ago
 	set {_t2} to unix timestamp of {-rpgSkript::effects::%{_index}%::%{_name}%::applied}
+	
+	set {_duration} to {-rpgSkript::effects::%{_index}%::%{_name}%::duration}
+	# t3 is the duration converted to a number, seconds
+	set {_t3} to convertTimespanToSeconds({_duration})
+	
+	scriptDebugBroadcastType("health", "t3 = %{_t3}%")
 	set {_diff} to {_t1} - {_t2}
-	set {_duration} to {-rpgSkript::effects::%{_index}%::%{_name}%::duration} parsed as a number
-	scriptDebugBroadcastType("health", "{_diff} = %{_diff}% / Time Applied = %{-rpgSkript::effects::%{_index}%::%{_name}%::applied}% / and Duration = %{-rpgSkript::effects::%{_index}%::%{_name}%::duration}% / {_t1} = %{_t1}% / {_t2} = %{_t2}% / {_duration} = %{_duration}%"
-	{_diff} is greater than {_duration}:
+	{_diff} is greater than {_t3}:
 		return 1
-	scriptDebugBroadcastType("health", "fractionOfEffectRun = %{_diff} / {_duration}%")
-	return {_diff} / {_duration}
+
+	set {_fraction} to {_diff} / {_t3}
+	scriptDebugBroadcastType("health", "fractionOfEffectRun = %{_fraction}%")
+	return {_fraction}
 
 function drawEffects(entity: entity):
 
@@ -1114,7 +1135,7 @@ every 4 ticks:
 
 		hasEffect(loop-player, "radiated") is true:
 			set {_fraction} to fractionOfEffectRun(loop-player, "radiated")
-			set {_m} to  0.5 + 0.25 * (1 - cos(3.14 * {_fraction}))
+			set {_m} to 0.5 + 0.25 * (1 - cos(3.14 * {_fraction}))
 			scriptDebugBroadcastType("health", "{_m} = %{_m}%")
 			set {_hplimit} to {_m} * the maximum health of loop-player
 			scriptDebugBroadcastType("health", "{_hplimit} of %loop-player% is now %{_hplimit}%")
