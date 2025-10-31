@@ -1038,7 +1038,8 @@ function drawEffects(entity: entity):
 		show rollDice(10, 3) (white dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
 		show rollDice(10, 3) (black dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
 	hasEffect({_entity}, "regen") is true:
-		show rollDice(10, 3) (heart with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
+		chance of 10%:
+			show rollDice(10, 3) (heart with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
 	hasEffect({_entity}, "radiated") is true:
 		show rollDice(10, 3) (scrape with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1.5, 0)
 	hasEffect({_entity}, "levitate") is true:
