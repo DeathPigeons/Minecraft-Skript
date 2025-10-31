@@ -957,12 +957,15 @@ function fractionOfEffectRun(entity: entity, name: string) :: number:
 		return 1
 	if {-rpgSkript::effects::%{_index}%::%{_name}%::duration} is 0:
 		return 0
-	set {_diff} to difference between now and {-rpgSkript::effects::%{_index}%::%{_name}%::applied}
-	scriptDebugBroadcastType("health", "{_diff} = %{_diff}% / Time Applied = %{-rpgSkript::effects::%{_index}%::%{_name}%::applied}% / and Duration = %{-rpgSkript::effects::%{_index}%::%{_name}%::duration}%")
-	{_diff} is greater than {-rpgSkript::effects::%{_index}%::%{_name}%::duration}:
+	set {_t1} to unix timestamp of 0 seconds ago
+	set {_t2} to unix timestamp of {-rpgSkript::effects::%{_index}%::%{_name}%::applied}
+	set {_diff} to {_t1} - {_t2}
+	set {_duration} to {-rpgSkript::effects::%{_index}%::%{_name}%::duration} parsed as a number
+	scriptDebugBroadcastType("health", "{_diff} = %{_diff}% / Time Applied = %{-rpgSkript::effects::%{_index}%::%{_name}%::applied}% / and Duration = %{-rpgSkript::effects::%{_index}%::%{_name}%::duration}% / {_t1} = %{_t1}% / {_t2} = %{_t2}% / {_duration} = %{_duration}%"
+	{_diff} is greater than {_duration}:
 		return 1
-	scriptDebugBroadcastType("health", "fractionOfEffectRun = %{_diff} / {-rpgSkript::effects::%{_index}%::%{_name}%::duration}%")
-	return {_diff} / {-rpgSkript::effects::%{_index}%::%{_name}%::duration}
+	scriptDebugBroadcastType("health", "fractionOfEffectRun = %{_diff} / {_duration}%")
+	return {_diff} / {_duration}
 
 function drawEffects(entity: entity):
 
