@@ -1135,7 +1135,7 @@ every 4 ticks:
 
 		hasEffect(loop-player, "radiated") is true:
 			set {_fraction} to fractionOfEffectRun(loop-player, "radiated")
-			set {_m} to  0.5 + 0.25 * (1 - cos(180 * {_fraction}))
+			set {_m} to 0.5 + 0.5 * sin(90 * {_fraction})
 			scriptDebugBroadcastType("health", "{_m} = %{_m}%")
 			set {_hplimit} to {_m} * the maximum health of loop-player
 			scriptDebugBroadcastType("health", "{_hplimit} of %loop-player% is now %{_hplimit}%")
