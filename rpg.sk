@@ -1146,6 +1146,9 @@ every 4 ticks:
 			chance of 2%:
 				set health of loop-player to health of loop-player - {_dmg}
 
+		if {-rpgSkript::%loop-player%::float} is true:
+			apply levitation without particles to the loop-player for 2 seconds replacing the existing effect
+
 every 1 seconds:
 	loop all entities:
 		loop-entity is alive
@@ -4822,6 +4825,19 @@ on right click with phantom membrane:
 		send "&4You do not have the required mana to cast the Levitate spell!" to event-player
 		stop
 	createWorldEffect(event-player's targeted block, "levitate", 20 seconds, event-player)
+
+on left click with phantom membrane:
+	hasClass(event-player, "endwarden") is true
+	canUseEndwardenAbilities(event-player) is true
+	if subMana(event-player, 50) is false
+		send "&4You do not have the required mana to alter your density!" to event-player
+		stop
+	if {-rpgSkript::%event-player%::float} is true:
+		set {-rpgSkript::%event-player%::float} to false
+		send "You increase your own gravity." to event-player
+	else:
+		set {-rpgSkript::%event-player%::float} to true
+		send "You disable your own gravity." to event-player
 	
 on right click with shulker shell:
 	hasClass(event-player, "endwarden") is true
