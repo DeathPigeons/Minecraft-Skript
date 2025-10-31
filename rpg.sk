@@ -4830,7 +4830,7 @@ on right click with phantom membrane:
 on left click with phantom membrane:
 	hasClass(event-player, "endwarden") is true
 	canUseEndwardenAbilities(event-player) is true
-	if subMana(event-player, 50) is false
+	if subMana(event-player, 50) is false:
 		send "&4You do not have the required mana to alter your density!" to event-player
 		stop
 	if {-rpgSkript::%event-player%::float} is true:
