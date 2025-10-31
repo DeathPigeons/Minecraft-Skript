@@ -1144,7 +1144,7 @@ every 4 ticks:
 				scriptDebugBroadcastType("health", "Lowering health of %loop-player% due to Radiation to %{_hplimit}%")
 			set {_dmg} to a random number between 1 and 2.5
 			chance of 2%:
-				set health of loop-player to health of loop-player minus {_dmg}
+				set health of loop-player to health of loop-player - {_dmg}
 
 every 1 seconds:
 	loop all entities:
