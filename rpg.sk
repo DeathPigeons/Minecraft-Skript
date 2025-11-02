@@ -2758,6 +2758,7 @@ on spawn:
 				set maximum health of event-entity to 16
 				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
 				set armor attribute of event-entity to 5
+			set the event-entity's display name to "&a%{_caster}%'s Friend"
 		hasClass({_caster}, "necromancer") is true:
 			event-entity is a skeleton:
 				set attack damage attribute of entity to (1.1^(level of {_caster} /15)) * attack damage attribute of entity
