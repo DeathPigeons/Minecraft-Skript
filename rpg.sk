@@ -2747,18 +2747,19 @@ on spawn:
 		set {_caster} to getSummoner(uuid of event-entity)
 		hasClass({_caster}, "druid") is true:
 			event-entity is a wolf:
-				set maximum health of event-entity to 10
+				set maximum health of event-entity to 10 *(1.1^(level of {_caster} /15))
 				set movement speed attribute of event-entity to 1.4 * movement speed attribute of event-entity
 				set armor attribute of event-entity to 3
 			event-entity is a spider:
-				set maximum health of event-entity to 12
+				set maximum health of event-entity to 12 * (1.1^(level of {_caster} /15))
 				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
 				set armor attribute of event-entity to 0
 			event-entity is a polar bear:
-				set maximum health of event-entity to 16
+				set maximum health of event-entity to 16 * (1.1^(level of {_caster} /15))
 				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
 				set armor attribute of event-entity to 5
 			set the event-entity's display name to "&a%{_caster}%'s Friend"
+			set attack damage attribute of entity to (1.1^(level of {_caster} /15)) * attack damage attribute of entity
 		hasClass({_caster}, "necromancer") is true:
 			event-entity is a skeleton:
 				set attack damage attribute of entity to (1.1^(level of {_caster} /15)) * attack damage attribute of entity
