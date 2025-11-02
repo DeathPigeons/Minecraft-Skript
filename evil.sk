@@ -1,3 +1,4 @@
+
 on script unload:
   loop {-evilSkript::bossMobs::*}:
     killBoss(loop-index)
@@ -16,6 +17,7 @@ on break of any bed:
   
 on spawn:
   spawn reason is natural
+  spawn reason is not mob spawner
   entity is a monster
   set {_chance} to log({rpgdiff}) * 12.5
   {_chance} <= 0:
@@ -125,6 +127,8 @@ on spawn:
     set maximum health of entity to (1.1^({rpgdiff} - 1)) * maximum health of entity
     heal entity
   isMonster(entity) is true:
+    time in world of entity is between 19:00 and 5:00
+    {-evilSkript::%entity%::isBoss} is false
     set {_itemchance} to 2.5
     if at least one of:
       {-netherbreach} is true
