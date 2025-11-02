@@ -271,6 +271,8 @@ function setMaxHealth(player: player):
 		set {_player}'s maximum health to {_newMax}
 		send "&cYour maximum health has changed to %{_newMax}% hearts" to {_player}
 
+	scriptDebugBroadcastType("health", "%{_player}%'s max health is now %{_newMax}%")
+
 function canFly(player: player):: boolean:
 	if {rpgSkript::%{_player}%::batshape} is true:
 		return true
@@ -922,14 +924,14 @@ function removeAllEffects(entity: entity):
 		removeEffect({_entity}, loop-index)
 
 function removeEffect(entity: entity, name: string):
-	scriptDebugBroadcastType("effect", "Removing Effect %{_name}% from %{_entity}%")
+	scriptDebugBroadcastType("removeeffect", "Removing Effect %{_name}% from %{_entity}%")
 	set {_index} to generateIndex({_entity})
 	delete {-rpgSkript::effects::%{_index}%::%{_name}%}
 	delete {-rpgSkript::effects::%{_index}%::%{_name}%::*}
 
 
 function applyEffect(entity: entity, name: string, duration: timespan):
-	scriptDebugBroadcastType("effect", "Applying Effect %{_name}% to %{_entity}% for %{_duration}%")
+	scriptDebugBroadcastType("applyeffect", "Applying Effect %{_name}% to %{_entity}% for %{_duration}%")
 	set {_index} to generateIndex({_entity})
 	set {-rpgSkript::effects::%{_index}%::%{_name}%} to 0
 	set {-rpgSkript::effects::%{_index}%::%{_name}%::duration} to {_duration}
@@ -962,11 +964,11 @@ function convertTimespanToSeconds(span: timespan) :: number:
 
 function fractionOfEffectRun(entity: entity, name: string) :: number:
     if hasEffect({_entity}, {_name}) is false:
-        scriptDebugBroadcastType("health", "Effect Complete/Non Existent")
+        scriptDebugBroadcastType("fractionOfEffectRun", "Effect Complete/Non Existent")
         return 1
     set {_index} to generateIndex({_entity})
     {-rpgSkript::effects::%{_index}%::%{_name}%} is not set:
-        scriptDebugBroadcastType("health", "Effect Complete/Non Existent")
+        scriptDebugBroadcastType("fractionOfEffectRun", "Effect Complete/Non Existent")
         return 1
         
     if {-rpgSkript::effects::%{_index}%::%{_name}%::duration} is 0:
@@ -979,13 +981,13 @@ function fractionOfEffectRun(entity: entity, name: string) :: number:
     # t3 is the duration converted to a number, seconds
     set {_t3} to convertTimespanToSeconds({_duration})
     
-    scriptDebugBroadcastType("health", "t3 = %{_t3}%")
+    scriptDebugBroadcastType("fractionOfEffectRun", "t3 = %{_t3}%")
     set {_diff} to {_t1} - {_t2}
     {_diff} is greater than {_t3}:
         return 1
 
     set {_fraction} to {_diff} / {_t3}
-    scriptDebugBroadcastType("health", "fractionOfEffectRun = %{_fraction}%")
+    scriptDebugBroadcastType("fractionOfEffectRun", "fractionOfEffectRun = %{_fraction}%")
     return {_fraction}
 
 function drawEffects(entity: entity):
@@ -1039,9 +1041,10 @@ function drawEffects(entity: entity):
 		show rollDice(10, 3) (black dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
 	hasEffect({_entity}, "regen") is true:
 		chance of 10%:
-			show rollDice(10, 3) (heart with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
+			show rollDice(10, 3) (heart with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, -0.5, 0)
 	hasEffect({_entity}, "radiated") is true:
-		show rollDice(10, 3) (scrape with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1.5, 0)
+		chance of 10%:
+			show rollDice(10, 3) (scrape with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1.5, 0)
 	hasEffect({_entity}, "levitate") is true:
 		show rollDice(10, 3) (purple dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
 	hasEffect({_entity}, "dark shroud") is true:
@@ -1137,11 +1140,13 @@ every 4 ticks:
 		hasEffect(loop-player, "radiated") is true:
 			set {_fraction} to fractionOfEffectRun(loop-player, "radiated")
 			set {_m} to 0.5 + 0.5 * sin(90 * {_fraction})
-			scriptDebugBroadcastType("health", "{_m} = %{_m}%")
+			scriptDebugBroadcastType("radiated", "{_m} = %{_m}%")
 			set {_hplimit} to {_m} * the maximum health of loop-player
+			scriptDebugBroadcastType("radiated", "{_hplimit} of %loop-player% is now %{_hplimit}%")
 			scriptDebugBroadcastType("health", "{_hplimit} of %loop-player% is now %{_hplimit}%")
 			if health of loop-entity is greater than {_hplimit}:
 				set health of loop-entity to {_hplimit}
+				scriptDebugBroadcastType("radiated", "Lowering health of %loop-player% due to Radiation to %{_hplimit}%")
 				scriptDebugBroadcastType("health", "Lowering health of %loop-player% due to Radiation to %{_hplimit}%")
 			set {_dmg} to a random number between 1 and 2.5
 			chance of 2%:
@@ -1166,46 +1171,43 @@ every 1 seconds:
 				wait 1 tick
 				if loop-entity is on fire:
 					set {_effectDamage} to {_effectDamage} + 1.5
+					scriptDebugBroadcastType("firestorm", "Damaging %loop-entity% by 1.5")
 					loop players in radius 15 around loop-entity:
 						hasClass(loop-player, "nethermancer") is true:
 							heal(loop-player, 0.1)
+							scriptDebugBroadcastType("firestorm", "Healing Nethermancer %loop-player%")
 				loop all entities in radius 1.5 around loop-entity:
 					chance of 50%:
 						loop-entity-2 is not loop-entity-1
 						applyEffect(loop-entity-2, "firestorm", 10 seconds)
+						scriptDebugBroadcastType("firestorm", "Spreading from %loop-entity-1% to %loop-entity-2%")
 		hasEffect(loop-entity, "hallowed") is true:
 			if isMonster(loop-entity) is true:
 				set {_effectDamage} to {_effectDamage} + 1
-				set {_ndamage} to {_effectDamage}
-				scriptDebugBroadcastType("effect", "%{_odamage}%: Monster Hallowed +1.0 -> %{_ndamage}%")
-				set {_odamage} to {_effectDamage}
+				scriptDebugBroadcastType("hallowed", "Damaging Monster %loop-entity% by 1")
 			else if hasClass(loop-entity, "paladin") is true:
 				heal(loop-entity, 0.5)
+				scriptDebugBroadcastType("hallowed", "Healing Paladin %loop-entity% by 0.5")
 			else:
 				set {_effectDamage} to {_effectDamage} + 0.5
-				set {_ndamage} to {_effectDamage}
-				scriptDebugBroadcastType("effect", "%{_odamage}%: Hallowed +0.5 -> %{_ndamage}%")
-				set {_odamage} to {_effectDamage}
+				scriptDebugBroadcastType("hallowed", "Damaging Non-Monster %loop-entity% by 0.5")
 		hasEffect(loop-entity, "bleeding") is true:
 			if hasClass(loop-entity, "warrior") is false:
 				set {_bleed} to 0.05 * maximum health of loop-entity 
 				set {_effectDamage} to {_effectDamage} + {_bleed}
-				set {_ndamage} to {_effectDamage}
-				scriptDebugBroadcastType("effect", "%{_odamage}%: Bleeding +%{_bleed}% -> %{_ndamage}%")
-				set {_odamage} to {_effectDamage}
+				scriptDebugBroadcastType("bleeding", "Damaging Non-Warrior %loop-entity% by %{_bleed}%")
 		hasEffect(loop-entity, "mana leak") is true:
 			loop-entity is a player
 			set {_loss} to ({rpgSkript::maxMana::%loop-entity%} / 40) / 2
 			subMana(loop-entity, {_loss}, false)
+			scriptDebugBroadcastType("mana_leak", "Taking away %({rpgSkript::maxMana::%loop-entity%} / 40) / 2% Mana from %loop-entity%")
 		hasEffect(loop-entity, "shocking") is true:
 			apply slowness 255 without particles to the loop-entity for 2 seconds replacing the existing effect
 			loop all entities in radius 5 around loop-entity:
 				loop-entity-2 is not loop-entity-1
 				hasEffect(loop-entity-2, "shocking") is false
 				set {_effectDamage} to {_effectDamage} + 1
-				set {_ndamage} to {_effectDamage}
-				scriptDebugBroadcastType("effect", "%{_odamage}%: Shocking +1.0 -> %{_ndamage}%")
-				set {_odamage} to {_effectDamage}
+				scriptDebugBroadcastType("shocking", "Damaging %loop-entity-2% by 1")
 				applyEffect(loop-entity-2, "shocking", 0.1 seconds)
 				set {_vec} to vector between loop-entity-1 and loop-entity-2
 				set y component of {_vec} to 0
@@ -1221,14 +1223,13 @@ every 1 seconds:
 			loop-entity is not a skeleton
 			chance of 10%:
 				set {_effectDamage} to {_effectDamage} + 2.5
-				set {_ndamage} to {_effectDamage}
-				scriptDebugBroadcastType("effect", "%{_odamage}%: Disease +1.5 -> %{_ndamage}%")
-				set {_odamage} to {_effectDamage}
+				scriptDebugBroadcastType("disease", "Damaging Non-Paladin Non-Zombie/Skeleton %loop-entity% by 2.5")
 			loop all entities in radius 5 around loop-entity:
 				loop-entity-2 is not loop-entity-1
 				loop-entity-2 is alive
 				chance of 30%:
 					applyEffect(loop-entity-2, "disease", 30 seconds)
+					scriptDebugBroadcastType("disease", "Spreading from %loop-entity-1% to %loop-entity-2%")
 
 		hasEffect(loop-entity, "void") is true:
 			apply glowing 1 without particles to the loop-entity for 5 seconds replacing the existing effect
@@ -1239,6 +1240,7 @@ every 1 seconds:
 				apply swiftness 4 without particles to the loop-entity for 5 seconds replacing the existing effect
 				light level at loop-entity is less than 11
 				applyEffect(loop-entity, "invisible", 5 seconds)
+				scriptDebugBroadcastType("rogue", "Resetting Rogue Invisibility")
 
 		hasEffect(loop-entity, "levitate") is true:
 			apply levitation 1 without particles to the loop-entity for 5 seconds replacing the existing effect
@@ -1282,57 +1284,44 @@ every 1 seconds:
 					apply blindness 1 without particles to the loop-entity for 5 seconds replacing the existing effect
 					chance of 10%:
 						set {_effectDamage} to {_effectDamage} + 0.75
-						set {_ndamage} to {_effectDamage}
-						scriptDebugBroadcastType("effect", "%{_odamage}%: Sandstorm +0.75 -> %{_ndamage}%")
-						set {_odamage} to {_effectDamage}						
+						scriptDebugBroadcastType("worldevents", "Damaging %loop-entity% by 0.75 from Sandstorm")						
 			else:
 				sunlight level at loop-entity is greater than or equal to 15
 				if isWearingNothing(loop-entity) is true:
 					set {_effectDamage} to {_effectDamage} + 1
-					set {_ndamage} to {_effectDamage}
-					scriptDebugBroadcastType("effect", "%{_odamage}%: Acid Rain +0.1 -> %{_ndamage}%")
-					set {_odamage} to {_effectDamage}			
+					scriptDebugBroadcastType("worldevents", "Damaging %loop-entity% by 1 from Acid Rain")	
 				else if isWearingLightOrLess(loop-entity) is true:
 					set {_effectDamage} to {_effectDamage} + 0.75
-					set {_ndamage} to {_effectDamage}
-					scriptDebugBroadcastType("effect", "%{_odamage}%: Acid Rain +0.75 -> %{_ndamage}%")
-					set {_odamage} to {_effectDamage}			
+					scriptDebugBroadcastType("worldevents", "Damaging %loop-entity% by 0.75 from Acid Rain")	
 				else:
 					set {_effectDamage} to {_effectDamage} + 0.5
-					set {_ndamage} to {_effectDamage}
-					scriptDebugBroadcastType("effect", "%{_odamage}%: Acid Rain +0.5 -> %{_ndamage}%")
-					set {_odamage} to {_effectDamage}			
+					scriptDebugBroadcastType("worldevents", "Damaging %loop-entity% by 0.5 from Acid Rain")				
 
 		hasClass(loop-entity, "monk") is true:
 			set {_effectDamage} to {_effectDamage} * 0.65
-			set {_ndamage} to {_effectDamage}
-			scriptDebugBroadcastType("effect", "%{_odamage}%: Monk Reduction x0.65 -> %{_ndamage}%")
-			set {_odamage} to {_effectDamage}
+			scriptDebugBroadcastType("monk", "Reducing Effect Damage by *0.65 on %loop-entity%")
 
 		hasClass(loop-entity, "paladin") is true:
 			set {_effectDamage} to {_effectDamage} * 0.9
-			set {_ndamage} to {_effectDamage}
-			scriptDebugBroadcastType("effect", "%{_odamage}%: Monk Reduction x0.9 -> %{_ndamage}%")
-			set {_odamage} to {_effectDamage}
+			scriptDebugBroadcastType("paladin", "Reducing Effect Damage by *0.9 on %loop-entity%")
 
 		if hasEffect(loop-entity, "shielded") is true:
 			set {_effectDamage} to 0
-			set {_ndamage} to {_effectDamage}
-			scriptDebugBroadcastType("effect", "%{_odamage}%: Shielded Damage Reduction =0 -> %{_ndamage}%")
-			set {_odamage} to {_effectDamage}
+			scriptDebugBroadcastType("shielded", "Reducing Effect Damage to 0 on %loop-entity%")
 			stop
 			
 		if {_effectDamage} is not 0:
 			set {_reduction} to 1 - (0.15 * countImbue(loop-entity, "iron will") )
 			set {_effectDamage} to {_effectDamage} * {_reduction}
-			set {_ndamage} to {_effectDamage}
-			scriptDebugBroadcastType("effect", "%{_odamage}%: Iron Will Reduction x%{_reduction}% -> %{_ndamage}%")
-			set {_odamage} to {_effectDamage}
+			scriptDebugBroadcastType("iron_will", "Reducing Effect Damage by *%{_reduction}% on %loop-entity%")
 			
 			if {-evilSkript::%loop-entity%::isBoss} is false:
 				set health of loop-entity to health of loop-entity - {_effectDamage} * {_reduction}
 			else:
 				set health of loop-entity to health of loop-entity - ({_effectDamage} * {_reduction}) * 0.5
+				scriptDebugBroadcastType("boss_mob", "Reducing Effect Damage by 0.5 on %loop-entity%")
+
+			scriptDebugBroadcastType("effect", "Reducing Health of %loop-entity% by %{_effectDamage}%")
 			
 
 
@@ -1594,10 +1583,6 @@ on inventory close:
 			set {rpgSkript::holding::%{_id}%::%loop-value%} to slot (loop-value)-1 of event-inventory
 
 on death:
-
-	loop all entities in radius 15 around victim:
-		if hasClass(loop-entity, "barbarian") is true:
-			addEnergy(loop-entity, 0.5)
 
 	hasEffect(victim, "soulbond") is true:
 		removeEffect( {rpgSkript::%victim%::soulbondplayer} , "soulbond")
@@ -2984,6 +2969,12 @@ on death of a monster:
 			add 1 raw gold to the drops
 		if {_x} <= 45:
 			add 1 diamond to the drops	
+		hasClass(attacker, "barbarian") is true
+		chance of 50%:
+			set {rpgSkript::%attacker%::Energy} to {rpgSkript::%attacker%::Energy} + 1
+			checkEnergy(attacker)
+
+			
 	isMinion(victim) is false
 	set {_z} to 5
 	if {-evilSkript::%victim%::isBoss} is true:
@@ -4679,7 +4670,7 @@ on inventory click:
 	name of event-inventory is "&cBarbarian Research"
 	cancel event
 
-	if index of event-slot is 30:
+	if index of event-slot is 34:
 		if hasResearch(player, "Thorns") is true:
 			deleteResearch(player, "Thorns")
 		else:
@@ -4724,7 +4715,7 @@ function canUseBarbarianAbilities(player: player) :: boolean:
 		return false
 	else if isWearingMediumOrLess({_player}) is true:
 		return true
-	return false
+	return false	
 
 on right click with red dye:
 	hasClass(event-player, "barbarian") is true
@@ -4783,7 +4774,54 @@ on right click with rabbit's foot:
 							y coordinate of loop-block - y coordinate of player is less than 3:
 								y coordinate of loop-block - y coordinate of player is greater than 0:							
 									break loop-block naturally
-					
+
+on left click with chains:
+	hasClass(event-player, "barbarian") is true
+	canUseBarbarianAbilities(event-player) is true
+	if subEnergy(event-player, 1) is false:
+		send "&4You do do not have the Energy to cast the Chains spell." to event-player
+		stop
+	else:
+		send "&cYou cast the Chains spell." to event-player
+		set {_Block} to 0
+		set {_Cone} to 0
+		loop 8 times:
+			add 1 to {_Block}
+			add 2 to {_Cone}
+			set {_GetBlock} to block {_Block} blocks infront of event-player
+			loop all entities in radius {_Cone} around {_GetBlock}:
+				loop-entity is not event-player
+				apply slowness 255 to loop-entity for 3 seconds replacing the existing effect				
+				apply weakness 2 to loop-entity for 5 seconds replacing the existing effect
+				teleport loop-entity to location of the block above the block 2 blocks in front of event-player
+
+on right click with (any sword or any axe):
+	hasClass(event-player, "barbarian") is true
+	canUseBarbarianAbilities(event-player) is true
+	if at least one of:
+		event-player's targeted block is any log
+		event-player's targeted block is any door
+	then:
+		stop
+	if subEnergy(event-player, 1) is false:
+		send "&4You do do not have the Energy to Cleave!" to event-player
+		stop
+	else:
+		send "&cYou Cleave!" to event-player
+		set {_Block} to 0
+		set {_Cone} to 0
+		loop 2 times:
+			add 1 to {_Block}
+			add 2 to {_Cone}
+			set {_GetBlock} to block {_Block} blocks infront of event-player
+			loop all entities in radius {_Cone} around {_GetBlock}:
+				loop-entity is not event-player	
+				set {_randmg} to a random number between 4 and 10
+				if hasEffect(event-player, "rage") is true:
+					damage loop-entity by {_randmg}
+				else:
+					damage loop-entity by {_randmdg}/2
+		
 						
 
 
