@@ -425,8 +425,9 @@ function getItemCostForImbue(imbue: text, item: item):: items:
 command /ingredients <text>:
 	executable by: players
 	trigger:
-		set {_cost::*} to getItemCostForImbue(arg 1, player's held item)
-		{_cost::*} is set:
+		set {_item} to player's held item
+		set {_cost::*} to getItemCostForImbue(arg 1, {_item})
+		if {_cost::*} is set:
 			send "&e%arg 1 in lower case% costs: %{_cost::*}%" to the player
 		else:
 			send "&cNot a valid imbuement" to the player
@@ -1193,7 +1194,7 @@ every 1 seconds:
 				scriptDebugBroadcastType("hallowed", "Damaging Non-Monster %loop-entity% by 0.5")
 		hasEffect(loop-entity, "bleeding") is true:
 			if hasClass(loop-entity, "warrior") is false:
-				set {_bleed} to 0.05 * maximum health of loop-entity 
+				set {_bleed} to 0.025 * maximum health of loop-entity 
 				set {_effectDamage} to {_effectDamage} + {_bleed}
 				scriptDebugBroadcastType("bleeding", "Damaging Non-Warrior %loop-entity% by %{_bleed}%")
 		hasEffect(loop-entity, "mana leak") is true:
@@ -2747,23 +2748,23 @@ on spawn:
 		set {_caster} to getSummoner(uuid of event-entity)
 		hasClass({_caster}, "druid") is true:
 			event-entity is a wolf:
-				set maximum health of event-entity to 10 *(1.1^(level of {_caster} /15))
+				set maximum health of event-entity to 10 *(1.2^(level of {_caster} /10))
 				set movement speed attribute of event-entity to 1.4 * movement speed attribute of event-entity
 				set armor attribute of event-entity to 3
 			event-entity is a spider:
-				set maximum health of event-entity to 12 * (1.1^(level of {_caster} /15))
+				set maximum health of event-entity to 12 * (1.2^(level of {_caster} /10))
 				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
 				set armor attribute of event-entity to 0
 			event-entity is a polar bear:
-				set maximum health of event-entity to 16 * (1.1^(level of {_caster} /15))
+				set maximum health of event-entity to 16 * (1.2^(level of {_caster} /10))
 				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
 				set armor attribute of event-entity to 5
 			set the event-entity's display name to "&a%{_caster}%'s Friend"
-			set attack damage attribute of entity to (1.1^(level of {_caster} /15)) * attack damage attribute of entity
+			set attack damage attribute of entity to (1.2^(level of {_caster} /10)) * attack damage attribute of entity
 		hasClass({_caster}, "necromancer") is true:
 			event-entity is a skeleton:
-				set attack damage attribute of entity to (1.1^(level of {_caster} /15)) * attack damage attribute of entity
-				set maximum health of entity to (1.1^(level of {_caster} / 15)) * maximum health of entity
+				set attack damage attribute of entity to (1.2^(level of {_caster} /10)) * attack damage attribute of entity
+				set maximum health of entity to (1.2^(level of {_caster} / 10)) * maximum health of entity
 		fullHeal(event-entity)
 
 
@@ -2975,6 +2976,16 @@ on death of a monster:
 		chance of 50%:
 			set {rpgSkript::%attacker%::Energy} to {rpgSkript::%attacker%::Energy} + 1
 			checkEnergy(attacker)
+	if {rpgdiff} is greater than 5:
+		add 1 experience to the drops
+	else if {rpgdiff} is greater than 7.5:
+		add 2 experience to the drops
+	else if {rpgdiff} is greater than 10:
+		add 3 experience to the drops
+	else if {rpgdiff} is greater than 12.5:
+		add 4 experience to the drops
+	else if {rpgdiff} is greater than 15:
+		add 5 experience to the drops
 
 			
 	isMinion(victim) is false
