@@ -4214,7 +4214,7 @@ on left click with redstone:
 			loop-entity is not event-player:
 				isMinion(loop-entity) is true:
 					getSummoner(uuid of loop-entity) is event-player:
-						exit 1 loop
+						continue 1 loop
 				damage loop-entity by 2
 				set {_monsters} to {_monsters} + 1
 				play sound "item.trident.riptide_3" with pitch 2 at loop-entity
@@ -4233,7 +4233,7 @@ on left click with redstone:
 			loop-entity is not event-player:
 				isMinion(loop-entity) is true:
 					getSummoner(uuid of loop-entity) is event-player:
-						exit 1 loop
+						continue 1 loop
 				damage loop-entity by {_damage}
 				play sound "item.trident.riptide_3" with pitch 2 at loop-entity
 		heal(event-player, 3 * {_monsters} )
