@@ -342,6 +342,19 @@ function makeSpecial(entity: entity):
     heal {_entity}
     loop 3 times:
       spawn a creeper at {_entity}
+  set {_itemchance} to 20
+  chance of {_itemchance}%:
+    set helmet of {_entity} to generateLootHelmet()
+  chance of {_itemchance}%:
+    set chestplate of {_entity} to generateLootChestplate()
+  chance of {_itemchance}%:
+    set leggings of {_entity} to generateLootLeggings()
+  chance of {_itemchance}%:
+    set boots of {_entity} to generateLootBoots()
+  chance of {_itemchance}%:
+    set held item of {_entity} to generateLootSword()
+  chance of {_itemchance}%:
+    set off hand item of {_entity} to generateLootShield() 
 
 function summonButcher(player:player, chance:number):
   scriptDebugBroadcastType("difficulty", "Attempting to spawn a Butcher at %{_player}%") 
