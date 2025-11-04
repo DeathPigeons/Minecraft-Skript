@@ -21,6 +21,7 @@ on script unload:
 	
 	delete {-rpgSkript::fireballs::*}
 	delete {-rpgSkript::cryoballs::*}
+	delete {-rpgSkript::cache::*}
 
 	loop {-rpgSkript::minions::*}:
 		killMinion(loop-index)
@@ -4037,9 +4038,17 @@ function isMinion(entity: entity) :: boolean:
 	return false
 
 function getByUUID(uuid: text) :: entity:
-	loop all living entities:
-		uuid of loop-entity contains {_uuid}:
-			return loop-entity
+    set {_cacheResult} to {-rpgSkript::cache::entityByUUID::%{_uuid}%::entity}
+    {_cacheResult} is set:
+        {_cacheResult} is alive
+        return {_cacheResult}
+    loop all living entities:
+        uuid of loop-entity contains {_uuid}:
+            # This gets rid of a warning saying that you can't save entities.
+            # The cache is cleared on script unload. It doesn't matter.
+            set {_entity} to loop-entity
+            set {-rpgSkript::cache::entityByUUID::%{_uuid}%::entity} to {_entity}
+            return loop-entity
 
 every 2 seconds:
 
@@ -4214,7 +4223,7 @@ on left click with redstone:
 			loop-entity is not event-player:
 				isMinion(loop-entity) is true:
 					getSummoner(uuid of loop-entity) is event-player:
-						continue 1 loop
+						continue
 				damage loop-entity by 2
 				set {_monsters} to {_monsters} + 1
 				play sound "item.trident.riptide_3" with pitch 2 at loop-entity
@@ -4233,7 +4242,7 @@ on left click with redstone:
 			loop-entity is not event-player:
 				isMinion(loop-entity) is true:
 					getSummoner(uuid of loop-entity) is event-player:
-						continue 1 loop
+						continue
 				damage loop-entity by {_damage}
 				play sound "item.trident.riptide_3" with pitch 2 at loop-entity
 		heal(event-player, 3 * {_monsters} )
