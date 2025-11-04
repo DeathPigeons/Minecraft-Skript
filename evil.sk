@@ -620,7 +620,7 @@ every 10 seconds:
             add 2 to {_Cone}
             set {_GetBlock} to block {_Block} blocks infront of loop-entity
             loop all entities in radius {_Cone} around {_GetBlock}:
-              loop-entity=2 is not loop-entity-1
+              loop-entity-2 is not loop-entity-1
               apply slowness 255 to loop-entity-2 for 3 seconds replacing the existing effect				
               apply weakness 2 to loop-entity-2 for 5 seconds replacing the existing effect
               teleport loop-entity-2 to location of the block above the block 2 blocks in front of loop-entity-1
