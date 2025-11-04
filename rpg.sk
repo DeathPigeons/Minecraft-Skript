@@ -2267,7 +2267,7 @@ on target:
 						set movement speed attribute of the zombie to 2 * movement speed attribute of the zombie
 						set attack damage attribute of the spider to 1.5 * attack damage attribute of the spider
 						set maximum health of the spider to 5						
-						applyEffect(the zombie, "disease", 1 hour)
+						applyEffect(the zombie, "radiated", 1 hour)
 			event-entity is a creeper:
 				spawn 1 creeper at event-entity:
 					makeLunatic(the creeper)
@@ -2992,29 +2992,37 @@ on death of a monster:
 	isMinion(victim) is false
 	set {_z} to 5
 	if {-evilSkript::%victim%::isBoss} is true:
+		add 30 experience to the drops
 		set {_z} to 20
 		if {-evilSkript::%victim%::isButcher} is true:
 			set {_z} to 40
-		clear the drops
-		chance of {_z}%:
-			add helmet of victim to the drops		
-			set {_z} to {_z} - 5	
-		chance of {_z}%:
-			add chestplate of victim to the drops
-			set {_z} to {_z} - 5	
-		chance of {_z}%:
-			add leggings of victim to the drops
-			set {_z} to {_z} - 5	
-		chance of {_z}%:
-			add boots of victim to the drops
-			set {_z} to {_z} - 5	
-		chance of {_z}%:
-			add held item of victim to the drops
-			set {_z} to {_z} - 5	
-		chance of {_z}%:
-			add off hand item of victim to the drops
-			set {_z} to {_z} - 5	
-		add 30 experience to the drops
+	set {_z} to {_z} + {rpgdiff}
+	chance of {_z}%:
+		add helmet of victim to the drops		
+		set {_z} to {_z} - 5	
+	chance of {_z}%:
+		add chestplate of victim to the drops
+		set {_z} to {_z} - 5	
+	chance of {_z}%:
+		add leggings of victim to the drops
+		set {_z} to {_z} - 5	
+	chance of {_z}%:
+		add boots of victim to the drops
+		set {_z} to {_z} - 5	
+	chance of {_z}%:
+		add held item of victim to the drops
+		set {_z} to {_z} - 5	
+	chance of {_z}%:
+		add off hand item of victim to the drops
+
+	victim is a zombie:
+		hasEffect(victim, "radiated") is true:
+			loop all entities in radius 3 around victim:
+				loop-entity is not a zombie
+				loop-entity is not victim
+				damage loop-entity by 2
+				chance of 30%:
+					applyEffect(victim, "radiated", 10 seconds)
 
 on death of an animal:
 	attacker is a player:
@@ -5304,8 +5312,6 @@ function displayWildshape(player: player):
 
 
 # Artificer
-
-
 
 #on preparing craft:
 	#hasClass(event-player, "artificer") is true:
