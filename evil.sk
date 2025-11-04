@@ -152,12 +152,14 @@ on death:
   victim is a monster:
     remove victim from {-evilSkript::bossMobs::*}
     
-    set {rpgdiff} to {rpgdiff} + 0.0025
+    set {rpgdiff} to {rpgdiff} + 0.00025
     if mod({rpgdiff}, 0.2) is 0:
       broadcast "Difficulty is now: %{rpgdiff}%"	
 
   victim is a player:
-    set {rpgdiff} to {rpgdiff} - 0.3
+    set {rpgdiff} to {rpgdiff} - 5
+    if {rpgdiff} is less than 0.05:
+      set {rpgdiff} to 0.05
     broadcast "Difficulty is now: %{rpgdiff}%"
 
 every 5 seconds:
@@ -172,7 +174,7 @@ every 5 seconds:
       if {lastInvasion} is not set:
         set {lastInvasion} to 0.5 hours ago
       difference between {lastInvision} and now is more than 1 hour:
-        set {_chance} to log({rpgdiff}) * 12.5 / 100
+        set {_chance} to log({rpgdiff}) * 12.5 / 75
         if {_chance} > 0:
           chance of {_chance}%:
             set {lastInvasion} to now
@@ -200,7 +202,7 @@ every 5 seconds:
       if {lastInvasion} is not set:
         set {lastInvasion} to 0.5 hours ago
       difference between {lastInvision} and now is more than 1 hour:
-        set {_chance} to log({rpgdiff}) * 12.5 / 100
+        set {_chance} to log({rpgdiff}) * 12.5 / 75
         if {_chance} > 0:
           chance of {_chance}%:
             set {lastInvasion} to now
@@ -395,7 +397,7 @@ command /spawnrates:
     broadcast "Special Chance: log(%{rpgdiff}%) * 12.5 / 5 = %log({rpgdiff}) * 12.5 / 5% PERCENT"
     broadcast "Boss Chance: log(%{rpgdiff}%) * 12.5 / 50 = %log({rpgdiff}) * 12.5 / 50% PERCENT"
     broadcast "Butcher Chance: log(%{rpgdiff}%) * 12.5 / 100 = %log({rpgdiff}) * 12.5 / 100% PERCENT"
-    broadcast "Netherbreach/Apocalypse Chance: log(%{rpgdiff}%) * 12.5 / 100 = %log({rpgdiff}) * 12.5 / 100% PERCENT"
+    broadcast "Netherbreach/Apocalypse Chance: log(%{rpgdiff}%) * 12.5 / 75 = %log({rpgdiff}) * 12.5 / 100% PERCENT"
     broadcast "Mobs Attack Damage Bonus: %(1.1^({rpgdiff} - 1))%x"
     broadcast "Mobs Health Bonus: %(1.1^({rpgdiff} - 1))%x"
         
@@ -610,17 +612,18 @@ every 10 seconds:
             createWorldEffect(block at location of loop-entity-2, "poison_gas", 5 seconds, loop-entity-1)    
     if loop-entity is a zombie:
       if {-evilSkript::%loop-entity%::isButcher} is true:
-        loop all entities in radius 15 around loop-entity-1:
-          loop-entity-2 is not a monster
-          loop-entity-2 is not a dropped item
-          loop-entity-2 is alive
-          chance of 30%:
-            set {_vec} to vector between loop-entity-2 and loop-entity-1
-            set y component of {_vec} to 0
-            set {_vec} to normalized {_vec}
-            push loop-entity-2 {_vec} with force 1.2
-            push loop-entity-2 upwards with force 0.3
-            exit loop
+        chance of 30%:
+          set {_Block} to 0
+          set {_Cone} to 0
+          loop 8 times:
+            add 1 to {_Block}
+            add 2 to {_Cone}
+            set {_GetBlock} to block {_Block} blocks infront of loop-entity
+            loop all entities in radius {_Cone} around {_GetBlock}:
+              loop-entity=2 is not loop-entity-1
+              apply slowness 255 to loop-entity-2 for 3 seconds replacing the existing effect				
+              apply weakness 2 to loop-entity-2 for 5 seconds replacing the existing effect
+              teleport loop-entity-2 to location of the block above the block 2 blocks in front of loop-entity-1
       if {-evilSkript::%loop-entity%::Rotwalker} is true:
         loop all players in radius 20 around loop-entity:
           chance of 30%:
