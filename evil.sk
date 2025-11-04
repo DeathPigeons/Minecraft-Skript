@@ -624,6 +624,7 @@ every 10 seconds:
               apply slowness 255 to loop-entity-2 for 3 seconds replacing the existing effect				
               apply weakness 2 to loop-entity-2 for 5 seconds replacing the existing effect
               teleport loop-entity-2 to location of the block above the block 2 blocks in front of loop-entity-1
+              damage loop-entity-2 by 4
       if {-evilSkript::%loop-entity%::Rotwalker} is true:
         loop all players in radius 20 around loop-entity:
           chance of 30%:
