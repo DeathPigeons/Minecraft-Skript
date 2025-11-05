@@ -1722,8 +1722,8 @@ on damage:
 	{-evilSkript::%attacker%::isButcher} is true:
 		chance of 50%:
 			applyEffect(victim, "bleeding", 5 seconds)
-      apply slowness 1 to victim for 5 seconds replacing the existing effect				
-      apply weakness 1 to victim for 5 seconds replacing the existing effect
+			apply slowness 1 to victim for 5 seconds replacing the existing effect				
+			apply weakness 1 to victim for 5 seconds replacing the existing effect
       
 
 	hasEffect(victim, "shielded") is true:
