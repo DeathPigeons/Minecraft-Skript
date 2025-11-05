@@ -1719,6 +1719,12 @@ on damage:
 		chance of 40%:
 			applyEffect(victim, "radiated", 1 minute)
 			scriptDebugBroadcastType("health", "%victim% now has Radiated for 1 minute")
+	{-evilSkript::%attacker%::isButcher} is true:
+		chance of 50%:
+			applyEffect(victim, "bleeding", 5 seconds)
+      apply slowness 1 to victim for 5 seconds replacing the existing effect				
+      apply weakness 1 to victim for 5 seconds replacing the existing effect
+      
 
 	hasEffect(victim, "shielded") is true:
 		set the damage to the damage * 0.5
