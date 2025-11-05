@@ -724,6 +724,12 @@ function drawWorldEffect(index: text):
 				show green dust at loop-block
 				show grey dust at loop-block
 
+	{_name} is "tremors":
+		loop blocks in radius 6.99 around {_loc}:
+			chance of 5%:
+				show brown dust at loop-block
+				show green dust at loop-block
+
 		{_name} is "disease":
 			loop blocks in radius 6.99 around {_loc}:
 				chance of 15%:
@@ -805,13 +811,34 @@ function handleWorldEffect(index: text):
 			chance of 60%:
 				damage loop-entity by 1
 
+	{_name} is "tremors":
+		loop entities in radius 7 around {_loc}:
+			chance of 30%:
+				damage loop-entity by 2
+				set {_vec} to vector between loop-entity and {_loc}
+				set y component of {_vec} to 0
+				set {_vec} to normalized {_vec}
+				push loop-entity {_vec} with force 1.5
+				push loop-entity upwards with force 0.75				
+
 	{_name} is "poison_gas":
 		loop entities in radius 7 around {_loc}:
 			chance of 60%:
 				{rpgSkript::%loop-entity%::isBoss} is false
 				apply poison 1 to the loop-entity for 10 seconds replacing the existing effect
-				apply slowness 1 to the loop-entity for 3 seconds replacing the existing effect
-				apply weakness 1 to the loop-entity for 3 seconds replacing the existing effect
+				if {-evilSkript::%{_creator}%::isBoss} is true:
+					loop-entity is not an evoker
+					loop-entity is not a ravager
+					loop-entity is not a pillager
+					loop-entity is not a vindicator
+					loop-entity is not a vex
+					loop-entity is not a witch
+					apply poison 2 to the loop-entity for 10 seconds replacing the existing effect
+					apply slowness 2 to the loop-entity for 3 seconds replacing the existing effect
+					apply weakness 2 to the loop-entity for 3 seconds replacing the existing effect
+				else:
+					apply slowness 1 to the loop-entity for 3 seconds replacing the existing effect
+					apply weakness 1 to the loop-entity for 3 seconds replacing the existing effect
 	{_name} is "disease":
 		loop entities in radius 4.99 around {_loc}:
 			chance of 30%:
@@ -838,6 +865,8 @@ function handleWorldEffect(index: text):
 				loop-entity is a spider:
 					exit 1 loop
 			damage loop-entity by 0.5
+			if {-evilSkript::%{_creator}%::isBoss} is true:
+				damage loop-entity by 1
 			{rpgSkript::%loop-entity%::isBoss} is false
 			apply slowness 2 to the loop-entity for 3 seconds replacing the existing effect
 			apply weakness 2 to the loop-entity for 3 seconds replacing the existing effect
@@ -1683,6 +1712,9 @@ on damage:
 		send "&6You hit the dummy for %{_odamage}% points of damage!" to the attacker
 	set {_ndamage} to the damage
 
+	hasEffect(victim, "vulnerable") is true:
+		set the damage to the damage * 1.25
+
 	{-evilSkript::%attacker%::RotWalker} is true:
 		chance of 40%:
 			applyEffect(victim, "radiated", 1 minute)
@@ -1952,7 +1984,7 @@ on damage:
 	
 	if attacker is set:
 		set {_critchance} to calculateCritical(attacker, victim)
-		set {_opchance} to calculateCritical(attacker, victim)
+		set {_opchance} to calculateOverpower(attacker, victim)
 
 		chance of {_critchance}:
 			set the damage to the damage * 1.5
@@ -2370,6 +2402,8 @@ function calculateCritical(hit:entity, damaged:entity) :: number:
 		set {_crit} to 1
 	hasEffect({_damaged}, "Void") is true:
 		set {_crit} to {_crit} + 0.1
+	hasEffect({_damaged}, "Vulnerable") is true:
+		set {_crit} to {_crit} + 0.1
 	hasEffect({_hit}, "invisible") is true:
 		set {_crit} to {_crit} + 0.05
 	
@@ -2394,6 +2428,8 @@ function calculateOverpower(hit:entity, damaged:entity) :: number:
 		set {_op} to {_op} + 0.05
 	hasEffect({_hit}, "rage") is true:
 		set {_op} to {_op} + 0.1
+	hasEffect({_damaged}, "Vulnerable") is true:
+		set {_crit} to {_crit} + 0.1
 	return {_op}
 	  
 
