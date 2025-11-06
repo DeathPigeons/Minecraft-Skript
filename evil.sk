@@ -694,9 +694,33 @@ every 10 seconds:
 
   loop all players:
     if {-bigraid} is true:
-      chance of 25%:
-        set {_loc} to location of loop-player
-        wait 5 seconds
+      loop 3 times:
+        set {_x} to a random number between -25 and 25
+        set {_x} to the x coordinate of loop-player + {_x}
+        set {_z} to a random number between -25 and 25
+        set {_z} to the z coordinate of loop-player + {_z}
+        set {_y} to a random number between -10 and 10
+        set {_7} to the x coordinate of loop-player + {_y}
+        set {_loc} to the location at {_x}, {_y}, {_z} of world "world"
+        block at {_loc} is not air
+        block at {_loc} is not water
+        block 1 block above the block at {_loc} is not air
+        block 2 blocks above the block at {_loc} is not air
+        loop {evilSkript::bed::*}:
+          set {_v} to the vector between {_loc} and location of loop-value-3
+          if the length of {_v} is less than 26: 
+            continue
+        set {_chance} to a random number between 1 and 100
+        if {_chance} is greater than 90:
+          spawn 1 ravager at {_loc}
+        else if {_chance} is greater than 75:
+          spawn 1 vindicator at {_loc}
+        else if {_chance} is greater than 50:
+          spawn 1 evoker at {_loc}
+        else if {_chance} is greater than 25:
+          spawn 1 witch at {_loc}
+        else:
+          spawn 3 vex at {_loc}
         spawn 3 pillagers at {_loc}
 
 every 3 seconds:
