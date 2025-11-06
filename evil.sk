@@ -616,6 +616,7 @@ every 10 seconds:
               loop-entity-2 is not a cave spider
               applyEffect(loop-entity-2, "venom", 30 seconds)
         loop all entities in radius 10 around loop-entity:
+          isMonster(loop-entity-2) is false
           chance of 30%:
             applyEffect(loop-entity-2, "cacooned", 5 seconds)
             send "&4A Broodmother traps you in a cacoon!" to loop-entity-2
