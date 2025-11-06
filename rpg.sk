@@ -814,7 +814,19 @@ function handleWorldEffect(index: text):
 	{_name} is "tremors":
 		loop entities in radius 7 around {_loc}:
 			chance of 30%:
-				damage loop-entity by 2
+				if {-evilSkript::%{_creator}%::isBoss} is true:
+					if at least one of:
+						loop-entity is an evoker
+						loop-entity is a ravager
+						loop-entity is a pillager
+						loop-entity is a vindicator
+						loop-entity is a vex
+						loop-entity is a witch
+					then:
+						continue
+				damage loop-entity by 3
+				isMinion(loop-entity) is true:
+					damage loop-entity by 1.5
 				set {_vec} to vector between loop-entity and {_loc}
 				set y component of {_vec} to 0
 				set {_vec} to normalized {_vec}
@@ -836,6 +848,8 @@ function handleWorldEffect(index: text):
 					apply poison 2 to the loop-entity for 10 seconds replacing the existing effect
 					apply slowness 2 to the loop-entity for 3 seconds replacing the existing effect
 					apply weakness 2 to the loop-entity for 3 seconds replacing the existing effect
+					isMinion(loop-entity) is true:
+						damage loop-entity by 1.5
 				else:
 					apply slowness 1 to the loop-entity for 3 seconds replacing the existing effect
 					apply weakness 1 to the loop-entity for 3 seconds replacing the existing effect
@@ -866,7 +880,9 @@ function handleWorldEffect(index: text):
 					exit 1 loop
 			damage loop-entity by 0.5
 			if {-evilSkript::%{_creator}%::isBoss} is true:
-				damage loop-entity by 1
+				damage loop-entity by 1.5
+				isMinion(loop-entity) is true:
+					damage loop-entity by 1.5
 			{rpgSkript::%loop-entity%::isBoss} is false
 			apply slowness 2 to the loop-entity for 3 seconds replacing the existing effect
 			apply weakness 2 to the loop-entity for 3 seconds replacing the existing effect
@@ -1067,6 +1083,9 @@ function drawEffects(entity: entity):
 	hasEffect({_entity}, "phased") is true:
 		show rollDice(10, 3) (purple dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
 		show rollDice(10, 3) (black dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
+	hasEffect({_entity}, "venom") is true:
+		show rollDice(10, 3) (green dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
+		show rollDice(10, 3) (black dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
 	hasEffect({_entity}, "void") is true:
 		show rollDice(10, 3) (white dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
 		show rollDice(10, 3) (black dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
@@ -1232,6 +1251,23 @@ every 1 seconds:
 			set {_loss} to ({rpgSkript::maxMana::%loop-entity%} / 40) / 2
 			subMana(loop-entity, {_loss}, false)
 			scriptDebugBroadcastType("mana_leak", "Taking away %({rpgSkript::maxMana::%loop-entity%} / 40) / 2% Mana from %loop-entity%")
+		hasEffect(loop-entity, "venom") is true:
+			chance of 10%:
+				set {_dmg} to a random number between 2.5 and 5
+				set {_effectDamage} to {_effectDamage} + {_dmg}
+				apply weakness 1 without particles to the loop-entity for 2 seconds replacing the existing effect
+				applyEffect(loop-entity, "vulnerable", 7.5 seconds)
+		hasEffect(loop-entity, "cacooned") is true:
+			apply weakness 2 without particles to the loop-entity for 2 seconds replacing the existing effect
+			apply slowness 255 without particles to the loop-entity for 2 seconds replacing the existing effect
+			apply blindness 1 without particles to the loop-entity for 2 seconds replacing the existing effect
+			set {_effectDamage} to {_effectDamage} + 0.5
+			applyEffect(loop-entity, "vulnerable", 7.5 seconds)				
+			chance of 33%:
+				spawn 1 cave spider at loop-entity:
+					set movement speed attribute of the spider to 3 * movement speed attribute of the cave spider
+					set attack damage attribute of the spider to 0.75 * attack damage attribute of the cave spider
+					set maximum health of the spider to 2.5						
 		hasEffect(loop-entity, "shocking") is true:
 			apply slowness 255 without particles to the loop-entity for 2 seconds replacing the existing effect
 			loop all entities in radius 5 around loop-entity:
@@ -1713,7 +1749,7 @@ on damage:
 	set {_ndamage} to the damage
 
 	hasEffect(victim, "vulnerable") is true:
-		set the damage to the damage * 1.25
+		set the damage to the damage * 2
 
 	{-evilSkript::%attacker%::RotWalker} is true:
 		chance of 40%:
@@ -2295,16 +2331,16 @@ on target:
 				else:
 					spawn 3 vex at event-entity
 			event-entity is a spider:
-				spawn 1 spider at event-entity:
-					set movement speed attribute of the spider to 2 * movement speed attribute of the spider
-					set attack damage attribute of the spider to 0.75 * attack damage attribute of the spider
-					set maximum health of the spider to 2.5			
+				spawn 1 cave spider at event-entity:
+					set movement speed attribute of the spider to 3 * movement speed attribute of the cave spider
+					set attack damage attribute of the spider to 0.75 * attack damage attribute of the cave spider
+					set maximum health of the cave spider to 2.5			
 			event-entity is a zombie:
 				spawn 1 zombie at event-entity:
 					if {-evilSkript::%event-entity%::Rotwalker} is true:
 						set movement speed attribute of the zombie to 2 * movement speed attribute of the zombie
-						set attack damage attribute of the spider to 1.5 * attack damage attribute of the spider
-						set maximum health of the spider to 5						
+						set attack damage attribute of the spider to 1.5 * attack damage attribute of the zombie
+						set maximum health of the zombie to 5						
 						applyEffect(the zombie, "radiated", 1 hour)
 			event-entity is a creeper:
 				spawn 1 creeper at event-entity:
