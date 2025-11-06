@@ -512,12 +512,12 @@ function makeBoss(entity:entity):
     heal {_entity}
   {_entity} is an evoker:
     set {_entity}'s display name to "&4Pillage Captain"
-    set movement speed attribute of {_entity} to 1.25 * movement speed attribute of {_entity}
+    set movement speed attribute of {_entity} to 2.0 * movement speed attribute of {_entity}
     set attack damage attribute of {_entity} to 1.5 * attack damage attribute of {_entity}
     set maximum health of {_entity} to 100
     set {-evilSkript::%{_entity}%::isBoss} to true
     set {-evilSkript::%{_entity}%::summoner} to true
-    set {-evilSkript::%{_entity}%::summoncount} to 3
+    set {-evilSkript::%{_entity}%::summoncount} to 5
     set helmet of {_entity} to generateLootHelmet()
     set chestplate of {_entity} to generateLootChestplate()
     set leggings of {_entity} to generateLootLeggings()
@@ -527,12 +527,12 @@ function makeBoss(entity:entity):
     heal {_entity}
   {_entity} is a spider:
     set {_entity}'s display name to "&6The Broodmother"
-    set movement speed attribute of {_entity} to 0.5 * movement speed attribute of {_entity}
+    set movement speed attribute of {_entity} to 0.75 * movement speed attribute of {_entity}
     set attack damage attribute of {_entity} to 1.5 * attack damage attribute of {_entity}
     set maximum health of {_entity} to 250
     set {-evilSkript::%{_entity}%::isBoss} to true
     set {-evilSkript::%{_entity}%::summoner} to true
-    set {-evilSkript::%{_entity}%::summoncount} to 7
+    set {-evilSkript::%{_entity}%::summoncount} to 10
     set helmet of {_entity} to generateLootHelmet()
     set chestplate of {_entity} to generateLootChestplate()
     set leggings of {_entity} to generateLootLeggings()
@@ -602,14 +602,25 @@ every 10 seconds:
 
     if loop-entity is a spider:
       if {-evilSkript::%loop-entity%::isBoss} is true:
+        loop all players in radius 10 around loop-entity:
+          set {_ability} to a random number between 1 and 4
+          if {_ability} is less than 2:
+            createWorldEffect(location of loop-player, "cobweb", 5 seconds, loop-entity-1)
+          else if {_ability} is less than 3:
+            createWorldEffect(location of loop-player, "poison_gas", 5 seconds, loop-entity-1) 
+          else if {_ability} is less than 5:
+            broadcast "&4A Broodmother takes aim at %loop-player%!"   
+            wait 1.5 seconds
+            loop entities in radius 3 around loop-player:
+              loop-entity-2 is not a spider
+              loop-entity-2 is not a cave spider
+              applyEffect(loop-entity-2, "venom", 30 seconds)
         loop all entities in radius 10 around loop-entity:
-          loop-entity-2 is not loop-entity-1
-          loop-entity-2 is not a spider
-          if chance of 30%:
-            createWorldEffect(block at location of loop-entity-2, "cobweb", 5 seconds, loop-entity-1)
-            exit 1 loop
-          if chance of 30%:
-            createWorldEffect(block at location of loop-entity-2, "poison_gas", 5 seconds, loop-entity-1)    
+          chance of 30%:
+            applyEffect(loop-entity-2, "cacooned", 5 seconds)
+            send "&4A Broodmother traps you in a cacoon!" to loop-entity-2
+
+             
     if loop-entity is a zombie:
       if {-evilSkript::%loop-entity%::isButcher} is true:
         chance of 30%:
@@ -633,6 +644,7 @@ every 10 seconds:
             applyEffect(loop-player, "radiated", 30 seconds)
             send "&aYou feel your blood boil!" to loop-player
     if loop-entity is an evoker:
+      {-evilSkript::%loop-entity%::Boss} is true
       chance of 50%:
         loop all players in radius 20 around loop-entity:
           hasEffect(loop-player, "invisible") is false
@@ -649,7 +661,7 @@ every 10 seconds:
               loop-entity-2 is not a vex
               loop-entity-2 is not a witch
               apply slowness 255 to loop-entity-2 for 3 seconds replacing the existing effect
-              damage loop-entity-2 by 7.5
+              damage loop-entity-2 by 5 + ({rpgdiff} / 2)
           else if {_magic} is less than 3:
             broadcast "&4A Pillage Captain channels Fire at %loop-player%!"
             wait 1.5 seconds
@@ -663,7 +675,7 @@ every 10 seconds:
               loop-entity-2 is not a vex
               loop-entity-2 is not a witch
               ignite loop-entity-2
-              damage loop-entity-2 by 2.5
+              damage loop-entity-2 by 2.5 + ({rpgdiff} / 2)
           else if {_magic} is less than 4:
             broadcast "&4A Pillage Captain channels Earth at %loop-player%!"
             wait 1.5 seconds
