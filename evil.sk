@@ -674,7 +674,7 @@ every 10 seconds:
   if {-bigraid} is true:
     loop all players:
       loop {evilSkript::bed::*}:
-        set {_v} to the vector between location of loop-player and location of loop-value-3
+        set {_v} to the vector between location of loop-player and location of loop-value-2
           if the length of {_v} is less than 26: 
             continue
       set {_x} to a random number between -25 and 25
