@@ -92,26 +92,6 @@ on spawn:
           chance of ({_chance} / 5)%:
             makeSpecial(entity)
 
-  if {-bigraid} is true:
-    isMonster(entity) is true:
-      set {_odds} to a random number between 1 and 100
-      if {_odds} is greater than 90:
-        spawn 1 ravager at entity
-      else if {_odds} is greater than 75:
-        spawn 1 vindicator at entity
-      else if {_odds} is greater than 60:
-        spawn 1 evoker at entity:
-          chance of ({_chance} / 50)%:
-            makeBoss(entity)	
-      else if {_odds} is greater than 45:
-        spawn 1 witch at entity
-      else if {_odds} is greater than 25:
-        spawn 2 pillager at entity
-      else:
-        spawn 3 vex at entity
-
-
-  
 
 on spawn:
   isMinion(entity) is false
@@ -691,37 +671,35 @@ every 10 seconds:
             apply slowness 255 to loop-player for 7.5 seconds replacing the existing effect
             apply weakness 2 to loop-player for 7.5 seconds replacing the existing effect
             applyEffect(loop-player, "vulnerable", 7.5 seconds)
-
-  loop all players:
-    if {-bigraid} is true:
-      loop 3 times:
-        set {_x} to a random number between -25 and 25
-        set {_x} to the x coordinate of loop-player + {_x}
-        set {_z} to a random number between -25 and 25
-        set {_z} to the z coordinate of loop-player + {_z}
-        set {_y} to a random number between -10 and 10
-        set {_y} to the y coordinate of loop-player + {_y}
-        set {_loc} to the location at {_x}, {_y}, {_z} of world "world"
-        block at {_loc} is not air
-        block at {_loc} is not water
-        block 1 block above the block at {_loc} is not air
-        block 2 blocks above the block at {_loc} is not air
-        loop {evilSkript::bed::*}:
-          set {_v} to the vector between {_loc} and location of loop-value-3
+  if {-bigraid} is true:
+    loop all players:
+      loop {evilSkript::bed::*}:
+        set {_v} to the vector between location of loop-player and location of loop-value-3
           if the length of {_v} is less than 26: 
             continue
-        set {_chance} to a random number between 1 and 100
-        if {_chance} is greater than 90:
-          spawn 1 ravager at {_loc}
-        else if {_chance} is greater than 75:
-          spawn 1 vindicator at {_loc}
-        else if {_chance} is greater than 50:
-          spawn 1 evoker at {_loc}
-        else if {_chance} is greater than 25:
-          spawn 1 witch at {_loc}
-        else:
-          spawn 3 vex at {_loc}
-        spawn 3 pillagers at {_loc}
+      set {_x} to a random number between -25 and 25
+      set {_x} to the x coordinate of loop-player + {_x}
+      set {_z} to a random number between -25 and 25
+      set {_z} to the z coordinate of loop-player + {_z}
+      set {_y} to a random number between -10 and 10
+      set {_y} to the y coordinate of loop-player + {_y}
+      set {_loc} to the location at {_x}, {_y}, {_z} of world "world"
+      block at {_loc} is not air
+      block at {_loc} is not water
+      block 1 block above the block at {_loc} is not air
+      block 2 blocks above the block at {_loc} is not air
+      set {_chance} to a random number between 1 and 100
+      if {_chance} is greater than 90:
+        spawn 1 ravager at {_loc}
+      else if {_chance} is greater than 75:
+        spawn 1 vindicator at {_loc}
+      else if {_chance} is greater than 50:
+        spawn 1 evoker at {_loc}
+      else if {_chance} is greater than 25:
+        spawn 1 witch at {_loc}
+      else:
+        spawn 3 vex at {_loc}
+      spawn 3 pillagers at {_loc}
 
 every 3 seconds:
   loop all entities:
