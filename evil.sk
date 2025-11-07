@@ -675,8 +675,8 @@ every 10 seconds:
     loop all players:
       loop {evilSkript::bed::*}:
         set {_v} to the vector between location of loop-player and location of loop-value-2
-          if the length of {_v} is less than 26: 
-            continue
+        if the length of {_v} is less than 26: 
+          continue
       set {_x} to a random number between -25 and 25
       set {_x} to the x coordinate of loop-player + {_x}
       set {_z} to a random number between -25 and 25
