@@ -2619,27 +2619,27 @@ function generateClassLore( item: item):: item:
 		{_item} is any armor
 		{_item} is a shield
 	then:
-		chance of 4%:
+		chance of 10%:
 			set {_item} to addImbue({_item}, "&8Necromancer Class")
-		chance of 4%:
+		chance of 10%:
 			set {_item} to addImbue({_item}, "&8Nethermancer Class")
-		chance of 4%:
+		chance of 10%:
 			set {_item} to addImbue({_item}, "&eCleric Class")
-		chance of 4%:
+		chance of 10%:
 			set {_item} to addImbue({_item}, "&bPaladin Class")
-		chance of 4%:
+		chance of 10%:
 			set {_item} to addImbue({_item}, "&2Rogue Class")
-		chance of 4%:
+		chance of 10%:
 			set {_item} to addImbue({_item}, "&cWarrior Class")
-		chance of 4%:
+		chance of 10%:
 			set {_item} to addImbue({_item}, "&1Endwarden Class")
-		chance of 4%:
+		chance of 10%:
 			set {_item} to addImbue({_item}, "&6Druid Class")
-		chance of 4%:
+		chance of 10%:
 			set {_item} to addImbue({_item}, "&4Barbarian Class")
-		chance of 4%:
+		chance of 10%:
 			set {_item} to addImbue({_item}, "&bArtificer Class")
-		chance of 4%:
+		chance of 10%:
 			set {_item} to addImbue({_item}, "&eMonk Class")
 	return {_item}
 
