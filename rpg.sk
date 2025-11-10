@@ -1146,7 +1146,7 @@ every 1 seconds:
 		if hasClass(loop-player, "nethermancer") is false:
 			set line 13 of loop-player's scoreboard to "&3 Mana: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}%"
 		else:
-			set line 13 of loop-player's scoreboard to "&3 Mana & Heat Level: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}% & &(2+({rpgdiff}/2)%{rpgSkript::heat::%loop-player%}% / 1000"
+			set line 13 of loop-player's scoreboard to "&3 Mana & Heat Level: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}% & &(2+({rpgdiff}/2))%:{rpgSkript::heat::%loop-player%}% / 1000"
 		if at least one of:
 			hasClass(loop-player, "barbarian") is true
 			hasClass(loop-player, "warrior") is true
@@ -1704,7 +1704,7 @@ on death:
 	removeAllEffects(victim)
 	
 	isMonster(victim) is true:
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to generateRandomLoot()
 			hasAnyImbue({_item}) is true:
 				scriptDebugBroadcastType("loot", "Added %{_item}% to mob loot")
@@ -2617,7 +2617,7 @@ function generateRandomLoot() :: item:
 function generateClassLore( item: item):: item:
 	if at least one of:
 		{_item} is any armor
-		{_item} is any shield
+		{_item} is a shield
 	then:
 		chance of 4%:
 			set {_item} to addImbue({_item}, "&8Necromancer Class")
@@ -2648,7 +2648,7 @@ function generateLegendaryLore( item: item, name: text):: item:
 		{_item} is any armor
 		{_item} is a shield
 	then:
-		chance of (10+({rpgdiff}/2)%:
+		chance of (10+({rpgdiff}/2))%:
 			if {_name} is "Rotwalker":
 				set {_item} to addImbue({_item}, "&aRadiation")
 				set name of {_item} to "&aChestplate of the Radiated")
@@ -2668,37 +2668,37 @@ function generateLore( item: item):: item:
 		{_item} is any armor
 		{_item} is a shield
 	then:
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&7Iron Will")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&4Undying")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&8Golem")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&cFlame Shield")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&fFrost Shield")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&9Mana Shield")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&aPhotosynthesis")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&fEnlighten")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&4Health Boost")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&4Energy Boost")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&9Mana Boost")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&9Light")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&9Speed")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&fUnbreakable")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&7Reinforced")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&7Weightless")
 			
 	if at least one of:
@@ -2708,27 +2708,27 @@ function generateLore( item: item):: item:
 		{_item} is a crossbow
 		{_item} is a trident
 	then:
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&4Bloodied")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&cFirststrike")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&2Disease")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&1Shocking")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&4Vampiric")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&6Siphon")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&4Bleeding")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&fHallowed")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&9Mana Leak")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&fUnbreakable")
-		chance of (2+({rpgdiff}/2)%:
+		chance of (2+({rpgdiff}/2))%:
 			set {_item} to addImbue({_item}, "&7Reinforced")
 
 	return {_item}
