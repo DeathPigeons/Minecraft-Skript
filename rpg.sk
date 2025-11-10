@@ -1146,7 +1146,7 @@ every 1 seconds:
 		if hasClass(loop-player, "nethermancer") is false:
 			set line 13 of loop-player's scoreboard to "&3 Mana: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}%"
 		else:
-			set line 13 of loop-player's scoreboard to "&3 Mana & Heat Level: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}% & &(2+({rpgdiff}/2))%:{rpgSkript::heat::%loop-player%}% / 1000"
+			set line 13 of loop-player's scoreboard to "&3 Mana & Heat Level: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}% & %{rpgSkript::heat::%loop-player%}% / 1000"
 		if at least one of:
 			hasClass(loop-player, "barbarian") is true
 			hasClass(loop-player, "warrior") is true
@@ -1588,11 +1588,11 @@ every 2 seconds:
 		if hasImbue(loop-player, "lightning rod") is true:
 			loop all entities in radius 20 around loop-player:
 				chance of 5%:
-					isMonster(loop-entity) is true:
-						create lightning effect at loop-entity
-						apply slowness 255 to loop-entity for 3 seconds replacing the existing effect
-						apply glowing 1 to loop-entity for 3 seconds replacing the existing effect
-						damage loop-entity by 5
+					isMonster(loop-entity-2) is true:
+						create lightning effect at loop-entity-2
+						apply slowness 255 to loop-entity-2 for 3 seconds replacing the existing effect
+						apply glowing 1 to loop-entity-2 for 3 seconds replacing the existing effect
+						damage loop-entity-2 by 5
 	
 
 			
@@ -2651,15 +2651,15 @@ function generateLegendaryLore( item: item, name: text):: item:
 		chance of (10+({rpgdiff}/2))%:
 			if {_name} is "Rotwalker":
 				set {_item} to addImbue({_item}, "&aRadiation")
-				set name of {_item} to "&aChestplate of the Radiated")
+				set name of {_item} to "&aChestplate of the Radiated"
 			if {_name} is "Pillager_Captain":
 				set {_chance} to any whole number between 0 and 6
 				if {_chance} is 0:
 					set {_item} to addImbue({_item}, "&9Lightning Rod")
-					set name of {_item} to "&9Helmet of the Lightning Rod")
+					set name of {_item} to "&9Helmet of the Lightning Rod"
 
 
-	set {_item} to generateClassLore({_item}
+	set {_item} to generateClassLore({_item})
 	return {_item}
 	
 function generateLore( item: item):: item:
