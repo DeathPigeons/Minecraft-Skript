@@ -688,6 +688,7 @@ function heal(entity: entity, amount: number) :: boolean:
 	if {_entity} is not alive:
 		return false
 	if hasEffect({_entity}, "radiated") is true:
+		hasImbue({_entity}, "radiation") is false
 		return false
 	{_entity} is a player:
 		hasClass({_entity}, "cleric") is true:
@@ -1200,6 +1201,7 @@ every 4 ticks:
 				scriptDebugBroadcastType("health", "Lowering health of %loop-player% due to Radiation to %{_hplimit}%")
 			set {_dmg} to a random number between 1 and 2.5
 			chance of 2%:
+				hasImbue(loop-player, "radiation") is false
 				set health of loop-player to health of loop-player - {_dmg}
 
 		if {-rpgSkript::%loop-player%::float} is true:
