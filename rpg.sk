@@ -2643,7 +2643,7 @@ function generateClassLore( item: item):: item:
 			set {_item} to addImbue({_item}, "&eMonk Class")
 	return {_item}
 
-function generateLegendaryLore( item: item, name: text):: item
+function generateLegendaryLore( item: item, name: text):: item:
 	if at least one of:
 		{_item} is any armor
 		{_item} is a shield
@@ -2651,10 +2651,12 @@ function generateLegendaryLore( item: item, name: text):: item
 		chance of (10+({rpgdiff}/2)%:
 			if {_name} is "Rotwalker":
 				set {_item} to addImbue({_item}, "&aRadiation")
+				set name of {_item} to "&aChestplate of the Radiated")
 			if {_name} is "Pillager_Captain":
 				set {_chance} to any whole number between 0 and 6
 				if {_chance} is 0:
 					set {_item} to addImbue({_item}, "&9Lightning Rod")
+					set name of {_item} to "&9Helmet of the Lightning Rod")
 
 
 	set {_item} to generateClassLore({_item}
