@@ -499,6 +499,7 @@ function makeBoss(entity:entity):
     set {-evilSkript::%{_entity}%::summoner} to true
     set {-evilSkript::%{_entity}%::summoncount} to 5
     set helmet of {_entity} to generateLootHelmet()
+    set helmet of {_entity} to generateLegendaryLore("Pillage_Captain")
     set chestplate of {_entity} to generateLootChestplate()
     set leggings of {_entity} to generateLootLeggings()
     set boots of {_entity} to generateLootBoots()
@@ -531,6 +532,7 @@ function makeBoss(entity:entity):
     set {-evilSkript::%{_entity}%::summoncount} to 3
     set helmet of {_entity} to generateLootHelmet()
     set chestplate of {_entity} to generateLootChestplate()
+    set chestplate of {_entity} to generateLegendaryLore("Rotwalker")
     set leggings of {_entity} to generateLootLeggings()
     set boots of {_entity} to generateLootBoots()
     set held item of {_entity} to generateLootSword()
