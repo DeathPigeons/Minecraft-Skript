@@ -2653,7 +2653,7 @@ function generateLegendaryLore( item: item, name: text):: item:
 				set {_item} to addImbue({_item}, "&aRadiation")
 				set name of {_item} to "&aChestplate of the Radiated"
 			if {_name} is "Pillager_Captain":
-				set {_chance} to any number between 0 and 6
+				set {_chance} to a random number between 0 and 6
 				if {_chance} is less than 1:
 					set {_item} to addImbue({_item}, "&9Lightning Rod")
 					set name of {_item} to "&9Helmet of the Lightning Rod"
