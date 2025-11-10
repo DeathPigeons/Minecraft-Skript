@@ -629,7 +629,7 @@ every 10 seconds:
             applyEffect(loop-player, "radiated", 30 seconds)
             send "&aYou feel your blood boil!" to loop-player
     if loop-entity is an evoker:
-      {-evilSkript::%loop-entity%::Boss} is true
+      {-evilSkript::%loop-entity%::isBoss} is true
       chance of 50%:
         loop all players in radius 20 around loop-entity:
           hasEffect(loop-player, "invisible") is false
