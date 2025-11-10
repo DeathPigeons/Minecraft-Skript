@@ -1587,12 +1587,12 @@ every 2 seconds:
 			applyEffect(loop-player, "radiated", 60 seconds)
 		if hasImbue(loop-player, "lightning rod") is true:
 			loop all entities in radius 20 around loop-player:
-				chance of 5%:
+				chance of 2%:
 					isMonster(loop-entity-2) is true:
 						create lightning effect at loop-entity-2
 						apply slowness 255 to loop-entity-2 for 3 seconds replacing the existing effect
 						apply glowing 1 to loop-entity-2 for 3 seconds replacing the existing effect
-						damage loop-entity-2 by 5
+						damage loop-entity-2 by 10
 	
 
 			
@@ -2648,15 +2648,13 @@ function generateLegendaryLore( item: item, name: text):: item:
 		{_item} is any armor
 		{_item} is a shield
 	then:
-		chance of (10+({rpgdiff}/2))%:
+		chance of (20+({rpgdiff}/2))%:
 			if {_name} is "Rotwalker":
 				set {_item} to addImbue({_item}, "&aRadiation")
 				set name of {_item} to "&aChestplate of the Radiated"
-			if {_name} is "Pillager_Captain":
-				set {_chance} to a random number between 0 and 6
-				if {_chance} is less than 1:
-					set {_item} to addImbue({_item}, "&9Lightning Rod")
-					set name of {_item} to "&9Helmet of the Lightning Rod"
+			if {_name} is "Pillage_Captain":
+				set {_item} to addImbue({_item}, "&9Lightning Rod")
+				set name of {_item} to "&9Helmet of the Lightning Rod"
 
 
 	set {_item} to generateClassLore({_item})
