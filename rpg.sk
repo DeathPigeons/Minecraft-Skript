@@ -2658,7 +2658,7 @@ function generateLegendaryLore( item: item, name: text):: item:
 
 
 	set {_item} to generateClassLore({_item})
-	loop 2 times
+	loop 2 times:
 		set {_item} to generateLore({_item})
 	return {_item}
 	
