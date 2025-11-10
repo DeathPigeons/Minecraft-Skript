@@ -1589,12 +1589,13 @@ every 2 seconds:
 			applyEffect(loop-player, "radiated", 60 seconds)
 		if hasImbue(loop-player, "lightning rod") is true:
 			loop all entities in radius 20 around loop-player:
-				chance of 2%:
+				chance of 5%:
 					isMonster(loop-entity-2) is true:
 						create lightning effect at loop-entity-2
 						apply slowness 255 to loop-entity-2 for 3 seconds replacing the existing effect
 						apply glowing 1 to loop-entity-2 for 3 seconds replacing the existing effect
-						damage loop-entity-2 by 10
+						set {_damage} to a random number between 5 and 20
+						damage loop-entity-2 by {_damage}
 	
 
 			
