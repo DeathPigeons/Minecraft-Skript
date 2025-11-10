@@ -145,6 +145,8 @@ on death:
 every 5 seconds:
   if {rpgdiff} is less than 0.05:
     set {rpgdiff} to 0.05
+  if {rpgdiff} is greater than 50:
+    set {rpgdiff} to 50
   if time in world "world" is between 19:00 and 5:00:
     if:
       {-netherbreach} is not true
@@ -499,7 +501,7 @@ function makeBoss(entity:entity):
     set {-evilSkript::%{_entity}%::summoner} to true
     set {-evilSkript::%{_entity}%::summoncount} to 5
     set helmet of {_entity} to generateLootHelmet()
-    set helmet of {_entity} to generateLegendaryLore("Pillage_Captain")
+    set helmet of {_entity} to generateLegendaryLore(helmet of {_entity}, "Pillage_Captain")
     set chestplate of {_entity} to generateLootChestplate()
     set leggings of {_entity} to generateLootLeggings()
     set boots of {_entity} to generateLootBoots()
@@ -532,7 +534,7 @@ function makeBoss(entity:entity):
     set {-evilSkript::%{_entity}%::summoncount} to 3
     set helmet of {_entity} to generateLootHelmet()
     set chestplate of {_entity} to generateLootChestplate()
-    set chestplate of {_entity} to generateLegendaryLore("Rotwalker")
+    set chestplate of {_entity} to generateLegendaryLore(chestplate of {_entity},"Rotwalker")
     set leggings of {_entity} to generateLootLeggings()
     set boots of {_entity} to generateLootBoots()
     set held item of {_entity} to generateLootSword()
