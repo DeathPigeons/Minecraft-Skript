@@ -1146,7 +1146,7 @@ every 1 seconds:
 		if hasClass(loop-player, "nethermancer") is false:
 			set line 13 of loop-player's scoreboard to "&3 Mana: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}%"
 		else:
-			set line 13 of loop-player's scoreboard to "&3 Mana & Heat Level: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}% & &4%{rpgSkript::heat::%loop-player%}% / 1000"
+			set line 13 of loop-player's scoreboard to "&3 Mana & Heat Level: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}% & &(2+({rpgdiff}/2)%{rpgSkript::heat::%loop-player%}% / 1000"
 		if at least one of:
 			hasClass(loop-player, "barbarian") is true
 			hasClass(loop-player, "warrior") is true
@@ -1582,8 +1582,18 @@ every 2 seconds:
 					set {_add} to 0.25 * countImbue(loop-player, "photosynthesis")
 					heal(loop-player, {_add})
 		if hasImbue(loop-player, "speed") is true:
-			apply swiftness 1 without particles to the loop-player for 5 seconds replacing the existing effect			
-
+			apply swiftness 1 without particles to the loop-player for 5 seconds replacing the existing effect		
+		if hasImbue(loop-player, "radiation") is true:
+			applyEffect(loop-player, "radiated", 60 seconds)
+		if hasImbue(loop-player, "lightning rod") is true:
+			loop all entities in radius 20 around loop-player:
+				chance of 5%:
+					isMonster(loop-entity) is true:
+						create lightning effect at loop-entity
+						apply slowness 255 to loop-entity for 3 seconds replacing the existing effect
+						apply glowing 1 to loop-entity for 3 seconds replacing the existing effect
+						damage loop-entity by 5
+	
 
 			
 every 5 seconds:
@@ -1694,7 +1704,7 @@ on death:
 	removeAllEffects(victim)
 	
 	isMonster(victim) is true:
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to generateRandomLoot()
 			hasAnyImbue({_item}) is true:
 				scriptDebugBroadcastType("loot", "Added %{_item}% to mob loot")
@@ -1979,6 +1989,7 @@ on damage:
 				scriptDebugBroadcastType("barbariandamage", "%{_odamage}%: Barbarian Damage Bonus w %{rpgSkript::%attacker%::barbenemies}% nearby entities x%1.5 + {_damageboost}% -> %{_ndamage}%")
 				set {_odamage} to the damage
 				set {_damageboost} to 1 + ( 1 - (health of attacker / maximum health of attacker ) )
+				set the damage to the damage * {_damageboost}
 				set {_ndamage} to the damage
 				scriptDebugBroadcastType("barbariandamage", "%{_odamage}%: Barbarian Fractional Health Damage Bonus x%{_damageboost}% -> %{_ndamage}%")
 				set {_odamage} to the damage
@@ -1993,7 +2004,7 @@ on damage:
 
 		#this needs to go last
 		if victim is a player:
-			set the damage to the damage * 0.2
+			set the damage to the damage * 0.5
 
 	if hasLore(attacker's held item, "vampiric") is true:
 		set {_heal} to 0.5 * countImbue(attacker, "vampiric")
@@ -2008,6 +2019,9 @@ on damage:
 		applyEffect(victim, "mana leak", 10 seconds)
 	if hasLore(attacker's held item, "disease") is true:
 		applyEffect(victim, "disease", 30 seconds)
+	if hasLore(attacker's held item, "bloodied") is true:
+		set {_damageboost} to 1 + ( 1 - (health of attacker / maximum health of attacker ) )
+		set the damage to the damage * {_damageboost}
 	if hasLore(attacker's held item, "firststrike") is true:
 		health of victim is equal to the maximum health of victim:
 			set the damage to the damage * 1.5
@@ -2227,6 +2241,12 @@ on damage:
 		set {_ndamage} to the damage
 		scriptDebugBroadcastType("imbuedamage", "%{_odamage}%: Mana Shield Reduction x%{_reduction}% -> %{_ndamage}%")
 		set {_odamage} to the damage
+
+	hasImbue(victim, "undying") is true:
+		set {_damagered} to (0.3 - (countImbue(victim, "undying") * 0.05)) + ( health of victim / maximum health of victim )
+		if {_damagered} is greater than 1:
+			set {_damagered} to 1
+		set the damage to the damage * {_damagered}
 
 	hasImbue(victim, "flame shield") is true:
 		set {_loc} to the victim's location
@@ -2488,6 +2508,7 @@ function generateLootHelmet() :: item:
 
 	set {_item} to generateLore({_item})
 
+
 	
 	return {_item}
 
@@ -2519,6 +2540,7 @@ function generateLootLeggings() :: item:
 
 	set {_item} to generateLore({_item})
 
+		
 	return {_item}
 
 function generateLootBoots() :: item:
@@ -2534,6 +2556,7 @@ function generateLootBoots() :: item:
 
 	set {_item} to generateLore({_item})
 
+		
 	return {_item}
 
 function generateLootSword() :: item:
@@ -2548,7 +2571,7 @@ function generateLootSword() :: item:
 		set {_item} to a netherite sword
 
 	set {_item} to generateLore({_item})
-
+		
 	return {_item}
 
 function generateLootAxe() :: item:
@@ -2563,15 +2586,16 @@ function generateLootAxe() :: item:
 		set {_item} to a netherite axe
 
 	set {_item} to generateLore({_item})
-
+		
 	return {_item}
 
 function generateLootShield() :: item:
 	set {_item} to a shield
 
 	set {_item} to generateLore({_item})
-
+		
 	return {_item}
+
 
 function generateRandomLoot() :: item:
 	scriptDebugBroadcastType("loot", "Generating random loot item")
@@ -2590,11 +2614,10 @@ function generateRandomLoot() :: item:
 		
 	return {_item}
 
-function generateLore( item: item):: item:
-	scriptDebugBroadcastType("loot", "Generating random lore for Item")
+function generateClassLore( item: item):: item:
 	if at least one of:
 		{_item} is any armor
-		{_item} is a shield
+		{_item} is any shield
 	then:
 		chance of 4%:
 			set {_item} to addImbue({_item}, "&8Necromancer Class")
@@ -2618,35 +2641,62 @@ function generateLore( item: item):: item:
 			set {_item} to addImbue({_item}, "&bArtificer Class")
 		chance of 4%:
 			set {_item} to addImbue({_item}, "&eMonk Class")
-		chance of 4%:
+	return {_item}
+
+function generateLegendaryLore( item: item, name: text):: item
+	if at least one of:
+		{_item} is any armor
+		{_item} is a shield
+	then:
+		chance of (10+({rpgdiff}/2)%:
+			if {_name} is "Rotwalker":
+				set {_item} to addImbue({_item}, "&aRadiation")
+			if {_name} is "Pillager_Captain":
+				set {_chance} to any whole number between 0 and 6
+				if {_chance} is 0:
+					set {_item} to addImbue({_item}, "&9Lightning Rod")
+
+
+	set {_item} to generateClassLore({_item}
+	return {_item}
+	
+function generateLore( item: item):: item:
+	scriptDebugBroadcastType("loot", "Generating random lore for Item")
+	if at least one of:
+		{_item} is any armor
+		{_item} is a shield
+	then:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&7Iron Will")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
+			set {_item} to addImbue({_item}, "&4Undying")
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&8Golem")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&cFlame Shield")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&fFrost Shield")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&9Mana Shield")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&aPhotosynthesis")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&fEnlighten")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&4Health Boost")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&4Energy Boost")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&9Mana Boost")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&9Light")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&9Speed")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&fUnbreakable")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&7Reinforced")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&7Weightless")
 			
 	if at least one of:
@@ -2656,25 +2706,27 @@ function generateLore( item: item):: item:
 		{_item} is a crossbow
 		{_item} is a trident
 	then:
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
+			set {_item} to addImbue({_item}, "&4Bloodied")
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&cFirststrike")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&2Disease")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&1Shocking")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&4Vampiric")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&6Siphon")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&4Bleeding")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&fHallowed")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&9Mana Leak")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&fUnbreakable")
-		chance of 4%:
+		chance of (2+({rpgdiff}/2)%:
 			set {_item} to addImbue({_item}, "&7Reinforced")
 
 	return {_item}
@@ -2685,7 +2737,7 @@ on loot generate:
 	set {_item} to generateRandomLoot()
 
 	hasAnyImbue({_item}) is true:
-		chance of 1%:
+		chance of 10%:
 			add {_item} to the loot
 			scriptDebugBroadcastType("loot", "Added %{_item}% to the loot")
 
