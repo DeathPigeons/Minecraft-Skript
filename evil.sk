@@ -389,7 +389,8 @@ on explosion:
 
 
 on death:
-  creeperDetonate(victim)
+  victim is a creeper:
+    creeperDetonate(victim)
 
 function creeperDetonate(entity:entity):
   if {-evilSkript::%{_entity}%::disease} is true:
@@ -487,6 +488,13 @@ function makeBoss(entity:entity):
     set {-evilSkript::%{_entity}%::detonator} to true
     set {-evilSkript::%{_entity}%::summoner} to true
     set {-evilSkript::%{_entity}%::summoncount} to 4
+    set helmet of {_entity} to generateLootHelmet()
+    set chestplate of {_entity} to generateLootChestplate()
+    set leggings of {_entity} to generateLootLeggings()
+    set leggings of {_entity} to generateLegendaryLore(leggings of {_entity}, "Detonator")
+    set boots of {_entity} to generateLootBoots()
+    set held item of {_entity} to generateLootSword()
+    set off hand item of {_entity} to generateLootShield()
     chance of 30%:
       set {-evilSkript::%{_entity}%::crassus} to true 
       set {_entity}'s display name to "&eCrassus Detonator"  
