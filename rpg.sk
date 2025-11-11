@@ -1628,8 +1628,10 @@ function getTag(item: item, name: text) :: text:
 
 function becomeZombie( entity: entity):
 	spawn a zombie at {_entity}:
-		set {_entity} to the zombie
-		set {rpgSkript::risenDead::%{_entity}%} to true
+		set {_zombie} to the zombie
+		set {rpgSkript::risenDead::%{_zombie}%} to true
+		if {_entity} is a player:
+			set the zombie's display name to "&4Zombie %{_entity}%"
 		set attack damage attribute of the zombie to the attack damage attribute of {_entity}
 		set movement speed attribute of the zombie to 1.5 * the movement speed attribute of the zombie
 		set maximum health of the zombie to the maximum health of {_entity}
