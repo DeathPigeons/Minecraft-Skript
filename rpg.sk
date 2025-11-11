@@ -1591,6 +1591,8 @@ every 2 seconds:
 			loop all entities in radius 20 around loop-player:
 				chance of 5%:
 					isMonster(loop-entity-2) is true:
+						loop-entity-2 is not a dropped item
+						loop-entity-2 is alive
 						create lightning effect at loop-entity-2
 						apply slowness 255 to loop-entity-2 for 3 seconds replacing the existing effect
 						apply glowing 1 to loop-entity-2 for 3 seconds replacing the existing effect
@@ -2251,6 +2253,13 @@ on damage:
 			set {_damagered} to 1
 		set the damage to the damage * {_damagered}
 
+	hasImbue(victim, "detonation") is true:
+		chance of 30%:
+			loop all entities in radius 5 around victim:
+				isMonster(loop-entity) is true
+				set {_randmg} to a random number between 2.5 and 10
+				damage loop-entity by {_randmg}
+
 	hasImbue(victim, "flame shield") is true:
 		set {_loc} to the victim's location
 		set {_loc} to the location 1 meter above {_loc}
@@ -2655,9 +2664,12 @@ function generateLegendaryLore( item: item, name: text):: item:
 			if {_name} is "Rotwalker":
 				set {_item} to addImbue({_item}, "&aRadiation")
 				set name of {_item} to "&aChestplate of the Radiated"
-			if {_name} is "Pillage_Captain":
+			else if {_name} is "Pillage_Captain":
 				set {_item} to addImbue({_item}, "&9Lightning Rod")
 				set name of {_item} to "&9Helmet of the Lightning Rod"
+			else if {_name} is "Detonator":
+				set {_item} to addImbue({_item}, "&4Detonation")
+				set name of {_item} to "&4Leggings of Detonation"
 
 
 	set {_item} to generateClassLore({_item})
@@ -3238,6 +3250,19 @@ on death of a player:
 				rageTrigger(victim)
 			cancel the event
 			stop		
+
+	hasImbue(victim, "detonation") is true:
+		loop all entities in radius 15 around victim:
+			isMonster(loop-entity) is true
+			loop-entity is not a dropped item
+			loop-entity is alive
+			create a fake explosion at victim
+			set {_v} to vector between victim and loop-entity
+			set y component of {_vec} to 0
+			set {_vec} to normalized {_vec}
+			push loop-entity {_vec} with force 3
+			push loop-entity upwards with force 1.2
+			damage loop-entity by 50 - (length of {_v} * 2)
 
 	loop players in radius 15 around victim:
 		loop-player is not victim
