@@ -5158,6 +5158,7 @@ on right click with glow ink sac:
 every 10 seconds:
 	loop all players:
 		hasClass(loop-player, "nethermancer") is true:
+			inventorySmelt(loop-player)
 			set {_addheat} to 0
 			set {_time} to time in world of loop-player
 			if world of loop-player is "world_nether":
@@ -5851,6 +5852,67 @@ function detonate(block: block, range: number):
 # Bard
 
 # Nethermancer
+
+function inventorySmelt(player: player):
+	hasClass({_player}, "nethermancer") is true
+	if {rpgSkript::heat::%{_player}%} is greater than 249:
+		if {_player}'s off hand item is raw porkchop:
+			hasItems({_player}, 1 raw porkchop) is true
+			chance of 50%:
+				takeItems({_player}, 1 raw porkchop)
+				give 1 cooked porkchop to {_player}
+		else if {_player}'s off hand item is raw cod:
+			hasItems({_player}, 1 raw cod) is true
+			chance of 50%:
+				takeItems({_player}, 1 raw cod)
+				give 1 cooked cod to {_player}
+		else if {_player}'s off hand item is raw salmon:
+			hasItems({_player}, 1 raw salmon) is true
+			chance of 50%:
+				takeItems({_player}, 1 raw salmon)
+				give 1 cooked salmon to {_player}
+		else if {_player}'s off hand item is raw beef:
+			hasItems({_player}, 1 raw beef) is true
+			chance of 50%:
+				takeItems({_player}, 1 raw beef)
+				give 1 cooked steak to {_player}
+		else if {_player}'s off hand item is raw chicken:
+			hasItems({_player}, 1 raw chicken) is true
+			chance of 50%:
+				takeItems({_player}, 1 raw chicken)
+				give 1 cooked chicken to {_player}
+		else if {_player}'s off hand item is raw rabbit:
+			hasItems({_player}, 1 raw rabbit) is true
+			chance of 50%:
+				takeItems({_player}, 1 raw rabbit)
+				give 1 cooked rabbit to {_player}
+		else if {_player}'s off hand item is raw mutton:
+			hasItems({_player}, 1 raw mutton) is true
+			chance of 50%:
+				takeItems({_player}, 1 raw mutton)
+				give 1 cooked mutton to {_player}
+	if {rpgSkript::heat::%{_player}%} is greater than 499:
+		if {_player}'s off hand item is cobblestone:
+			hasItems({_player}, 1 cobblestone) is true
+			chance of 50%:
+				takeItems({_player}, 1 cobblestone)
+				give 1 stone to {_player} 
+	if {rpgSkript::heat::%{_player}%} is greater than 749:
+		if {_player}'s off hand item is raw iron:
+			hasItems({_player}, 1 raw iron) is true
+			chance of 50%:
+				takeItems({_player}, 1 raw iron)
+				give 1 iron ingot to {_player}
+		else if {_player}'s off hand item is raw gold:
+			hasItems({_player}, 1 raw gold) is true
+			chance of 50%:
+				takeItems({_player}, 1 raw gold)
+				give 1 gold ingot to {_player}
+		else if {_player}'s off hand item is raw copper:
+			hasItems({_player}, 1 raw copper) is true
+			chance of 50%:
+				takeItems({_player}, 1 raw copper)
+				give 1 copper ingot to {_player}
 
 function regenHeat(player: player, amount: number):
 	hasClass({_player}, "nethermancer") is true
