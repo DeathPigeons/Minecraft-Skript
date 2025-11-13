@@ -1215,6 +1215,7 @@ every 1 seconds:
 		set {_odamage} to {_effectDamage}
 		hasEffect(loop-entity, "firestorm") is true:
 			if:
+				isMinion(loop-entity) is false
 				hasClass(loop-entity, "nethermancer") is false
 				hasClass(getSummoner(uuid of loop-entity), "nethermancer") is false
 			then:
@@ -1230,6 +1231,7 @@ every 1 seconds:
 							scriptDebugBroadcastType("firestorm", "Healing Nethermancer %loop-player%")
 				loop all entities in radius 1.5 around loop-entity:
 					chance of 50%:
+						isMinion(loop-entity-2) is false
 						loop-entity-2 is not loop-entity-1
 						applyEffect(loop-entity-2, "firestorm", 10 seconds)
 						scriptDebugBroadcastType("firestorm", "Spreading from %loop-entity-1% to %loop-entity-2%")
@@ -1447,6 +1449,7 @@ every 2 seconds:
 					loop all entities in radius {rpgSkript::heat::%loop-player%} / 50 around loop-player:
 						loop-entity-2 is not loop-player
 						isMonster(loop-entity-2) is true
+						isMinion(loop-entity-2) is false
 						applyEffect(loop-entity-2, "firestorm", 10 seconds)
 						regenHeat(loop-player, -5)
 						
@@ -1691,6 +1694,8 @@ on death:
 		loop all entities in radius {_range} around victim:
 			if loop-entity is alive:
 				if:
+					isMinion(loop-entity) is false
+					loop-entity is not a player
 					hasClass(loop-entity, "nethermancer") is false
 					hasClass(getSummoner(uuid of loop-entity), "nethermancer") is false
 				then:
