@@ -4295,8 +4295,8 @@ on death:
 	hasLore(attacker's held item, "butcher") is true:
 		chance of 20%:
 			set {_drop} to rotten flesh
-			set {_drop} to addLore({_drop}, "Butcher's Cuts")
-			set name of {_drop} to "&4Butcher's Cuts")
+			set {_drop} to addImbue({_drop}, "Butcher's Cuts")
+			set name of {_drop} to "&4Butcher's Cuts"
 			add {_drop} to the drops
 
 	the victim is not a player
