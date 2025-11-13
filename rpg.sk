@@ -5897,6 +5897,12 @@ function inventorySmelt(player: player):
 			chance of 50%:
 				takeItems({_player}, 1 cobblestone)
 				give 1 stone to {_player} 
+	if {rpgSkript::heat::%{_player}%} is greater than 499:
+		if {_player}'s off hand item is sand:
+			hasItems({_player}, 1 sand) is true
+			chance of 50%:
+				takeItems({_player}, 1 sand)
+				give 1 glass to {_player} 
 	if {rpgSkript::heat::%{_player}%} is greater than 749:
 		if {_player}'s off hand item is raw iron:
 			hasItems({_player}, 1 raw iron) is true
