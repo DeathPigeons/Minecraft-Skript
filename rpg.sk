@@ -2014,7 +2014,19 @@ on damage:
 		#this needs to go last
 		if victim is a player:
 			set the damage to the damage * 0.5
-
+	if hasLore(attacker's held item, "sacrificial") is true:
+		set the damage to the damage * 3.0
+		if attacker is a player:
+			set health of attacker to health of attacker - (0.1 * maximum health of attacker)
+		chance of 75%:
+			applyEffect(victim, "bleeding", 10 seconds)
+			applyEffect(victim, "vulnerable", 10 seconds)
+	if hasLore(attacker's held item, "butcher") is true:
+		set the damage to the damage * 1.20
+		chance of 50%:
+			applyEffect(victim, "bleeding", 10 seconds)
+			applyEffect(victim, "vulnerable", 10 seconds)
+			apply slowness 255 without particles to the victim for 10 seconds replacing the existing effect
 	if hasLore(attacker's held item, "vampiric") is true:
 		set {_heal} to 0.5 * countImbue(attacker, "vampiric")
 		heal(attacker, {_heal})
@@ -2672,8 +2684,20 @@ function generateLegendaryLore( item: item, name: text):: item:
 				set {_item} to addImbue({_item}, "&9Lightning Rod")
 				set name of {_item} to "&9Helmet of the Lightning Rod"
 			else if {_name} is "Detonator":
-				set {_item} to addImbue({_item}, "&4Detonation")
-				set name of {_item} to "&4Leggings of Detonation"
+				set {_item} to addImbue({_item}, "&8Detonation")
+				set name of {_item} to "&8Leggings of Detonation"
+	if at least one of:
+		{_item} is any axe
+		{_item} is any sword
+	then:
+		chance of (20+({rpgdiff}/5))%:
+			if {_name} is "Butcher":
+				if {_item} is any axe:
+					set {_item} to addImbue({_item}, "&4Butcher")
+					set name of {_item} to "&4Butcher's Cleaver"
+				if {_item} is any sword:
+					set {_item} to addImbue({_item}, "&4Sacrificial")
+					set name of {_item} to "&4Sword of Sacrifice"
 
 
 	set {_item} to generateClassLore({_item})
@@ -2887,6 +2911,9 @@ on consume:
 			send "&2~ ~ Do we are have stupid? ~ ~" to player
 			wait 5 seconds
 			kill player
+	if hasLore(event-item, "Butcher's Cuts") is true:
+		apply saturation 3 without particles to player for 2 minutes replacing the existing effect
+		applyEffect(player, "regen", 10 minutes)
 	if event-item is a spider eye:
 		hasClass(player, "druid") is true:
 			cancel the event
@@ -4264,6 +4291,14 @@ every 2 seconds:
 	#broadcast "%{_seconds}%"
 
 on death:
+
+	hasLore(attacker's held item, "butcher") is true:
+		chance of 20%:
+			set {_drop} to rotten flesh
+			set {_drop} to addLore({_drop}, "Butcher's Cuts")
+			set name of {_drop} to "&4Butcher's Cuts")
+			add {_drop} to the drops
+
 	the victim is not a player
 	isMinion(the victim) is true:
 		play sound "entity.player.breath" with pitch 1.5 at the victim
