@@ -5876,7 +5876,12 @@ function inventorySmelt(player: player):
 			hasItems({_player}, 1 raw beef) is true
 			chance of 50%:
 				takeItems({_player}, 1 raw beef)
-				give 1 cooked steak to {_player}
+				give 1 cooked beef to {_player}
+		else if {_player}'s off hand item is potato:
+			hasItems({_player}, 1 potato) is true
+			chance of 50%:
+				takeItems({_player}, 1 potato)
+				give 1 baked potato to {_player}
 		else if {_player}'s off hand item is raw chicken:
 			hasItems({_player}, 1 raw chicken) is true
 			chance of 50%:
