@@ -2686,8 +2686,13 @@ function generateLegendaryLore( item: item, name: text):: item:
 				set {_item} to addImbue({_item}, "&aRadiation")
 				set name of {_item} to "&aChestplate of the Radiated"
 			else if {_name} is "Pillage_Captain":
-				set {_item} to addImbue({_item}, "&9Lightning Rod")
-				set name of {_item} to "&9Helmet of the Lightning Rod"
+				if {_item} is a shield:
+					set {_item} to banner
+					set {_item} to addImbue({_item}, "&9Raid Leader")
+					set name of {_item} to "&9Banner of the Leader"
+				else:
+					set {_item} to addImbue({_item}, "&9Lightning Rod")
+					set name of {_item} to "&9Helmet of the Lightning Rod"
 			else if {_name} is "Detonator":
 				set {_item} to addImbue({_item}, "&8Detonation")
 				set name of {_item} to "&8Leggings of Detonation"
@@ -2715,6 +2720,7 @@ function generateLore( item: item):: item:
 	if at least one of:
 		{_item} is any armor
 		{_item} is a shield
+		{_item} is a banner
 	then:
 		chance of (2+({rpgdiff}/5))%:
 			set {_item} to addImbue({_item}, "&7Iron Will")
@@ -2931,6 +2937,22 @@ on enderman pickup:
 on spawn:
 	isMinion(event-entity) is true:
 		set {_caster} to getSummoner(uuid of event-entity)
+		event-entity is a vex:
+			set maximum health of event-entity to 5 * (1.2^(level of {_caster} /10))
+			set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
+			set armor attribute of event-entity to 0	
+		event-entity is a pillager:	
+			set maximum health of event-entity to 10 *(1.2^(level of {_caster} /10))
+			set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
+			set armor attribute of event-entity to 3
+		event-entity is an evoker:
+			set maximum health of event-entity to 10 *(1.2^(level of {_caster} /10))
+			set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
+			set armor attribute of event-entity to 3
+		event-entity is a vindicator:
+			set maximum health of event-entity to 16 * (1.2^(level of {_caster} /10))
+			set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
+			set armor attribute of event-entity to 5		
 		hasClass({_caster}, "druid") is true:
 			event-entity is a wolf:
 				set maximum health of event-entity to 10 *(1.2^(level of {_caster} /10))
@@ -2944,12 +2966,12 @@ on spawn:
 				set maximum health of event-entity to 16 * (1.2^(level of {_caster} /10))
 				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
 				set armor attribute of event-entity to 5
-			set the event-entity's display name to "&a%{_caster}%'s Friend"
 			set attack damage attribute of entity to (1.2^(level of {_caster} /10)) * attack damage attribute of entity
 		hasClass({_caster}, "necromancer") is true:
 			event-entity is a skeleton:
 				set attack damage attribute of entity to (1.2^(level of {_caster} /10)) * attack damage attribute of entity
 				set maximum health of entity to (1.2^(level of {_caster} / 10)) * maximum health of entity
+		set the event-entity's display name to "&a%{_caster}%'s Minion"
 		fullHeal(event-entity)
 
 
@@ -4508,6 +4530,8 @@ function calculateMaxMinions(summoner: player) :: number:
 		isWearingLightOrLess({_summoner}) is true:
 			set {_count} to {_count} * 1.5
 		return floor({_count})
+	hasImbue({_summoner}, "Raid Leader") is true:
+		set {_count} to 5
 	hasClass({_summoner}, "druid") is true:
 		set {_count} to 1
 
@@ -5158,6 +5182,22 @@ on right click with glow ink sac:
 
 every 10 seconds:
 	loop all players:
+		hasImbue(loop-player, "Raid Leader") is true:	
+			getMinionCount(loop-player) is not equal to calculateMaxMinions(loop-player)
+			set {_chance} to a random number between 1 and 100
+			set {_player} to loop-player
+			if {_chance} is greater than 75:
+				spawn 1 vindicator at loop-player:
+					setupMinion(the vindicator, {_player})
+			else if {_chance} is greater than 50:
+				spawn 1 evoker at loop-player:
+					setupMinion(the evoker, {_player})
+			else if {_chance} is greater than 25:
+				spawn 1 pillager at loop-player:
+					setupMinion(the pillager, {_player})
+			else:
+				spawn 1 vex at loop-player:
+					setupMinion(the vex, {_player})
 		hasClass(loop-player, "nethermancer") is true:
 			inventorySmelt(loop-player)
 			set {_addheat} to 0
