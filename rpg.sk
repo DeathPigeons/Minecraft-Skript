@@ -2917,8 +2917,9 @@ on consume:
 			wait 5 seconds
 			kill player
 	if hasLore(event-item, "Butcher's Cuts") is true:
-		apply saturation 3 without particles to player for 2 minutes replacing the existing effect
-		applyEffect(player, "regen", 10 minutes)
+		cure player
+		apply saturation 3 without particles to player for 1 minute replacing the existing effect
+		applyEffect(player, "regen", 1 minute)
 	if event-item is a spider eye:
 		hasClass(player, "druid") is true:
 			cancel the event
