@@ -521,6 +521,7 @@ function makeBoss(entity:entity):
     set boots of {_entity} to generateLootBoots()
     set held item of {_entity} to generateLootSword()
     set off hand item of {_entity} to generateLootShield()
+    set off hand item of {_entity} to generateLegendaryLore(off hand item of {_entity}, "Pillage_Captain")
     heal {_entity}
   {_entity} is a spider:
     set {_entity}'s display name to "&6The Broodmother"
