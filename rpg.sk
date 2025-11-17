@@ -451,6 +451,8 @@ function hasAnyImbue(item: item) :: boolean:
 	return true
 
 function addImbue(item: item, imbue: text) :: item:
+	hasLore({_item}, {_imbue}) is true:
+		return {_item}
 	set line lastLoreLine({_item}) of ({_item})'s lore to {_imbue}
 	scriptDebugBroadcastType("imbue", "%{_item}% imbue %{_imbue}%")
 	return {_item}
@@ -588,6 +590,7 @@ function checkOffHandType(player: player) :: string:
 		off hand item of {_player} is chainmail chestplate
 		off hand item of {_player} is chainmail leggings
 		off hand item of {_player} is chainmail boots
+		off hand item of {_player} is a banner
 	then:
 		return "light"
 	return "weightless"
@@ -971,6 +974,22 @@ function removeAllEffects(entity: entity):
 	loop {-rpgSkript::effects::%{_index}%::*}:
 		removeEffect({_entity}, loop-index)
 
+function removeNegativeEffects(entity:entity):
+	set {_index} to generateIndex({_entity})
+	loop {-rpgSkript::effects::%{_index}%::*}:
+		if at least one of:
+			loop-value is "shocking"
+			loop-value is "bleeding"
+			loop-value is "vulnerable"
+			loop-value is "infected"
+			loop-value is "disease"
+			loop-value is "mana leak"
+			loop-value is "firestorm"
+			loop-value is "phased"
+			loop-value is "void"
+			loop-value is "levitate"
+		then:
+			removeEffect({_entity}, loop-index)
 function removeEffect(entity: entity, name: string):
 	scriptDebugBroadcastType("removeeffect", "Removing Effect %{_name}% from %{_entity}%")
 	set {_index} to generateIndex({_entity})
@@ -1257,7 +1276,7 @@ every 1 seconds:
 			scriptDebugBroadcastType("mana_leak", "Taking away %({rpgSkript::maxMana::%loop-entity%} / 40) / 2% Mana from %loop-entity%")
 		hasEffect(loop-entity, "venom") is true:
 			chance of 10%:
-				set {_dmg} to a random number between 2.5 and 5
+				set {_dmg} to a random number between 2.5 and 7.5
 				set {_effectDamage} to {_effectDamage} + {_dmg}
 				apply weakness 1 without particles to the loop-entity for 2 seconds replacing the existing effect
 				applyEffect(loop-entity, "vulnerable", 7.5 seconds)
@@ -1599,8 +1618,7 @@ every 2 seconds:
 						create lightning effect at loop-entity-2
 						apply slowness 255 to loop-entity-2 for 3 seconds replacing the existing effect
 						apply glowing 1 to loop-entity-2 for 3 seconds replacing the existing effect
-						set {_damage} to a random number between 5 and 20
-						damage loop-entity-2 by {_damage}
+						damage loop-entity-2 by 10 + ({rpgSkript::maxMana::%loop-player%} / 100)
 	
 
 			
@@ -1620,6 +1638,49 @@ every 5 seconds:
 					scriptDebugBroadcastType("effect", "Phased Teleport Trigger on %loop-entity%")
 					send "&9You uncontrollably teleport!" to loop-entity
 					stop
+
+	loop all players:
+		hasImbue(loop-player, "Raid Leader") is true:	
+			getMinionCount(loop-player) is not equal to calculateMaxMinions(loop-player)
+			if {-rpgSkript::%loop-player%::raidOrder} is not set:
+				set {-rpgSkript::%loop-player%::raidOrder} to 1
+			set {_player} to loop-player
+			if {-rpgSkript::%loop-player%::raidOrder} is 1:
+				spawn 1 pillager at loop-player:
+					setupMinion(the pillager, {_player})
+					set held item of the pillager to crossbow
+				set {-rpgSkript::%loop-player%::raidOrder} to {-rpgSkript::%loop-player%::raidOrder} + 1
+			else if {-rpgSkript::%loop-player%::raidOrder} is 2:
+				spawn 1 vindicator at loop-player:
+					setupMinion(the vindicator, {_player})
+				set {-rpgSkript::%loop-player%::raidOrder} to {-rpgSkript::%loop-player%::raidOrder} + 1
+			else:
+				spawn 1 pillager at loop-player:
+					setupMinion(the pillager, {_player})
+					set {_entity} to the pillager
+					set {-rpgSkript::%{_entity}%::raidMage} to true
+					set held item of the pillager to air
+				set {-rpgSkript::%loop-player%::raidOrder} to {-rpgSkript::%loop-player%::raidOrder} + 1
+			if {-rpgSkript::%loop-player%::raidOrder} is greater than 3:
+				set {-rpgSkript::%loop-player%::raidOrder} to 1
+			loop getMinions({_player}):
+				apply strength 2 without particles to the loop-value-2 for 15 seconds replacing the existing effect
+				apply swiftness 2 without particles to the loop-value-2 for 15 seconds replacing the existing effect
+				apply jump boost 2 without particles to the loop-value-2 for 15 seconds replacing the existing effect
+				applyEffect(loop-value-2, "regen", 15 seconds)
+				loop-value-2 is a pillager
+				{-rpgSkript::%loop-value-2%::raidMage} is true:
+					loop entities in radius 10 around loop-value-2:
+						chance of 50%:
+							isMonster(loop-entity-3) is true
+							loop-entity-3 is not a dropped item
+							loop-entity-3 is alive
+							create lightning effect at loop-entity-3
+							apply slowness 255 to loop-entity-3 for 3 seconds replacing the existing effect
+							apply glowing 1 to loop-entity-3 for 3 seconds replacing the existing effect
+							applyEffect(loop-entity-3, "vulnerable", 3 seconds)
+							damage loop-entity-3 by 10 + ({rpgSkript::maxMana::%loop-player%} / 100)
+							exit 1 loop
 
 			
 			
@@ -1689,8 +1750,8 @@ on death:
 
 	hasEffect(victim, "firestorm") is true:
 		set {_range} to 0.15 * maximum health of victim
-		if {_range} is greater than 20:
-			set {_range} to 20
+		if {_range} is greater than 10:
+			set {_range} to 10
 		loop all entities in radius {_range} around victim:
 			if loop-entity is alive:
 				if:
@@ -1877,6 +1938,12 @@ on damage:
 			getSummoner(uuid of the attacker) is the victim:
 				cancel the event
 				stop
+		if at least one of:
+			attacker's held item is a bow
+			attacker's held item is a crossbow
+		then:
+			event-projectile is set:
+				set the damage to the damage * (1.2^(level of {_caster} /10))
 		attacker is a spider:
 			if victim has potion effect poison:
 				set the damage to the damage * 1.2
@@ -2413,6 +2480,10 @@ on target:
 			hasSameSummoner(event-entity, target) is true:
 				cancel the event
 				stop
+		event-entity is a pillager:
+			{-rpgSkript::%event-entity%::raidMage} is true:
+				cancel the event
+				stop
 
 	target is a player
 	hasClass(target, "herobrine") is true:
@@ -2651,6 +2722,7 @@ function generateClassLore( item: item):: item:
 	if at least one of:
 		{_item} is any armor
 		{_item} is a shield
+		{_item} is any banner
 	then:
 		chance of 5%:
 			set {_item} to addImbue({_item}, "&8Necromancer Class")
@@ -2676,21 +2748,51 @@ function generateClassLore( item: item):: item:
 			set {_item} to addImbue({_item}, "&eMonk Class")
 	return {_item}
 
+command /legendaryitem <text>:
+	executable by: players
+	trigger:
+		player has permission "rpg.control"
+		if arg 1 is "Radiation":
+			set {_item} to leather chestplate
+			set {_item} to addImbue({_item}, "&aRadiation")
+			set name of {_item} to "&aChestplate of the Radiated"
+		else if arg 1 is "Raid":
+			set {_item} to a black standing banner
+			set {_item} to addImbue({_item}, "&9Raid Leader")
+			set name of {_item} to "&9Banner of the Leader"
+		else if arg 1 is "Lightning_Rod":
+			set {_item} to a leather helmet
+			set {_item} to addImbue({_item}, "&9Lightning Rod")
+			set name of {_item} to "&9Helmet of the Lightning Rod"
+		else if arg 1 is "Detonation":
+			set {_item} to leather leggings
+			set {_item} to addImbue({_item}, "&8Detonation")
+			set name of {_item} to "&8Leggings of Detonation"
+		else if arg 1 is "Butcher":
+			set {_item} to netherite axe
+			set {_item} to addImbue({_item}, "&4Butcher")
+			set name of {_item} to "&4Butcher's Cleaver"
+		else if arg 1 is "Sacrificial":
+			set {_item} to netherite sword
+			set {_item} to addImbue({_item}, "&4Sacrificial")
+			set name of {_item} to "&4Sword of Sacrifice"
+		give player {_item}			
+		
 function generateLegendaryLore( item: item, name: text):: item:
 	if at least one of:
 		{_item} is any armor
 		{_item} is a shield
+		{_item} is a banner
 	then:
 		chance of (20+({rpgdiff}/5))%:
 			if {_name} is "Rotwalker":
 				set {_item} to addImbue({_item}, "&aRadiation")
 				set name of {_item} to "&aChestplate of the Radiated"
 			else if {_name} is "Pillage_Captain":
-				if {_item} is a shield:
-					set {_item} to banner
+				if {_item} is a black standing banner:
 					set {_item} to addImbue({_item}, "&9Raid Leader")
 					set name of {_item} to "&9Banner of the Leader"
-				else:
+				else if {_item} is a helmet:
 					set {_item} to addImbue({_item}, "&9Lightning Rod")
 					set name of {_item} to "&9Helmet of the Lightning Rod"
 			else if {_name} is "Detonator":
@@ -2924,6 +3026,7 @@ on consume:
 			kill player
 	if hasLore(event-item, "Butcher's Cuts") is true:
 		cure player
+		removeNegativeEffects(player)
 		apply saturation 3 without particles to player for 1 minute replacing the existing effect
 		applyEffect(player, "regen", 1 minute)
 	if event-item is a spider eye:
@@ -2937,22 +3040,16 @@ on enderman pickup:
 on spawn:
 	isMinion(event-entity) is true:
 		set {_caster} to getSummoner(uuid of event-entity)
-		event-entity is a vex:
-			set maximum health of event-entity to 5 * (1.2^(level of {_caster} /10))
-			set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
-			set armor attribute of event-entity to 0	
-		event-entity is a pillager:	
-			set maximum health of event-entity to 10 *(1.2^(level of {_caster} /10))
-			set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
-			set armor attribute of event-entity to 3
-		event-entity is an evoker:
-			set maximum health of event-entity to 10 *(1.2^(level of {_caster} /10))
-			set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
-			set armor attribute of event-entity to 3
-		event-entity is a vindicator:
-			set maximum health of event-entity to 16 * (1.2^(level of {_caster} /10))
-			set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
-			set armor attribute of event-entity to 5		
+		hasImbue({_caster}, "Raid Leader") is true:
+			event-entity is a pillager:	
+				set maximum health of event-entity to 10 *(1.2^(level of {_caster} /10))
+				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
+				set armor attribute of event-entity to 3
+			event-entity is a vindicator:	
+				set maximum health of event-entity to 10 *(1.2^(level of {_caster} /10))
+				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
+				set armor attribute of event-entity to 5
+			set attack damage attribute of entity to (1.2^(level of {_caster} /10)) * attack damage attribute of entity
 		hasClass({_caster}, "druid") is true:
 			event-entity is a wolf:
 				set maximum health of event-entity to 10 *(1.2^(level of {_caster} /10))
@@ -3200,6 +3297,7 @@ on death of a monster:
 	isMinion(victim) is false
 	set {_z} to 5
 	if {-evilSkript::%victim%::isBoss} is true:
+		clear the drops
 		add 30 experience to the drops
 		set {_z} to 20
 		if {-evilSkript::%victim%::isButcher} is true:
@@ -4259,7 +4357,9 @@ on right click with lapis lazuli:
 
 # Necromancer
 
-
+on right click with banner:
+	hasLore(event-item, "Raid Leader") is true:
+		cancel the event
 
 function isMinion(entity: entity) :: boolean:
 	{-rpgSkript::minions::%uuid of {_entity}%} is set:
@@ -4438,7 +4538,10 @@ on right click with rotten flesh:
 		setupMinion(the skeleton, {_player})
 
 on left click with bone:
-	hasClass(event-player, "necromancer") is true:
+	if at least one of:
+		hasClass(event-player, "necromancer") is true
+		hasImbue(event-player, "Raid Leader") is true
+	then:
 		play sound "entity.player.breath" with pitch 0.7 at player
 		loop getMinions(event-player):
 			event-player's targeted entity is not set:
@@ -4529,11 +4632,10 @@ function calculateMaxMinions(summoner: player) :: number:
 			set {_count} to 18
 		isWearingLightOrLess({_summoner}) is true:
 			set {_count} to {_count} * 1.5
-		return floor({_count})
-	hasImbue({_summoner}, "Raid Leader") is true:
-		set {_count} to 5
 	hasClass({_summoner}, "druid") is true:
 		set {_count} to 1
+	hasImbue({_summoner}, "Raid Leader") is true:
+		set {_count} to {_count} + 5
 
 	return floor({_count})
 
@@ -4640,14 +4742,7 @@ command /channel <text>:
 				stop
 			loop all players in radius 20 of player:
 				isMonster(loop-player) is false
-				removeEffect(loop-player, "shocking")
-				removeEffect(loop-player, "bleeding")
-				removeEffect(loop-player, "disease")
-				removeEffect(loop-player, "infected")
-				removeEffect(loop-player, "phased")
-				removeEffect(loop-player, "void")
-				removeEffect(loop-player, "levitate")
-				removeEffect(loop-player, "firestorm")
+				removeNegativeEffects(loop-player)
 				cure loop-player
 				loop-player is not player
 				send "&6A Cleric cures you of your ailments!" to loop-player
@@ -4787,7 +4882,7 @@ function rageTrigger(player: player):
 		loop all entities in radius 5 around {_player}:
 			chance of 50%:
 				loop-entity is not {_player}
-				isMonster(loop-entity)
+				isMonster(loop-entity) is true
 				damage loop-entity by 1
 				applyEffect(loop-entity, "bleeding", 2 seconds)
 				apply slowness 1 to loop-entity for 5 seconds replacing the existing effect
@@ -5182,22 +5277,7 @@ on right click with glow ink sac:
 
 every 10 seconds:
 	loop all players:
-		hasImbue(loop-player, "Raid Leader") is true:	
-			getMinionCount(loop-player) is not equal to calculateMaxMinions(loop-player)
-			set {_chance} to a random number between 1 and 100
-			set {_player} to loop-player
-			if {_chance} is greater than 75:
-				spawn 1 vindicator at loop-player:
-					setupMinion(the vindicator, {_player})
-			else if {_chance} is greater than 50:
-				spawn 1 evoker at loop-player:
-					setupMinion(the evoker, {_player})
-			else if {_chance} is greater than 25:
-				spawn 1 pillager at loop-player:
-					setupMinion(the pillager, {_player})
-			else:
-				spawn 1 vex at loop-player:
-					setupMinion(the vex, {_player})
+				
 		hasClass(loop-player, "nethermancer") is true:
 			inventorySmelt(loop-player)
 			set {_addheat} to 0
