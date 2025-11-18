@@ -3,6 +3,10 @@ on script unload:
   loop {-evilSkript::bossMobs::*}:
     killBoss(loop-index)
   delete {-evilSkript::bossMobs::*}
+	broadcast "{@prefix} &4Unloading evil script..."
+
+on script load:
+	scriptBroadcast("&9Loading evil script...")
 
 function killBoss(uuid: text):
 	delete getByUUID({_uuid})
@@ -14,6 +18,13 @@ on place of any bed:
 on break of any bed:
 	remove event-block from {evilSkript::bed::*}
 	rpgLog("%player% broke bed in %world% at %location of block%")
+
+command /wherePlayerBeds:
+  executable by: anyone
+  trigger:
+    command executor has permission "rpg.control"
+    loop {evilSkript::bed::*}:
+      send "Player Bed Detected At: %location of loop-value%" to command executor
   
 on spawn:
   spawn reason is natural
@@ -29,33 +40,33 @@ on spawn:
       chance of 10%:
         spawn 1 piglin brute at entity
     if entity is not a baby zombie:
-      chance of ({_chance}/5)%:
+      chance of ({_chance}/2.5)%:
         makeSpecial(entity)
-      chance of ({_chance}/5)%:
+      chance of ({_chance}/2.5)%:
         makeSummoner(entity)
     else:
-      chance of ({_chance}/5)%:
+      chance of ({_chance}/2.5)%:
         makeSpecial(entity)     
     
   else if entity is a skeleton:
     if {-netherbreach} is true:
       spawn 1 wither skeleton at entity
-    chance of ({_chance}/5)%:
+    chance of ({_chance}/2.5)%:
       makeSpecial(entity)
-    chance of ({_chance}/5)%:
+    chance of ({_chance}/2.5)%:
       makeSummoner(entity)
   else if entity is a spider:
     if {-netherbreach} is true:
       spawn 1 hoglin at the entity
-    chance of ({_chance}/5)%:
+    chance of ({_chance}/2.5)%:
       makeSpecial(entity)
   else if entity is a enderman:
-    chance of ({_chance}/5)%:
+    chance of ({_chance}/2.5)%:
       makeSpecial(entity)
   else if entity is a creeper:
     if {-netherbreach} is true:
       spawn 1 blaze at entity
-    chance of ({_chance}/5)%:
+    chance of ({_chance}/2.5)%:
       makeSpecial(entity)
   else if entity is a slime:
     if {-netherbreach} is true:
@@ -89,7 +100,7 @@ on spawn:
         set {_n} to floor({_n} * (1.1^({rpgdiff} - 1)))
       loop {_n} times:
         spawn 1 zombie at entity:
-          chance of ({_chance} / 5)%:
+          chance of ({_chance} / 1.25)%:
             makeSpecial(entity)
 
 
@@ -113,6 +124,7 @@ on spawn:
     if at least one of:
       {-netherbreach} is true
       {-apocalypse} is true
+      {-bigraid} is true
     then:
       set {_itemchance} to 5
     chance of {_itemchance}%:
@@ -342,33 +354,51 @@ function makeSpecial(entity: entity):
 
 function summonButcher(player:player, chance:number):
   scriptDebugBroadcastType("difficulty", "Attempting to spawn a Butcher at %{_player}%") 
-  set {_loc} to location of {_player}
-  chance of {_chance}%:
-    broadcast "A presence of evil surrounds %{_player}%!" 
-    wait 15 seconds
-    spawn 1 zombie at the location above {_loc}:
-      set the zombie's display name to "&4The Butcher"
-      set attack damage attribute of the zombie to 2.5 * attack damage attribute of the zombie
-      set movement speed attribute of the zombie to 2.0 * movement speed attribute of the zombie
-      set maximum health of the zombie to 200
-      heal the zombie
-      set {_temp} to the zombie
-      set {-evilSkript::%{_temp}%::isBoss} to true
-      set {-evilSkript::%{_temp}%::isButcher} to true
-      set helmet of the zombie to generateLootHelmet()
-      set chestplate of the zombie to generateLootChestplate()
-      set leggings of the zombie to generateLootLeggings()
-      set boots of the zombie to generateLootBoots()
-      set {_odds} to a random integer between 0 and 1
-      if {_odds} is 0:
-        set held item of the zombie to generateLootSword()
-        set held item of the zombie to generateLegendaryLore(held item of the zombie, "Butcher")
-      else:
-        set held item of the zombie to generateLootAxe()
-        set held item of the zombie to generateLegendaryLore(held item of the zombie, "Butcher")
-      set off hand item of the zombie to generateLootShield() 
-      scriptDebugBroadcastType("difficulty", "Spawning a Butcher at %{_player}%")  
-      add uuid of the zombie to {-evilSkript::bossMobs::*}
+  world of {_player} is "world"
+  loop {evilSkript::bed::*}:
+    set {_v} to the vector between {_player} and location of loop-value
+    if the length of {_v} is less than 26: 
+      stop
+  set {_continue} to true
+  set {_x} to a random number between -25 and 25
+  set {_x} to the x coordinate of {_player} + {_x}
+  set {_z} to a random number between -25 and 25
+  set {_z} to the z coordinate of {_player} + {_z}
+  set {_y} to a random number between -5 and 5
+  set {_y} to the y coordinate of {_player} + {_y}
+  set {_loc} to the location at {_x}, {_y}, {_z} of world "world"
+  block at {_loc} is not air
+  block at {_loc} is not water
+  loop blocks in radius 2.99 around {_loc}:
+    loop-block is not air:
+      set {_continue} to false
+  if {_continue} is true:
+    chance of {_chance}%:
+      broadcast "A presence of evil surrounds %{_player}%!" 
+      wait 15 seconds
+      spawn 1 zombie at the location above {_loc}:
+        set the zombie's display name to "&4The Butcher"
+        set attack damage attribute of the zombie to 2.5 * attack damage attribute of the zombie
+        set movement speed attribute of the zombie to 2.0 * movement speed attribute of the zombie
+        set maximum health of the zombie to 200
+        heal the zombie
+        set {_temp} to the zombie
+        set {-evilSkript::%{_temp}%::isBoss} to true
+        set {-evilSkript::%{_temp}%::isButcher} to true
+        set helmet of the zombie to generateLootHelmet()
+        set chestplate of the zombie to generateLootChestplate()
+        set leggings of the zombie to generateLootLeggings()
+        set boots of the zombie to generateLootBoots()
+        set {_odds} to a random integer between 0 and 1
+        if {_odds} is 0:
+          set held item of the zombie to generateLootSword()
+          set held item of the zombie to generateLegendaryLore(held item of the zombie, "Butcher")
+        else:
+          set held item of the zombie to generateLootAxe()
+          set held item of the zombie to generateLegendaryLore(held item of the zombie, "Butcher")
+        set off hand item of the zombie to generateLootShield() 
+        scriptDebugBroadcastType("difficulty", "Spawning a Butcher at %{_player}%")  
+        add uuid of the zombie to {-evilSkript::bossMobs::*}
 
 command /spawnButcher <player> <number>:
   executable by: anyone
@@ -382,7 +412,7 @@ command /spawnButcher <player> <number>:
 command /spawnrates:
   executable by: anyone
   trigger:
-    broadcast "Special Chance: log(%{rpgdiff}%) * 12.5 / 5 = %log({rpgdiff}) * 12.5 / 5% PERCENT"
+    broadcast "Special/Summoner Chance: log(%{rpgdiff}%) * 12.5 / 2.5 = %log({rpgdiff}) * 12.5 / 2.5% PERCENT"
     broadcast "Boss Chance: log(%{rpgdiff}%) * 12.5 / 50 = %log({rpgdiff}) * 12.5 / 50% PERCENT"
     broadcast "Butcher Chance: log(%{rpgdiff}%) * 12.5 / 100 = %log({rpgdiff}) * 12.5 / 100% PERCENT"
     broadcast "Netherbreach/Apocalypse Chance: log(%{rpgdiff}%) * 12.5 / 75 = %log({rpgdiff}) * 12.5 / 100% PERCENT"
@@ -559,7 +589,22 @@ function makeBoss(entity:entity):
     set held item of {_entity} to generateLootSword()
     set off hand item of {_entity} to generateLootShield()
     heal {_entity}
-    
+  {_entity} is a Enderman:
+    set {_entity}'s display name to "&9The Void"
+    set movement speed attribute of {_entity} to 2.0 * movement speed attribute of {_entity}
+    set attack damage attribute of {_entity} to 1.25 * attack damage attribute of {_entity}
+    set maximum health of {_entity} to 75
+    set {-evilSkript::%{_entity}%::isBoss} to true
+    set helmet of {_entity} to generateLootHelmet()
+    set chestplate of {_entity} to generateLootChestplate()
+    set leggings of {_entity} to generateLootLeggings()
+    set boots of {_entity} to generateLootBoots()
+    set boots of {_entity} to generateLegendaryLore(boots of {_entity},"Void")
+    set held item of {_entity} to generateLootSword()
+    set held item of {_entity} to generateLegendaryLore(held item of {_entity}, "Void")
+    set off hand item of {_entity} to generateLootShield()
+    heal {_entity}
+        
   add uuid of {_entity} to {-evilSkript::bossMobs::*}
   
 function makeLunatic(entity:entity):
@@ -591,6 +636,10 @@ command /spawnBoss <text> <player>:
       wait 5 seconds
       spawn a zombie at location of arg 2:
         makeBoss(the zombie)
+    else if arg 1 is "Void":
+      wait 5 seconds
+      spawn an enderman at location of arg 2:
+        makeBoss(the enderman)
     
     
 
@@ -700,29 +749,32 @@ every 10 seconds:
         set {_v} to the vector between location of loop-player and location of loop-value-2
         if the length of {_v} is less than 26: 
           continue
-      set {_x} to a random number between -25 and 25
+      set {_continue} to true
+      set {_x} to a random number between -50 and 50
       set {_x} to the x coordinate of loop-player + {_x}
-      set {_z} to a random number between -25 and 25
+      set {_z} to a random number between -50 and 50
       set {_z} to the z coordinate of loop-player + {_z}
-      set {_y} to a random number between -10 and 10
+      set {_y} to a random number between -5 and 5
       set {_y} to the y coordinate of loop-player + {_y}
       set {_loc} to the location at {_x}, {_y}, {_z} of world "world"
       block at {_loc} is not air
       block at {_loc} is not water
-      block 1 block above the block at {_loc} is not air
-      block 2 blocks above the block at {_loc} is not air
-      set {_chance} to a random number between 1 and 100
-      if {_chance} is greater than 90:
-        spawn 1 ravager at {_loc}
-      else if {_chance} is greater than 75:
-        spawn 1 vindicator at {_loc}
-      else if {_chance} is greater than 50:
-        spawn 1 evoker at {_loc}
-      else if {_chance} is greater than 25:
-        spawn 1 witch at {_loc}
-      else:
-        spawn 3 vex at {_loc}
-      spawn 3 pillagers at {_loc}
+      loop blocks in radius 2.99 around {_loc}:
+        loop-block is not air:
+          set {_continue} to false
+      if {_continue} is true:
+        set {_chance} to a random number between 1 and 100
+        if {_chance} is greater than 90:
+          spawn 1 ravager at {_loc}
+        else if {_chance} is greater than 75:
+          spawn 1 vindicator at {_loc}
+        else if {_chance} is greater than 50:
+          spawn 1 evoker at {_loc}
+        else if {_chance} is greater than 25:
+          spawn 1 witch at {_loc}
+        else:
+          spawn 3 vex at {_loc}
+        spawn 3 pillagers at {_loc}
 
 every 3 seconds:
   loop all entities:
