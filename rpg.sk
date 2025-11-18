@@ -693,6 +693,8 @@ function heal(entity: entity, amount: number) :: boolean:
 	if hasEffect({_entity}, "radiated") is true:
 		hasImbue({_entity}, "radiation") is false
 		return false
+	if hasEffect({_entity}, "antiheal") is true:
+		return false
 	{_entity} is a player:
 		hasClass({_entity}, "cleric") is true:
 			set {_amount} to {_amount} * 2
@@ -1334,6 +1336,7 @@ every 1 seconds:
 
 		hasEffect(loop-entity, "levitate") is true:
 			apply levitation 1 without particles to the loop-entity for 5 seconds replacing the existing effect
+			applyEffect(loop-entity, "vulnerable", 5 seconds)
 
 		hasEffect(loop-entity, "corrupting dunes") is true:
 			apply slowness 1 without particles to the loop-entity for 5 seconds replacing the existing effect
@@ -1640,6 +1643,13 @@ every 5 seconds:
 					stop
 
 	loop all players:
+		hasImbue(loop-player, "Anti-Gravity") is true:
+			loop all entities in radius 20 around loop-player:
+				isMonster(loop-entity-2) is true:
+					chance of 50%:
+						damage loop-entity-2 by 5
+						applyEffect(loop-entity-2, "levitate", 5 seconds)
+						
 		hasImbue(loop-player, "Raid Leader") is true:	
 			getMinionCount(loop-player) is not equal to calculateMaxMinions(loop-player)
 			if {-rpgSkript::%loop-player%::raidOrder} is not set:
@@ -2086,10 +2096,18 @@ on damage:
 		#this needs to go last
 		if victim is a player:
 			set the damage to the damage * 0.5
+	if hasLore(attacker's held item, "Endajack") is true:
+		set the damage to the damage * 1.50
+		set {_raneffect} to a random integer between 0 and 2
+		if {_raneffect} is 1:
+			applyEffect(victim, "levitate", 7.5 seconds)
+		else if {_raneffect} is 2:
+			applyEffect(victim, "phased", 7.5 seconds)	
 	if hasLore(attacker's held item, "sacrificial") is true:
 		set the damage to the damage * 3.0
 		if attacker is a player:
 			set health of attacker to health of attacker - (0.1 * maximum health of attacker)
+			applyEffect(attacker, "antiheal", 3 seconds)
 		chance of 75%:
 			applyEffect(victim, "bleeding", 10 seconds)
 			applyEffect(victim, "vulnerable", 10 seconds)
@@ -2798,6 +2816,9 @@ function generateLegendaryLore( item: item, name: text):: item:
 			else if {_name} is "Detonator":
 				set {_item} to addImbue({_item}, "&8Detonation")
 				set name of {_item} to "&8Leggings of Detonation"
+			else if {_name} is "Void":
+				set {_item} to addImbue({_item}, "&9Anti-Gravity")
+				set name of {_item} to "&9Boots of Anti-Gravity"
 	if at least one of:
 		{_item} is any axe
 		{_item} is any sword
@@ -2810,6 +2831,9 @@ function generateLegendaryLore( item: item, name: text):: item:
 				if {_item} is any sword:
 					set {_item} to addImbue({_item}, "&4Sacrificial")
 					set name of {_item} to "&4Sword of Sacrifice"
+			if {_name} is "Void":
+				set {_item} to addImbue({_item}, "&9Endajack")
+				set name of {_item} to "&9The Endajack"
 
 
 	set {_item} to generateClassLore({_item})
@@ -4721,7 +4745,7 @@ command /channel <text>:
 				send "&cYou do not have enough mana to bless nearby allies with haste!" to player
 				stop
 			loop players in radius 20 of player:
-				apply haste 2 to loop-player for 1800 seconds replacing the existing effect
+				apply haste 3 to loop-player for 1800 seconds replacing the existing effect
 				loop-player is not player
 				send "&6A Cleric blesses you with haste!" to loop-player
 			play sound "item.trident.thunder" with pitch 2.0 at player
@@ -4767,14 +4791,7 @@ command /channel <text>:
 					{-evilSkript::%loop-entity%::isBoss} is not true
 					kill loop-entity
 				else:
-					removeEffect(loop-entity, "shocking")
-					removeEffect(loop-entity, "bleeding")
-					removeEffect(loop-entity, "disease")
-					removeEffect(loop-entity, "infected")
-					removeEffect(loop-entity, "phased")
-					removeEffect(loop-entity, "void")
-					removeEffect(loop-entity, "levitate")
-					removeEffect(loop-entity, "firestorm")
+					removeNegativeEffects(loop-entity)
 					cure loop-entity
 					applyEffect(loop-entity, "spirit", 60 seconds)
 					applyEffect(loop-entity, "regen", 1800 seconds)
