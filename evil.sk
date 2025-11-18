@@ -3,10 +3,10 @@ on script unload:
   loop {-evilSkript::bossMobs::*}:
     killBoss(loop-index)
   delete {-evilSkript::bossMobs::*}
-	broadcast "{@prefix} &4Unloading evil script..."
+  broadcast "{@prefix} &4Unloading evil script..."
 
 on script load:
-	scriptBroadcast("&9Loading evil script...")
+  scriptBroadcast("&9Loading evil script...")
 
 function killBoss(uuid: text):
 	delete getByUUID({_uuid})
