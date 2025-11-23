@@ -1328,11 +1328,17 @@ every 1 seconds:
 
 		hasEffect(loop-entity, "invisible") is true:
 			apply invisibility 1 without particles to the loop-entity for 5 seconds replacing the existing effect
+			hasImbue(loop-entity, "spidersilk") is true:
+				light level at loop-entity is less than 11
+				applyEffect(loop-entity, "invisible", 5 seconds)			
 			hasClass(loop-entity, "rogue") is true:
 				apply swiftness 4 without particles to the loop-entity for 5 seconds replacing the existing effect
 				light level at loop-entity is less than 11
 				applyEffect(loop-entity, "invisible", 5 seconds)
 				scriptDebugBroadcastType("rogue", "Resetting Rogue Invisibility")
+			loop all monsters in radius 10 of loop-entity:
+				target of loop-monster is loop-entity-1:
+					reset target of loop-monster
 
 		hasEffect(loop-entity, "levitate") is true:
 			apply levitation 1 without particles to the loop-entity for 5 seconds replacing the existing effect
@@ -2096,6 +2102,10 @@ on damage:
 		#this needs to go last
 		if victim is a player:
 			set the damage to the damage * 0.5
+	if hasLore(attacker's held item, "Venom") is true:
+		set the damage to the damage * 1.50
+		chance of 25%:
+			applyEffect(victim, "venom", 10 seconds)
 	if hasLore(attacker's held item, "Endajack") is true:
 		set the damage to the damage * 1.50
 		set {_raneffect} to a random integer between 0 and 2
@@ -2515,6 +2525,19 @@ on target:
 		chance of 80%:
 			cancel the event
 			stop
+	hasImbue(target, "spidersilk") is true:
+		if target is sprinting:
+			distance between event-entity and target is greater than 12:
+				cancel the event
+				stop
+		else if target is sneaking:
+			distance between event-entity and target is greater than 2.5:
+				cancel the event
+				stop
+		else:
+			distance between event-entity and target is greater than 7.5:
+				cancel the event
+				stop
 	hasClass(target, "paladin") is true:
 		isMonster(event-entity) is true:
 			applyEffect(event-entity, "hallowed", 8 seconds)
@@ -2805,20 +2828,29 @@ function generateLegendaryLore( item: item, name: text):: item:
 		chance of (20+({rpgdiff}/5))%:
 			if {_name} is "Rotwalker":
 				set {_item} to addImbue({_item}, "&aRadiation")
+				set {_item} to addImbue({_item}, "&4Undying")
 				set name of {_item} to "&aChestplate of the Radiated"
 			else if {_name} is "Pillage_Captain":
 				if {_item} is a black standing banner:
 					set {_item} to addImbue({_item}, "&9Raid Leader")
+					set {_item} to addImbue({_item}, "&7Iron Will")
 					set name of {_item} to "&9Banner of the Leader"
 				else if {_item} is a helmet:
 					set {_item} to addImbue({_item}, "&9Lightning Rod")
+					set {_item} to addImbue({_item}, "&9Mana Boost")
 					set name of {_item} to "&9Helmet of the Lightning Rod"
 			else if {_name} is "Detonator":
 				set {_item} to addImbue({_item}, "&8Detonation")
+				set {_item} to addImbue({_item}, "&8Golem")
 				set name of {_item} to "&8Leggings of Detonation"
 			else if {_name} is "Void":
 				set {_item} to addImbue({_item}, "&9Anti-Gravity")
+				set {_item} to addImbue({_item}, "&fEnlighten")
 				set name of {_item} to "&9Boots of Anti-Gravity"
+			else if {_name} is "Broodmother":
+				set {_item} to addImbue({_item}, "&fSpidersilk Cloak")
+				set {_item} to addImbue({_item}, "&9Speed")
+				set name of {_item} to "&fSpidersilk"
 	if at least one of:
 		{_item} is any axe
 		{_item} is any sword
@@ -2827,14 +2859,25 @@ function generateLegendaryLore( item: item, name: text):: item:
 			if {_name} is "Butcher":
 				if {_item} is any axe:
 					set {_item} to addImbue({_item}, "&4Butcher")
+					set {_item} to addImbue({_item}, "&4Vampiric")
 					set name of {_item} to "&4Butcher's Cleaver"
 				if {_item} is any sword:
 					set {_item} to addImbue({_item}, "&4Sacrificial")
+					set {_item} to addImbue({_item}, "&4Bloodied")
 					set name of {_item} to "&4Sword of Sacrifice"
 			if {_name} is "Void":
 				set {_item} to addImbue({_item}, "&9Endajack")
+				set {_item} to addImbue({_item}, "&6Siphon")
 				set name of {_item} to "&9The Endajack"
+			if {_name} is "Broodmother":
+				set {_item} to addImbue({_item}, "&fVenom")
+				set {_item} to addImbue({_item}, "&4Bleeding")
+				set name of {_item} to "&fSword of Venom"
 
+	set {_item} to addImbue({_item}, "&fUnbreakable")
+	set {_item} to addImbue({_item}, "&fEthereal")
+	set {_item} to addImbue({_item}, "&7Reinforced")
+	set {_item} to addImbue({_item}, "&7Weightless")
 
 	set {_item} to generateClassLore({_item})
 	loop 2 times:
@@ -2984,6 +3027,11 @@ on sprint toggle:
 			remove jump boost from the player
 
 on sneak toggle:
+	if hasImbue(player, "spidersilk") is true:
+		player is not sneaking:
+			applyEffect(player, "invisible", 5 seconds)
+		player is sneaking:
+			removeEffect(player, "invisible")
 	if hasClass(player, "herobrine") is true:
 		player is not sneaking:
 			# apply invisibility without particles to the player for 30 seconds replacing the existing effect
