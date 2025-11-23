@@ -249,7 +249,7 @@ function setMaxHealth(player: player):
 		set {_newMax} to ({_newMax} + {_newMax} * 0.15 * countImbue({_player}, "Health Boost"))
 
 	if hasImbue({_player}, "golem") is true:
-		set {_newMax} to {_newMax} * 1.2
+		set {_newMax} to {_newMax} * 1 + (0.2*countImbue({_player}, "golem"))
 
 	hasImbue({_player}, "photosynthesis") is true:
 		sun light level at {_player} is greater than 13:
@@ -1608,14 +1608,32 @@ every 2 seconds:
 
 		hasImbue(loop-player, "golem") is true:
 			apply strength 2 without particles to the loop-player for 5 seconds replacing the existing effect
-			apply slowness 1 without particles to the loop-player for 5 seconds replacing the existing effect
+			if countImbue(loop-player, "golem") is 1:
+				apply slowness 1 without particles to the loop-player for 5 seconds replacing the existing effect
+			else if countImbue(loop-player, "golem") is 2:
+				apply slowness 2 without particles to the loop-player for 5 seconds replacing the existing effect
+			else if countImbue(loop-player, "golem") is 3:
+				apply slowness 3 without particles to the loop-player for 5 seconds replacing the existing effect
+			else if countImbue(loop-player, "golem") is 4:
+				apply slowness 4 without particles to the loop-player for 5 seconds replacing the existing effect
+			else if countImbue(loop-player, "golem") is 5:
+				apply slowness 5 without particles to the loop-player for 5 seconds replacing the existing effect
 		hasImbue(loop-player, "photosynthesis") is true:
 			sun light level at loop-player is greater than 13:
 				time in world of loop-player is not between 19:00 and 5:00:
 					set {_add} to 0.25 * countImbue(loop-player, "photosynthesis")
 					heal(loop-player, {_add})
 		if hasImbue(loop-player, "speed") is true:
-			apply swiftness 1 without particles to the loop-player for 5 seconds replacing the existing effect		
+			if countImbue(loop-player, "speed") is 1:
+				apply swiftness 1 without particles to the loop-player for 5 seconds replacing the existing effect
+			else if countImbue(loop-player, "speed") is 2:
+				apply swiftness 2 without particles to the loop-player for 5 seconds replacing the existing effect	
+			else if countImbue(loop-player, "speed") is 3:
+				apply swiftness 3 without particles to the loop-player for 5 seconds replacing the existing effect
+			else if countImbue(loop-player, "speed") is 4:
+				apply swiftness 4 without particles to the loop-player for 5 seconds replacing the existing effect	
+			else if countImbue(loop-player, "speed") is 5:
+				apply swiftness 5 without particles to the loop-player for 5 seconds replacing the existing effect			
 		if hasImbue(loop-player, "radiation") is true:
 			applyEffect(loop-player, "radiated", 60 seconds)
 		if hasImbue(loop-player, "lightning rod") is true:
@@ -1747,6 +1765,7 @@ on inventory close:
 			scriptDebugBroadcastType("holding", "ID not set, cannot save inventory")
 		loop 6*9 times:
 			set {rpgSkript::holding::%{_id}%::%loop-value%} to slot (loop-value)-1 of event-inventory
+
 
 on death:
 
@@ -5342,7 +5361,8 @@ on right click with glow ink sac:
 
 every 10 seconds:
 	loop all players:
-				
+
+							
 		hasClass(loop-player, "nethermancer") is true:
 			inventorySmelt(loop-player)
 			set {_addheat} to 0
