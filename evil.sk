@@ -3,7 +3,7 @@ on script unload:
   loop {-evilSkript::bossMobs::*}:
     killBoss(loop-index)
   delete {-evilSkript::bossMobs::*}
-  broadcast "{@prefix} &4Unloading evil script..."
+  broadcast "&4{&8Evil Skript&4} &4Unloading evil script..."
 
 on script load:
   scriptBroadcast("&9Loading evil script...")
@@ -567,9 +567,11 @@ function makeBoss(entity:entity):
     set {-evilSkript::%{_entity}%::summoncount} to 10
     set helmet of {_entity} to generateLootHelmet()
     set chestplate of {_entity} to generateLootChestplate()
+    set chestplate of {_entity} to generateLegendaryLore(leggings of {_entity}, "Broodmother")
     set leggings of {_entity} to generateLootLeggings()
     set boots of {_entity} to generateLootBoots()
     set held item of {_entity} to generateLootSword()
+    set held item of {_entity} to generateLegendaryLore(held item of {_entity}, "Broodmother")
     set off hand item of {_entity} to generateLootShield()
     heal {_entity}
   {_entity} is a zombie:
