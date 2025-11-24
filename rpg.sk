@@ -2481,6 +2481,8 @@ on target:
 		loop {-evilSkript::%event-entity%::summoncount} times:
 			event-entity is a skeleton:
 				spawn 1 skeleton at event-entity
+				{-evilSkript::%event-entity%::isBoss} is true:
+					spawn 1 zombie at event-entity
 			event-entity is a zombie:
 				spawn 1 zombie at event-entity
 			event-entity is a evoker:
