@@ -606,6 +606,21 @@ function makeBoss(entity:entity):
     set held item of {_entity} to generateLegendaryLore(held item of {_entity}, "Void")
     set off hand item of {_entity} to generateLootShield()
     heal {_entity}
+  {_entity} is a skeleton:
+	set {_entity}'s display name to "&8Headhunter"
+    set movement speed attribute of {_entity} to 1.2 * movement speed attribute of {_entity}
+    set attack damage attribute of {_entity} to 1.25 * attack damage attribute of {_entity}
+    set maximum health of {_entity} to 50
+    set {-evilSkript::%{_entity}%::isBoss} to true
+    set helmet of {_entity} to generateLootHelmet()
+    set chestplate of {_entity} to generateLootChestplate()
+    set leggings of {_entity} to generateLootLeggings()
+    set boots of {_entity} to generateLootBoots()
+    set held item of {_entity} to generateLootBow()
+    set held item of {_entity} to generateLegendaryLore(held item of {_entity}, "Headhunter")
+    set off hand item of {_entity} to generateLootShield()
+    heal {_entity}	
+  set helmet of {_entity} to generateLegendaryLore(helmet of {_entity}, "SubductionAnger")
         
   add uuid of {_entity} to {-evilSkript::bossMobs::*}
   
@@ -642,6 +657,10 @@ command /spawnBoss <text> <player>:
       wait 5 seconds
       spawn an enderman at location of arg 2:
         makeBoss(the enderman)
+    else if arg 1 is "Headhunter":
+	  wait 5 seconds
+      spawn a skeleton at location of arg 2:
+        makeBoss(the skeleton)
     
     
 
