@@ -2137,6 +2137,9 @@ on damage:
 		#this needs to go last
 		if victim is a player:
 			set the damage to the damage * 0.5
+	if hasLore(attacker's held item, "Gamble") is true:
+		set {_ran} to a random number between 0.05 and 5
+		set the damage to the damage * {_ran}
 	if hasLore(attacker's held item, "Splinter") is true:
 		chance of 30%:
 			applyEffect(victim, "vulnerable", 10 seconds)
@@ -2424,6 +2427,10 @@ on damage:
 				isMonster(loop-entity) is true
 				set {_randmg} to a random number between 2.5 and 10
 				damage loop-entity by {_randmg}
+
+	hasImbue(victim, "Razorplate") is true:
+		event-projectile is not set
+		damage attacker by 5 * countImbue(victim, "Razorplate")
 
 	hasImbue(victim, "flame shield") is true:
 		set {_loc} to the victim's location
@@ -2877,7 +2884,67 @@ command /legendaryitem <text>:
 			set {_item} to netherite sword
 			set {_item} to addImbue({_item}, "&4Sacrificial")
 			set name of {_item} to "&4Sword of Sacrifice"
-		give player {_item}			
+		give player {_item}		
+
+function generateMythicLore( item: item):: item:
+	if chance of (20+({rpgdiff}/5))%:
+		if {_item} is any helmet:
+			set {_ranMythicLore} to a random integer between 0 and 0
+			if {_ranMythicLore} is 0:
+				set {_item} to addImbue({_item}, "&4Subdue to Anger")
+				set {_item} to addImbue({_item}, "4Undying")
+				set name of {_item} to "&4Subdue to Anger"
+		else if {_item} is any chestplate:
+			set {_ranMythicLore} to a random integer between 0 and 0
+			if {_ranMythicLore} is 0:
+				set {_item} to addImbue({_item}, "&8Razorplate")
+				set {_item} to addImbue({_item}, "&7Iron Will")
+				set name of {_item} to "&8Razorplate"
+		else if {_item} is any leggings:
+			set {_ranMythicLore} to a random integer between 0 and 0
+			if {_ranMythicLore} is 0:
+				set {_item} to addImbue({_item}, "&8Razorplate")
+				set {_item} to addImbue({_item}, "&7Iron Will")
+				set name of {_item} to "&8Razorplate"
+		else if {_item} is any boots:
+			set {_ranMythicLore} to a random integer between 0 and 0
+			if {_ranMythicLore} is 0:
+				set {_item} to addImbue({_item}, "&8Razorplate")
+				set {_item} to addImbue({_item}, "&7Iron Will")
+				set name of {_item} to "&8Razorplate"
+		else if {_item} is a shield:
+			set {_ranMythicLore} to a random integer between 0 and 0
+			if {_ranMythicLore} is 0:
+				set {_item} to addImbue({_item}, "&8Razorplate")
+				set {_item} to addImbue({_item}, "&7Iron Will")
+				set name of {_item} to "&8Razorplate"
+		else if {_item} is any sword:
+			set {_ranMythicLore} to a random integer between 0 and 0
+			if {_ranMythicLore} is 0:
+				set {_item} to addImbue({_item}, "&aGamble")
+				set {_item} to addImbue({_item}, "&7Vampiric")
+				set name of {_item} to "&aGambler's Fallacy"
+		else if {_item} is a bow:
+			set {_ranMythicLore} to a random integer between 0 and 0
+			if {_ranMythicLore} is 0:
+				set {_item} to addImbue({_item}, "&aGamble")
+				set {_item} to addImbue({_item}, "&7Vampiric")
+				set name of {_item} to "&aGambler's Fallacy"
+		else if {_item} is a crossbow:
+			set {_ranMythicLore} to a random integer between 0 and 0
+			if {_ranMythicLore} is 0:
+				set {_item} to addImbue({_item}, "&aGamble")
+				set {_item} to addImbue({_item}, "&7Vampiric")
+				set name of {_item} to "&aGambler's Fallacy"						
+		set {_item} to addImbue({_item}, "&fUnbreakable")
+		set {_item} to addImbue({_item}, "&fEthereal")
+		set {_item} to addImbue({_item}, "&7Reinforced")
+		set {_item} to addImbue({_item}, "&7Weightless")
+
+		set {_item} to generateClassLore({_item})
+		set {_item} to generateLore({_item})
+
+		return {_item}
 		
 function generateLegendaryLore( item: item, name: text):: item:
 	if at least one of:
@@ -2885,7 +2952,7 @@ function generateLegendaryLore( item: item, name: text):: item:
 		{_item} is a shield
 		{_item} is a banner
 	then:
-		chance of (20+({rpgdiff}/5))%:
+		if chance of (20+({rpgdiff}/5))%:
 			if {_name} is "Rotwalker":
 				set {_item} to addImbue({_item}, "&aRadiation")
 				set {_item} to addImbue({_item}, "&4Undying")
@@ -2911,10 +2978,6 @@ function generateLegendaryLore( item: item, name: text):: item:
 				set {_item} to addImbue({_item}, "&fSpidersilk Cloak")
 				set {_item} to addImbue({_item}, "&9Speed")
 				set name of {_item} to "&fSpidersilk"
-			else if {_name} is "SubductionAnger":
-				set {_item} to addImbue({_item}, "Subdue to Anger")
-				set {_item} to addImbue({_item}, "4Undying")
-				set name of {_item} to "&4Subdue to Anger"
 			set {_item} to addImbue({_item}, "&fUnbreakable")
 			set {_item} to addImbue({_item}, "&fEthereal")
 			set {_item} to addImbue({_item}, "&7Reinforced")
@@ -2954,8 +3017,7 @@ function generateLegendaryLore( item: item, name: text):: item:
 			set {_item} to addImbue({_item}, "&7Weightless")
 
 	set {_item} to generateClassLore({_item})
-	loop 2 times:
-		set {_item} to generateLore({_item})
+	set {_item} to generateLore({_item})
 	return {_item}
 	
 function generateLore( item: item):: item:
