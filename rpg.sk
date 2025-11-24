@@ -2922,6 +2922,8 @@ function generateLegendaryLore( item: item, name: text):: item:
 	if at least one of:
 		{_item} is any axe
 		{_item} is any sword
+		{_item} is a bow
+		{_item} is a crossbow
 	then:
 		chance of (20+({rpgdiff}/5))%:
 			if {_name} is "Butcher":
