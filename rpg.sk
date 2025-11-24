@@ -2914,7 +2914,7 @@ function generateLegendaryLore( item: item, name: text):: item:
 			else if {_name} is "SubductionAnger":
 				set {_item} to addImbue({_item}, "Subdue to Anger")
 				set {_item} to addImbue({_item}, "4Undying")
-				set name of {_item} to "&4Subdue to Anger")
+				set name of {_item} to "&4Subdue to Anger"
 			set {_item} to addImbue({_item}, "&fUnbreakable")
 			set {_item} to addImbue({_item}, "&fEthereal")
 			set {_item} to addImbue({_item}, "&7Reinforced")
