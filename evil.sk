@@ -734,7 +734,7 @@ command /callUpon <text>:
 command /ingredientsForSpawn <text>:
   executable by: anyone
   trigger:
-    send "getItemCostForSpawn(arg 1) Items Needed for that Boss/Event" to command executor
+    send "%getItemCostForSpawn(arg 1)% Items Needed for that Boss/Event" to command executor
 
 function getItemCostForSpawn(name: text):: items:
   if {_name} is "rotwalker":
