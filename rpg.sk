@@ -2870,6 +2870,10 @@ function generateLegendaryLore( item: item, name: text):: item:
 				set {_item} to addImbue({_item}, "&fSpidersilk Cloak")
 				set {_item} to addImbue({_item}, "&9Speed")
 				set name of {_item} to "&fSpidersilk"
+			set {_item} to addImbue({_item}, "&fUnbreakable")
+			set {_item} to addImbue({_item}, "&fEthereal")
+			set {_item} to addImbue({_item}, "&7Reinforced")
+			set {_item} to addImbue({_item}, "&7Weightless")
 	if at least one of:
 		{_item} is any axe
 		{_item} is any sword
@@ -2884,19 +2888,19 @@ function generateLegendaryLore( item: item, name: text):: item:
 					set {_item} to addImbue({_item}, "&4Sacrificial")
 					set {_item} to addImbue({_item}, "&4Bloodied")
 					set name of {_item} to "&4Sword of Sacrifice"
-			if {_name} is "Void":
+			else if {_name} is "Void":
 				set {_item} to addImbue({_item}, "&9Endajack")
 				set {_item} to addImbue({_item}, "&6Siphon")
 				set name of {_item} to "&9The Endajack"
-			if {_name} is "Broodmother":
+			else if {_name} is "Broodmother":
 				set {_item} to addImbue({_item}, "&fVenom")
 				set {_item} to addImbue({_item}, "&4Bleeding")
 				set name of {_item} to "&fSword of Venom"
 
-	set {_item} to addImbue({_item}, "&fUnbreakable")
-	set {_item} to addImbue({_item}, "&fEthereal")
-	set {_item} to addImbue({_item}, "&7Reinforced")
-	set {_item} to addImbue({_item}, "&7Weightless")
+			set {_item} to addImbue({_item}, "&fUnbreakable")
+			set {_item} to addImbue({_item}, "&fEthereal")
+			set {_item} to addImbue({_item}, "&7Reinforced")
+			set {_item} to addImbue({_item}, "&7Weightless")
 
 	set {_item} to generateClassLore({_item})
 	loop 2 times:
