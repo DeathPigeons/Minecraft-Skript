@@ -607,7 +607,7 @@ function makeBoss(entity:entity):
     set off hand item of {_entity} to generateLootShield()
     heal {_entity}
   {_entity} is a skeleton:
-	set {_entity}'s display name to "&8Headhunter"
+    set {_entity}'s display name to "&8Headhunter"
     set movement speed attribute of {_entity} to 1.2 * movement speed attribute of {_entity}
     set attack damage attribute of {_entity} to 1.25 * attack damage attribute of {_entity}
     set maximum health of {_entity} to 50
@@ -661,7 +661,7 @@ command /spawnBoss <text> <player>:
       spawn an enderman at location of arg 2:
         makeBoss(the enderman)
     else if arg 1 is "Headhunter":
-	  wait 5 seconds
+      wait 5 seconds
       spawn a skeleton at location of arg 2:
         makeBoss(the skeleton)
     
