@@ -1870,14 +1870,23 @@ on damage:
 
 	hasEffect(victim, "vulnerable") is true:
 		set the damage to the damage * 2
+	hasImbue(victim, "Subdue to Anger") is true:
+		set the damage to the damage * 1.50
+	{-evilSkript::%attacker%::isBoss} is true:
+		event-projectile is set:
+			set the damage to the damage * (1.1^({rpgdiff} - 1))
 	{-evilSkript::%attacker%::HeadHunter} is true:
+		event-projectile is set:
+			set the damage to the damage * 1.20
 		chance of 30%:
 			applyEffect(victim, "vulnerable", 10 seconds)
-			loop all monsters in radius 10 around victim:
-				target of loop-monster is not victim
-				loop-monster is not attacker
-				reset target of loop-monster
-				set target of loop-monster to victim
+			loop all entities in radius 10 around victim:
+				if at least one of:
+					isMinion(loop-entity) is true
+					loop-entity is a player
+				then:
+					loop-entity is not victim
+					damage loop-entity by the damage / 2
 	{-evilSkript::%attacker%::RotWalker} is true:
 		chance of 40%:
 			applyEffect(victim, "radiated", 1 minute)
@@ -2128,10 +2137,24 @@ on damage:
 		#this needs to go last
 		if victim is a player:
 			set the damage to the damage * 0.5
+	if hasLore(attacker's held item, "Splinter") is true:
+		chance of 30%:
+			applyEffect(victim, "vulnerable", 10 seconds)
+			loop all entities in radius 10 around victim:
+				if at least one of:
+					isMinion(loop-entity) is true
+					loop-entity is a player
+				then:
+					loop-entity is not victim
+					loop-entity is not attacker
+					damage loop-entity by the damage / 2		
 	if hasLore(attacker's held item, "Venom") is true:
 		set the damage to the damage * 1.50
 		chance of 25%:
 			applyEffect(victim, "venom", 10 seconds)
+	if hasLore(attacker's helmet, "Subdue to Anger") is true:
+		set {_dmgboost} to a random number between 1 and 5
+		set the damage to the damage * {_dmgboost}
 	if hasLore(attacker's held item, "Endajack") is true:
 		set the damage to the damage * 1.50
 		set {_raneffect} to a random integer between 0 and 2
@@ -2732,6 +2755,15 @@ function generateLootBoots() :: item:
 		
 	return {_item}
 
+function generateLootBow() :: item:
+	set {_item} to a bow
+	chance of 50%:
+		set {_item} to a crossbow
+
+	set {_item} to generateLore({_item})
+		
+	return {_item}
+
 function generateLootSword() :: item:
 	set {_item} to a wooden sword
 	chance of 50%:
@@ -2879,6 +2911,10 @@ function generateLegendaryLore( item: item, name: text):: item:
 				set {_item} to addImbue({_item}, "&fSpidersilk Cloak")
 				set {_item} to addImbue({_item}, "&9Speed")
 				set name of {_item} to "&fSpidersilk"
+			else if {_name} is "SubductionAnger":
+				set {_item} to addImbue({_item}, "Subdue to Anger")
+				set {_item} to addImbue({_item}, "4Undying")
+				set name of {_item} to "&4Subdue to Anger")
 			set {_item} to addImbue({_item}, "&fUnbreakable")
 			set {_item} to addImbue({_item}, "&fEthereal")
 			set {_item} to addImbue({_item}, "&7Reinforced")
@@ -2905,6 +2941,10 @@ function generateLegendaryLore( item: item, name: text):: item:
 				set {_item} to addImbue({_item}, "&fVenom")
 				set {_item} to addImbue({_item}, "&4Bleeding")
 				set name of {_item} to "&fSword of Venom"
+			else if {_name} is "Headhunter":
+				set {_item} to addImbue({_item}, "&fSplinter")
+				set {_item} to addImbue({_item}, "&4Bleeding")
+				set name of {_item} to "&fSplinter Head Bow"
 
 			set {_item} to addImbue({_item}, "&fUnbreakable")
 			set {_item} to addImbue({_item}, "&fEthereal")
