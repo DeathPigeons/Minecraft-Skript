@@ -612,6 +612,7 @@ function makeBoss(entity:entity):
     set attack damage attribute of {_entity} to 1.25 * attack damage attribute of {_entity}
     set maximum health of {_entity} to 50
     set {-evilSkript::%{_entity}%::isBoss} to true
+    set {-evilSkript::%{_entity}%::HeadHunter} to true
     set helmet of {_entity} to generateLootHelmet()
     set chestplate of {_entity} to generateLootChestplate()
     set leggings of {_entity} to generateLootLeggings()
