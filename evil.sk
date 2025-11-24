@@ -503,6 +503,21 @@ function makeSummoner(entity:entity):
     set {-evilSkript::%{_entity}%::summoncount} to 3
 
 function makeBoss(entity:entity):
+  if at least one of:
+    {_entity} is a husk
+    {_entity} is a skeleton
+    {_entity} is a zombie
+    {_entity} is a evoker
+    {_entity} is a spider
+    {_entity} is a creeper
+    {_entity} is a enderman
+  then:
+    set helmet of {_entity} to generateLootHelmet()
+    set chestplate of {_entity} to generateLootChestplate()
+    set leggings of {_entity} to generateLootLeggings()
+    set boots of {_entity} to generateLootBoots()
+    set off hand item of {_entity} to generateLootShield()
+    set held item of {_entity} to generateLootSword()
   {_entity} is a husk:
     set {_entity}'s display name to "&6Dune Revenant"
     set attack damage attribute of {_entity} to 2 * attack damage attribute of {_entity}
@@ -511,12 +526,6 @@ function makeBoss(entity:entity):
     heal {_entity}
     set {-evilSkript::%{_entity}%::dunerev} to true
     set {-evilSkript::%{_entity}%::isBoss} to true
-    set helmet of {_entity} to generateLootHelmet()
-    set chestplate of {_entity} to generateLootChestplate()
-    set leggings of {_entity} to generateLootLeggings()
-    set boots of {_entity} to generateLootBoots()
-    set held item of {_entity} to generateLootSword()
-    set off hand item of {_entity} to generateLootShield()
   {_entity} is a creeper:
     set {_entity}'s display name to "&8Detonator"
     set movement speed attribute of {_entity} to 0.5 * movement speed attribute of {_entity}
@@ -524,13 +533,7 @@ function makeBoss(entity:entity):
     set {-evilSkript::%{_entity}%::detonator} to true
     set {-evilSkript::%{_entity}%::summoner} to true
     set {-evilSkript::%{_entity}%::summoncount} to 4
-    set helmet of {_entity} to generateLootHelmet()
-    set chestplate of {_entity} to generateLootChestplate()
-    set leggings of {_entity} to generateLootLeggings()
     set leggings of {_entity} to generateLegendaryLore(leggings of {_entity}, "Detonator")
-    set boots of {_entity} to generateLootBoots()
-    set held item of {_entity} to generateLootSword()
-    set off hand item of {_entity} to generateLootShield()
     chance of 30%:
       set {-evilSkript::%{_entity}%::crassus} to true 
       set {_entity}'s display name to "&eCrassus Detonator"  
@@ -544,18 +547,9 @@ function makeBoss(entity:entity):
     set {-evilSkript::%{_entity}%::isBoss} to true
     set {-evilSkript::%{_entity}%::summoner} to true
     set {-evilSkript::%{_entity}%::summoncount} to 5
-    set helmet of {_entity} to generateLootHelmet()
     set helmet of {_entity} to generateLegendaryLore(helmet of {_entity}, "Pillage_Captain")
-    set chestplate of {_entity} to generateLootChestplate()
-    set leggings of {_entity} to generateLootLeggings()
-    set boots of {_entity} to generateLootBoots()
-    set held item of {_entity} to generateLootSword()
-    set {_offhandchance} to a random integer between 0 and 1
-    if {_offhandchance} is 0:
-      set off hand item of {_entity} to generateLootShield()
-    else:
-      set off hand item of {_entity} to a black standing banner
-      set off hand item of {_entity} to generateLegendaryLore(off hand item of {_entity}, "Pillage_Captain")
+    set off hand item of {_entity} to a black standing banner
+    set off hand item of {_entity} to generateLegendaryLore(off hand item of {_entity}, "Pillage_Captain")
     heal {_entity}
   {_entity} is a spider:
     set {_entity}'s display name to "&6The Broodmother"
@@ -565,14 +559,8 @@ function makeBoss(entity:entity):
     set {-evilSkript::%{_entity}%::isBoss} to true
     set {-evilSkript::%{_entity}%::summoner} to true
     set {-evilSkript::%{_entity}%::summoncount} to 10
-    set helmet of {_entity} to generateLootHelmet()
-    set chestplate of {_entity} to generateLootChestplate()
-    set chestplate of {_entity} to generateLegendaryLore(leggings of {_entity}, "Broodmother")
-    set leggings of {_entity} to generateLootLeggings()
-    set boots of {_entity} to generateLootBoots()
-    set held item of {_entity} to generateLootSword()
+    set chestplate of {_entity} to generateLegendaryLore(chestplate of {_entity}, "Broodmother")
     set held item of {_entity} to generateLegendaryLore(held item of {_entity}, "Broodmother")
-    set off hand item of {_entity} to generateLootShield()
     heal {_entity}
   {_entity} is a zombie:
     set {_entity}'s display name to "&aRotwalker"
@@ -583,13 +571,7 @@ function makeBoss(entity:entity):
     set {-evilSkript::%{_entity}%::Rotwalker} to true
     set {-evilSkript::%{_entity}%::summoner} to true
     set {-evilSkript::%{_entity}%::summoncount} to 3
-    set helmet of {_entity} to generateLootHelmet()
-    set chestplate of {_entity} to generateLootChestplate()
     set chestplate of {_entity} to generateLegendaryLore(chestplate of {_entity},"Rotwalker")
-    set leggings of {_entity} to generateLootLeggings()
-    set boots of {_entity} to generateLootBoots()
-    set held item of {_entity} to generateLootSword()
-    set off hand item of {_entity} to generateLootShield()
     heal {_entity}
   {_entity} is a Enderman:
     set {_entity}'s display name to "&9The Void"
@@ -597,14 +579,8 @@ function makeBoss(entity:entity):
     set attack damage attribute of {_entity} to 1.25 * attack damage attribute of {_entity}
     set maximum health of {_entity} to 75
     set {-evilSkript::%{_entity}%::isBoss} to true
-    set helmet of {_entity} to generateLootHelmet()
-    set chestplate of {_entity} to generateLootChestplate()
-    set leggings of {_entity} to generateLootLeggings()
-    set boots of {_entity} to generateLootBoots()
     set boots of {_entity} to generateLegendaryLore(boots of {_entity},"Void")
-    set held item of {_entity} to generateLootSword()
     set held item of {_entity} to generateLegendaryLore(held item of {_entity}, "Void")
-    set off hand item of {_entity} to generateLootShield()
     heal {_entity}
   {_entity} is a skeleton:
     set {_entity}'s display name to "&8Headhunter"
@@ -615,15 +591,15 @@ function makeBoss(entity:entity):
     set {-evilSkript::%{_entity}%::HeadHunter} to true
     set {-evilSkript::%{_entity}%::summoner} to true
     set {-evilSkript::%{_entity}%::summoncount} to 3
-    set helmet of {_entity} to generateLootHelmet()
-    set chestplate of {_entity} to generateLootChestplate()
-    set leggings of {_entity} to generateLootLeggings()
-    set boots of {_entity} to generateLootBoots()
     set held item of {_entity} to generateLootBow()
     set held item of {_entity} to generateLegendaryLore(held item of {_entity}, "Headhunter")
-    set off hand item of {_entity} to generateLootShield()
-    heal {_entity}	
-  set helmet of {_entity} to generateLegendaryLore(helmet of {_entity}, "SubductionAnger")
+    heal {_entity}
+  set helmet of {_entity} to generateMythicLore(helmet of {_entity})
+  set chestplate of {_entity} to generateMythicLore(helmet of {_entity})
+  set leggings of {_entity} to generateMythicLore(helmet of {_entity})
+  set boots of {_entity} to generateMythicLore(helmet of {_entity})
+  set off hand item of {_entity} to generateMythicLore(helmet of {_entity})
+  set held item of {_entity} to generateMythicLore(helmet of {_entity})	
         
   add uuid of {_entity} to {-evilSkript::bossMobs::*}
   
