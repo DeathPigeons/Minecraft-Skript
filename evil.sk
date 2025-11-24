@@ -664,6 +664,121 @@ command /spawnBoss <text> <player>:
       wait 5 seconds
       spawn a skeleton at location of arg 2:
         makeBoss(the skeleton)
+
+command /callUpon <text>:
+  executable by: players
+  trigger:
+    hasItems(command executor, getItemCostForSpawn(arg 1)) is false:
+      send "&4You do not have the items to spawn that boss/event!" to player
+      stop
+    if at least one of:
+      arg 1 is "rotwalker"
+      arg 1 is "detonator"
+      arg 1 is "headhunter"
+      arg 1 is "broodmother"
+      arg 1 is "apocalypse"
+      arg 1 is "netherbreach"
+    then:
+      if time in world "world" is not between 19:00 and 5:00:
+        send "&4That Boss/Event cannot be spawned right now!" to player
+        stop
+    if at least one of:
+      arg 1 is "pillagercaptain"
+      arg 1 is "bigraid"
+    then:
+      if time in world "world" is between 19:00 and 5:00:
+        send "&4That Boss/Event cannot be spawned right now!" to player
+        stop
+    loop {evilSkript::bed::*}:
+      set {_v} to the vector between player and location of loop-value
+      if the length of {_v} is less than 26:
+        send "&4You are too close to a player's bed to trigger a boss/event!" to player
+        stop
+    set {_continue} to true
+    set {_x} to a random number between -25 and 25
+    set {_x} to the x coordinate of player + {_x}
+    set {_z} to a random number between -25 and 25
+    set {_z} to the z coordinate of player + {_z}
+    set {_y} to a random number between -5 and 5
+    set {_y} to the y coordinate of player + {_y}
+    set {_loc} to the location at {_x}, {_y}, {_z} of world "world"
+    block at {_loc} is not air
+    block at {_loc} is not water
+    loop blocks in radius 2.99 around {_loc}:
+      loop-block is not air:
+        set {_continue} to false
+    if {_continue} is true:
+      wait 2 seconds
+      if arg 1 is "rotwalker": 
+        broadcast "&aA lumbering sickness comes forth..."
+        wait 5 seconds  
+        spawn a zombie at {_loc}:
+          makeBoss(the zombie)
+      else if arg 1 is "detonator": 
+        broadcast "&8This is going to be an explosive night..."
+        wait 5 seconds  
+        spawn a creeper at {_loc}:
+          makeBoss(the creeper)
+      else if arg 1 is "headhunter": 
+        broadcast "&8The bones come out to hunt..."
+        wait 5 seconds  
+        spawn a skeleton at {_loc}:
+          makeBoss(the skeleton)
+      else if arg 1 is "broodmother": 
+        broadcast "&6Don't get swarmed..."
+        wait 5 seconds  
+        spawn a spider at {_loc}:
+          makeBoss(the spider)
+      else if arg 1 is "void": 
+        broadcast "&9There are some other worldly powers at work here..."
+        wait 5 seconds  
+        spawn a enderman at {_loc}:
+          makeBoss(the enderman)
+      else if arg 1 is "pillagercaptain": 
+        broadcast "&4There is some evil magic in the air..."
+        wait 5 seconds  
+        spawn an evoker at {_loc}:
+          makeBoss(the evoker)
+      else if arg 1 is "apocalypse": 
+        broadcast "&4The Undead Grow Restless..."
+        wait 5 seconds  
+        set {-apocalypse} to true
+      else if arg 1 is "netherbreach": 
+        broadcast "&4The monsters of Hell encroach upon the living..."
+        wait 5 seconds
+        set {-netherbreach} to true
+      else if arg 1 is "bigraid": 
+        broadcast "&4The raiding drums beat and the horns sing..."
+        wait 5 seconds  
+        set {-bigraid} to true 
+      else:
+        send "&4Not a Valid Boss" to player
+    takeItems(command executor, getItemCostForSpawn(arg 1))
+
+command /ingredientsForSpawn <text>:
+  executable by: anyone
+  trigger:
+    send "getItemCostForSpawn(arg 1) Items Needed for that Boss/Event" to command executor
+
+function getItemCostForSpawn(name: text):: items:
+  if {_name} is "rotwalker":
+    return (32 rotten flesh and 16 copper ingot)
+  else if {_name} is "detonator":
+    return (32 redstone and 4 tnt)
+  else if {_name} is "pillagercaptain":
+    return (32 lapis lazuli and 4 emerald)
+  else if {_name} is "headhunter":
+    return (16 bone and 32 arrow)
+  else if {_name} is "broodmother":
+    return (16 spider eye and 32 string)
+  else if {_name} is "void":
+    return (8 eye of ender and 16 chorus fruit)
+  else if {_name} is "apocalypse":
+    return (64 rotten flesh and 32 bone)
+  else if {_name} is "netherbreach":
+    return (8 blaze rod and 8 magma cream)
+  else if {_name} is "bigraid":
+    return (64 lapis lazuli and 8 emerald)
     
     
 
