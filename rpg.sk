@@ -2826,6 +2826,30 @@ function generateRandomLoot() :: item:
 		
 	return {_item}
 
+function generateRandomGear() :: item:
+	scriptDebugBroadcastType("loot", "Generating random gear item")
+	set {_ran} to a random integer between 0 and 7
+	
+	if {_ran} is 0:
+		set {_item} to generateLootHelmet()
+	if {_ran} is 1:
+		set {_item} to generateLootChestplate()
+	if {_ran} is 2:
+		set {_item} to generateLootLeggings()
+	if {_ran} is 3:
+		set {_item} to generateLootBoots()
+	if {_ran} is 4:
+		set {_item} to generateLootShield()
+	if {_ran} is 5:
+		set {_item} to generateLootSword()
+	if {_ran} is 6:
+		set {_item} to generateLootAxe()
+	if {_ran} is 7:
+		set {_item} to generateLootBow()
+
+		
+	return {_item}
+
 function generateClassLore( item: item):: item:
 	if at least one of:
 		{_item} is any armor
@@ -3511,6 +3535,9 @@ on death of a monster:
 		if {-evilSkript::%victim%::isButcher} is true:
 			set {_z} to 40
 	set {_z} to {_z} + {rpgdiff}
+	chance of {_z} / 7.5%:
+		set {_item} to generateMythicLore(generateRandomGear())
+		add {_item} to the drops
 	chance of {_z}%:
 		add helmet of victim to the drops		
 		set {_z} to {_z} - 5	
