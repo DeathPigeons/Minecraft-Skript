@@ -359,46 +359,33 @@ function summonButcher(player:player, chance:number):
     set {_v} to the vector between {_player} and location of loop-value
     if the length of {_v} is less than 26: 
       stop
-  set {_continue} to true
-  set {_x} to a random number between -25 and 25
-  set {_x} to the x coordinate of {_player} + {_x}
-  set {_z} to a random number between -25 and 25
-  set {_z} to the z coordinate of {_player} + {_z}
-  set {_y} to a random number between -5 and 5
-  set {_y} to the y coordinate of {_player} + {_y}
-  set {_loc} to the location at {_x}, {_y}, {_z} of world "world"
-  block at {_loc} is not air
-  block at {_loc} is not water
-  loop blocks in radius 2.99 around {_loc}:
-    loop-block is not air:
-      set {_continue} to false
-  if {_continue} is true:
-    chance of {_chance}%:
-      broadcast "A presence of evil surrounds %{_player}%!" 
-      wait 15 seconds
-      spawn 1 zombie at the location above {_loc}:
-        set the zombie's display name to "&4The Butcher"
-        set attack damage attribute of the zombie to 2.5 * attack damage attribute of the zombie
-        set movement speed attribute of the zombie to 2.0 * movement speed attribute of the zombie
-        set maximum health of the zombie to 200
-        heal the zombie
-        set {_temp} to the zombie
-        set {-evilSkript::%{_temp}%::isBoss} to true
-        set {-evilSkript::%{_temp}%::isButcher} to true
-        set helmet of the zombie to generateLootHelmet()
-        set chestplate of the zombie to generateLootChestplate()
-        set leggings of the zombie to generateLootLeggings()
-        set boots of the zombie to generateLootBoots()
-        set {_odds} to a random integer between 0 and 1
-        if {_odds} is 0:
-          set held item of the zombie to generateLootSword()
-          set held item of the zombie to generateLegendaryLore(held item of the zombie, "Butcher")
-        else:
-          set held item of the zombie to generateLootAxe()
-          set held item of the zombie to generateLegendaryLore(held item of the zombie, "Butcher")
-        set off hand item of the zombie to generateLootShield() 
-        scriptDebugBroadcastType("difficulty", "Spawning a Butcher at %{_player}%")  
-        add uuid of the zombie to {-evilSkript::bossMobs::*}
+  set {_loc} to location of {_player}
+  chance of {_chance}%:
+    broadcast "A presence of evil surrounds %{_player}%!" 
+    wait 15 seconds
+    spawn 1 zombie at the location above {_loc}:
+      set the zombie's display name to "&4The Butcher"
+      set attack damage attribute of the zombie to 2.5 * attack damage attribute of the zombie
+      set movement speed attribute of the zombie to 2.0 * movement speed attribute of the zombie
+      set maximum health of the zombie to 200
+      heal the zombie
+      set {_temp} to the zombie
+      set {-evilSkript::%{_temp}%::isBoss} to true
+      set {-evilSkript::%{_temp}%::isButcher} to true
+      set helmet of the zombie to generateLootHelmet()
+      set chestplate of the zombie to generateLootChestplate()
+      set leggings of the zombie to generateLootLeggings()
+      set boots of the zombie to generateLootBoots()
+      set {_odds} to a random integer between 0 and 1
+      if {_odds} is 0:
+        set held item of the zombie to generateLootSword()
+        set held item of the zombie to generateLegendaryLore(held item of the zombie, "Butcher")
+      else:
+        set held item of the zombie to generateLootAxe()
+        set held item of the zombie to generateLegendaryLore(held item of the zombie, "Butcher")
+      set off hand item of the zombie to generateLootShield() 
+      scriptDebugBroadcastType("difficulty", "Spawning a Butcher at %{_player}%")  
+      add uuid of the zombie to {-evilSkript::bossMobs::*}
 
 command /spawnButcher <player> <number>:
   executable by: anyone
@@ -503,21 +490,6 @@ function makeSummoner(entity:entity):
     set {-evilSkript::%{_entity}%::summoncount} to 3
 
 function makeBoss(entity:entity):
-  if at least one of:
-    {_entity} is a husk
-    {_entity} is a skeleton
-    {_entity} is a zombie
-    {_entity} is a evoker
-    {_entity} is a spider
-    {_entity} is a creeper
-    {_entity} is a enderman
-  then:
-    set helmet of {_entity} to generateLootHelmet()
-    set chestplate of {_entity} to generateLootChestplate()
-    set leggings of {_entity} to generateLootLeggings()
-    set boots of {_entity} to generateLootBoots()
-    set off hand item of {_entity} to generateLootShield()
-    set held item of {_entity} to generateLootSword()
   {_entity} is a husk:
     set {_entity}'s display name to "&6Dune Revenant"
     set attack damage attribute of {_entity} to 2 * attack damage attribute of {_entity}
@@ -526,6 +498,12 @@ function makeBoss(entity:entity):
     heal {_entity}
     set {-evilSkript::%{_entity}%::dunerev} to true
     set {-evilSkript::%{_entity}%::isBoss} to true
+    set helmet of {_entity} to generateLootHelmet()
+    set chestplate of {_entity} to generateLootChestplate()
+    set leggings of {_entity} to generateLootLeggings()
+    set boots of {_entity} to generateLootBoots()
+    set off hand item of {_entity} to generateLootShield()
+    set held item of {_entity} to generateLootSword()
   {_entity} is a creeper:
     set {_entity}'s display name to "&8Detonator"
     set movement speed attribute of {_entity} to 0.5 * movement speed attribute of {_entity}
@@ -533,6 +511,12 @@ function makeBoss(entity:entity):
     set {-evilSkript::%{_entity}%::detonator} to true
     set {-evilSkript::%{_entity}%::summoner} to true
     set {-evilSkript::%{_entity}%::summoncount} to 4
+    set helmet of {_entity} to generateLootHelmet()
+    set chestplate of {_entity} to generateLootChestplate()
+    set leggings of {_entity} to generateLootLeggings()
+    set boots of {_entity} to generateLootBoots()
+    set off hand item of {_entity} to generateLootShield()
+    set held item of {_entity} to generateLootSword()
     set leggings of {_entity} to generateLegendaryLore(leggings of {_entity}, "Detonator")
     chance of 30%:
       set {-evilSkript::%{_entity}%::crassus} to true 
@@ -547,11 +531,22 @@ function makeBoss(entity:entity):
     set {-evilSkript::%{_entity}%::isBoss} to true
     set {-evilSkript::%{_entity}%::summoner} to true
     set {-evilSkript::%{_entity}%::summoncount} to 5
+    set helmet of {_entity} to generateLootHelmet()
+    set chestplate of {_entity} to generateLootChestplate()
+    set leggings of {_entity} to generateLootLeggings()
+    set boots of {_entity} to generateLootBoots()
+    set held item of {_entity} to generateLootSword()
     set helmet of {_entity} to generateLegendaryLore(helmet of {_entity}, "Pillage_Captain")
     set off hand item of {_entity} to a black standing banner
     set off hand item of {_entity} to generateLegendaryLore(off hand item of {_entity}, "Pillage_Captain")
     heal {_entity}
   {_entity} is a spider:
+    set helmet of {_entity} to generateLootHelmet()
+    set chestplate of {_entity} to generateLootChestplate()
+    set leggings of {_entity} to generateLootLeggings()
+    set boots of {_entity} to generateLootBoots()
+    set off hand item of {_entity} to generateLootShield()
+    set held item of {_entity} to generateLootSword()
     set {_entity}'s display name to "&6The Broodmother"
     set movement speed attribute of {_entity} to 0.75 * movement speed attribute of {_entity}
     set attack damage attribute of {_entity} to 1.5 * attack damage attribute of {_entity}
@@ -563,6 +558,12 @@ function makeBoss(entity:entity):
     set held item of {_entity} to generateLegendaryLore(held item of {_entity}, "Broodmother")
     heal {_entity}
   {_entity} is a zombie:
+    set helmet of {_entity} to generateLootHelmet()
+    set chestplate of {_entity} to generateLootChestplate()
+    set leggings of {_entity} to generateLootLeggings()
+    set boots of {_entity} to generateLootBoots()
+    set off hand item of {_entity} to generateLootShield()
+    set held item of {_entity} to generateLootSword()
     set {_entity}'s display name to "&aRotwalker"
     set movement speed attribute of {_entity} to 0.8 * movement speed attribute of {_entity}
     set attack damage attribute of {_entity} to 2.0 * attack damage attribute of {_entity}
@@ -574,6 +575,12 @@ function makeBoss(entity:entity):
     set chestplate of {_entity} to generateLegendaryLore(chestplate of {_entity},"Rotwalker")
     heal {_entity}
   {_entity} is a Enderman:
+    set helmet of {_entity} to generateLootHelmet()
+    set chestplate of {_entity} to generateLootChestplate()
+    set leggings of {_entity} to generateLootLeggings()
+    set boots of {_entity} to generateLootBoots()
+    set off hand item of {_entity} to generateLootShield()
+    set held item of {_entity} to generateLootSword()
     set {_entity}'s display name to "&9The Void"
     set movement speed attribute of {_entity} to 2.0 * movement speed attribute of {_entity}
     set attack damage attribute of {_entity} to 1.25 * attack damage attribute of {_entity}
@@ -583,6 +590,12 @@ function makeBoss(entity:entity):
     set held item of {_entity} to generateLegendaryLore(held item of {_entity}, "Void")
     heal {_entity}
   {_entity} is a skeleton:
+    set helmet of {_entity} to generateLootHelmet()
+    set chestplate of {_entity} to generateLootChestplate()
+    set leggings of {_entity} to generateLootLeggings()
+    set boots of {_entity} to generateLootBoots()
+    set off hand item of {_entity} to generateLootShield()
+    set held item of {_entity} to generateLootSword()
     set {_entity}'s display name to "&8Headhunter"
     set movement speed attribute of {_entity} to 1.2 * movement speed attribute of {_entity}
     set attack damage attribute of {_entity} to 1.25 * attack damage attribute of {_entity}
@@ -595,11 +608,11 @@ function makeBoss(entity:entity):
     set held item of {_entity} to generateLegendaryLore(held item of {_entity}, "Headhunter")
     heal {_entity}
   set helmet of {_entity} to generateMythicLore(helmet of {_entity})
-  set chestplate of {_entity} to generateMythicLore(helmet of {_entity})
-  set leggings of {_entity} to generateMythicLore(helmet of {_entity})
-  set boots of {_entity} to generateMythicLore(helmet of {_entity})
-  set off hand item of {_entity} to generateMythicLore(helmet of {_entity})
-  set held item of {_entity} to generateMythicLore(helmet of {_entity})	
+  set chestplate of {_entity} to generateMythicLore(chestplate of {_entity})
+  set leggings of {_entity} to generateMythicLore(leggings of {_entity})
+  set boots of {_entity} to generateMythicLore(boots of {_entity})
+  set off hand item of {_entity} to generateMythicLore(off hand item of {_entity})
+  set held item of {_entity} to generateMythicLore(held item of {_entity})	
         
   add uuid of {_entity} to {-evilSkript::bossMobs::*}
   
@@ -670,65 +683,52 @@ command /callUpon <text>:
       if the length of {_v} is less than 26:
         send "&4You are too close to a player's bed to trigger a boss/event!" to player
         stop
-    set {_continue} to true
-    set {_x} to a random number between -25 and 25
-    set {_x} to the x coordinate of player + {_x}
-    set {_z} to a random number between -25 and 25
-    set {_z} to the z coordinate of player + {_z}
-    set {_y} to a random number between -5 and 5
-    set {_y} to the y coordinate of player + {_y}
-    set {_loc} to the location at {_x}, {_y}, {_z} of world "world"
-    block at {_loc} is not air
-    block at {_loc} is not water
-    loop blocks in radius 2.99 around {_loc}:
-      loop-block is not air:
-        set {_continue} to false
-    if {_continue} is true:
-      wait 2 seconds
-      if arg 1 is "rotwalker": 
-        broadcast "&aA lumbering sickness comes forth..."
-        wait 5 seconds  
-        spawn a zombie at {_loc}:
-          makeBoss(the zombie)
-      else if arg 1 is "detonator": 
-        broadcast "&8This is going to be an explosive night..."
-        wait 5 seconds  
-        spawn a creeper at {_loc}:
-          makeBoss(the creeper)
-      else if arg 1 is "headhunter": 
-        broadcast "&8The bones come out to hunt..."
-        wait 5 seconds  
-        spawn a skeleton at {_loc}:
-          makeBoss(the skeleton)
-      else if arg 1 is "broodmother": 
-        broadcast "&6Don't get swarmed..."
-        wait 5 seconds  
-        spawn a spider at {_loc}:
-          makeBoss(the spider)
-      else if arg 1 is "void": 
-        broadcast "&9There are some other worldly powers at work here..."
-        wait 5 seconds  
-        spawn a enderman at {_loc}:
-          makeBoss(the enderman)
-      else if arg 1 is "pillagercaptain": 
-        broadcast "&4There is some evil magic in the air..."
-        wait 5 seconds  
-        spawn an evoker at {_loc}:
-          makeBoss(the evoker)
-      else if arg 1 is "apocalypse": 
-        broadcast "&4The Undead Grow Restless..."
-        wait 5 seconds  
-        set {-apocalypse} to true
-      else if arg 1 is "netherbreach": 
-        broadcast "&4The monsters of Hell encroach upon the living..."
-        wait 5 seconds
-        set {-netherbreach} to true
-      else if arg 1 is "bigraid": 
-        broadcast "&4The raiding drums beat and the horns sing..."
-        wait 5 seconds  
-        set {-bigraid} to true 
-      else:
-        send "&4Not a Valid Boss" to player
+    set {_loc} to location of player
+    wait 5 seconds
+    if arg 1 is "rotwalker": 
+      broadcast "&aA lumbering sickness comes forth..."
+      wait 5 seconds  
+      spawn a zombie at {_loc}:
+        makeBoss(the zombie)
+    else if arg 1 is "detonator": 
+      broadcast "&8This is going to be an explosive night..."
+      wait 5 seconds  
+      spawn a creeper at {_loc}:
+        makeBoss(the creeper)
+    else if arg 1 is "headhunter": 
+      broadcast "&8The bones come out to hunt..."
+      wait 5 seconds  
+      spawn a skeleton at {_loc}:
+        makeBoss(the skeleton)
+    else if arg 1 is "broodmother": 
+      broadcast "&6Don't get swarmed..."
+      wait 5 seconds  
+      spawn a spider at {_loc}:
+        makeBoss(the spider)
+    else if arg 1 is "void": 
+      broadcast "&9There are some other worldly powers at work here..."
+      wait 5 seconds  
+      spawn a enderman at {_loc}:
+        makeBoss(the enderman)
+    else if arg 1 is "pillagercaptain": 
+      broadcast "&4There is some evil magic in the air..."
+      wait 5 seconds  
+      spawn an evoker at {_loc}:
+        makeBoss(the evoker)
+    else if arg 1 is "apocalypse": 
+      broadcast "&4The Undead Grow Restless..."
+      wait 5 seconds  
+      set {-apocalypse} to true
+    else if arg 1 is "netherbreach": 
+      broadcast "&4The monsters of Hell encroach upon the living..."
+      wait 5 seconds
+      set {-netherbreach} to true
+    else if arg 1 is "bigraid": 
+      broadcast "&4The raiding drums beat and the horns sing..."
+      wait 5 seconds  
+      set {-bigraid} to true 
+    else:
+      send "&4Not a Valid Boss" to player   
     takeItems(command executor, getItemCostForSpawn(arg 1))
 
 command /ingredientsForSpawn <text>:
