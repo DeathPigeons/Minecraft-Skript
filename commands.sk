@@ -142,7 +142,7 @@ command /classes:
 		send "Druid - Shapeshifter" to command executor
 		send "Endwarden - Magical Crowd Control" to command executor
 		send "Nethermancer - Versatile Crowd Control" to command executor
-		send "Nethermancer - Summoner" to command executor	
+		send "Necromancer - Summoner" to command executor	
 		send "Artificer - Crafting" to command executor
 
 command /sharestats:
