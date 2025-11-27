@@ -143,4 +143,22 @@ command /classes:
 		send "Endwarden - Magical Crowd Control" to command executor
 		send "Nethermancer - Versatile Crowd Control" to command executor
 		send "Nethermancer - Summoner" to command executor	
-		send "Artificer - Crafting" to command executor					
+		send "Artificer - Crafting" to command executor
+
+command /sharestats:
+	executable by: players
+	trigger:
+		broadcast "&a%player% is sharing their stats:"
+		broadcast "&aHealth: %health of player%/%maximum health of player%"
+		broadcast "&aMana: %{rpgSkript::mana::%player%}% / %{rpgSkript::maxMana::%player%}%"
+		if hasClass(player, "nethermancer") is true:
+			broadcast "&a{rpgSkript::heat::%player%}/1000"
+		broadcast "&a%player% is wearing %helmet of player%, %chestplate of player%, %leggings of player%, and %boots of player%"
+
+command /shareitem:
+	executable by: players
+	trigger:
+		broadcast "&a%player% is sharing their held item:"
+		broadcast "&a%held item of player%"
+		loop lore of held item of player:
+			broadcast "&a%loop-value%"
