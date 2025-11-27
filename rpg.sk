@@ -249,7 +249,7 @@ function setMaxHealth(player: player):
 		set {_newMax} to ({_newMax} + {_newMax} * 0.15 * countImbue({_player}, "Health Boost"))
 
 	if hasImbue({_player}, "golem") is true:
-		set {_newMax} to {_newMax} * 1 + (0.2*countImbue({_player}, "golem"))
+		set {_newMax} to {_newMax} * (1 + (0.2 * countImbue({_player}, "golem")))
 
 	hasImbue({_player}, "photosynthesis") is true:
 		sun light level at {_player} is greater than 13:
