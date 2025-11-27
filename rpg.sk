@@ -5546,7 +5546,7 @@ every 10 seconds:
 			weather in world of loop-player is rain:
 				set {_addheat} to {_addheat} - 15
 			loop-player is flying:
-				set {_addheat} to {_addheat} - 25
+				set {_addheat} to {_addheat} - 100
 
 			regenHeat(loop-player, {_addheat})
 
