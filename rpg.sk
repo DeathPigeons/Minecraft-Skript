@@ -281,6 +281,9 @@ function canFly(player: player):: boolean:
 		return true
 	if hasClass({_player}, "herobrine") is true:
 		return true
+	if hasClass({_player}, "nethermancer") is true:
+		if {rpgSkript::heat::%{_player}%} is greater than 499:
+			return true
 	return false
 
 function getItemCostForImbue(imbue: text, item: item):: items:
@@ -5541,7 +5544,9 @@ every 10 seconds:
 			else:
 				set {_addheat} to {_addheat} - 10
 			weather in world of loop-player is rain:
-				set {_addheat} to {_addheat} - 15	
+				set {_addheat} to {_addheat} - 15
+			loop-player is flying:
+				set {_addheat} to {_addheat} - 25
 
 			regenHeat(loop-player, {_addheat})
 
