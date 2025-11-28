@@ -384,6 +384,12 @@ function summonButcher(player:player, chance:number):
         set held item of the zombie to generateLootAxe()
         set held item of the zombie to generateLegendaryLore(held item of the zombie, "Butcher")
       set off hand item of the zombie to generateLootShield() 
+      set helmet of the zombie to generateMythicLore(helmet of zombie)
+      set chestplate of the zombie to generateMythicLore(chestplate of zombie)
+      set leggings of the zombie to generateMythicLore(leggings of zombie)
+      set boots of the zombie to generateMythicLore(boots of zombie)
+      set off hand item of the zombie to generateMythicLore(off hand item of zombie)
+      set held item of the zombie to generateMythicLore(held item of zombie)	
       scriptDebugBroadcastType("difficulty", "Spawning a Butcher at %{_player}%")  
       add uuid of the zombie to {-evilSkript::bossMobs::*}
 
