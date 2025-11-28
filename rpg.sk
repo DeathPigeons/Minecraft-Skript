@@ -2774,8 +2774,6 @@ function generateLootBoots() :: item:
 
 function generateLootBow() :: item:
 	set {_item} to a bow
-	chance of 50%:
-		set {_item} to a crossbow
 
 	set {_item} to generateLore({_item})
 		
@@ -2921,12 +2919,26 @@ command /legendaryitem <text>:
 		give player {_item}		
 
 function generateMythicLore( item: item):: item:
+	if at least one of:
+		hasLore({_item}, "Raid Leader") is true
+		hasLore({_item}, "Endajack") is true
+		hasLore({_item}, "Sacrificial") is true
+		hasLore({_item}, "Butcher") is true
+		hasLore({_item}, "Spidersilk") is true
+		hasLore({_item}, "Detonation") is true
+		hasLore({_item}, "Radiation") is true
+		hasLore({_item}, "Splinter") is true
+		hasLore({_item}, "Lightning Rod") is true
+		hasLore({_item}, "Venom") is true
+		hasLore({_item}, "Anti-Gravity") is true
+	then:
+		return {_item}
 	if chance of (20+({rpgdiff}/5))%:
 		if {_item} is any helmet:
 			set {_ranMythicLore} to a random integer between 0 and 0
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&4Subdue to Anger")
-				set {_item} to addImbue({_item}, "4Undying")
+				set {_item} to addImbue({_item}, "&4Undying")
 				set name of {_item} to "&4Subdue to Anger"
 		else if {_item} is any chestplate:
 			set {_ranMythicLore} to a random integer between 0 and 0
@@ -3009,9 +3021,9 @@ function generateLegendaryLore( item: item, name: text):: item:
 				set {_item} to addImbue({_item}, "&fEnlighten")
 				set name of {_item} to "&9Boots of Anti-Gravity"
 			else if {_name} is "Broodmother":
-				set {_item} to addImbue({_item}, "&fSpidersilk Cloak")
+				set {_item} to addImbue({_item}, "&fSpidersilk")
 				set {_item} to addImbue({_item}, "&9Speed")
-				set name of {_item} to "&fSpidersilk"
+				set name of {_item} to "&fSpidersilk Cloak"
 			set {_item} to addImbue({_item}, "&fUnbreakable")
 			set {_item} to addImbue({_item}, "&fEthereal")
 			set {_item} to addImbue({_item}, "&7Reinforced")
@@ -3105,10 +3117,6 @@ function generateLore( item: item):: item:
 			set {_item} to addImbue({_item}, "&4Bloodied")
 		chance of (2+({rpgdiff}/5))%:
 			set {_item} to addImbue({_item}, "&cFirststrike")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&2Disease")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&1Shocking")
 		chance of (2+({rpgdiff}/5))%:
 			set {_item} to addImbue({_item}, "&4Vampiric")
 		chance of (2+({rpgdiff}/5))%:
