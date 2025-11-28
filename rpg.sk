@@ -2242,6 +2242,13 @@ on damage:
 
 	victim is a player:
 		setMaxHealth(the victim)
+
+		if isWearingMediumOrLess(victim) is false:
+			set the damage to the damage * 0.5
+		else if isWearingLightOrLess(victim) is false:
+			set the damage to the damage * 0.7
+		else if isWearingNothing(victim) is false:
+			set the damage to the damage * 0.9
 			
 
 		hasClass(victim, "nethermancer") is true:
