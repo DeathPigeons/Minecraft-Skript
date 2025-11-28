@@ -2971,7 +2971,7 @@ function generateMythicLore( item: item):: item:
 		set {_item} to generateClassLore({_item})
 		set {_item} to generateLore({_item})
 
-		return {_item}
+	return {_item}
 		
 function generateLegendaryLore( item: item, name: text):: item:
 	if at least one of:
