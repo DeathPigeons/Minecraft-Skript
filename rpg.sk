@@ -3553,7 +3553,7 @@ on death of a monster:
 		if {-evilSkript::%victim%::isButcher} is true:
 			set {_z} to 40
 	set {_z} to {_z} + {rpgdiff}
-	chance of {_z} / 7.5%:
+	chance of {_z} / 15%:
 		set {_item} to generateMythicLore(generateRandomGear())
 		add {_item} to the drops
 	chance of {_z}%:
