@@ -799,6 +799,20 @@ function drawWorldEffect(index: text):
 				chance of 5%:
 					show yellow dust at loop-block
 			set {_loctemp} to the location 5 blocks above {_loctemp}
+
+	{_name} is "worldfire":
+		set {_t1} to unix timestamp of 0 seconds ago
+		set {_t2} to unix timestamp of {-rpgSkript::worldeffects::%{_id}%::started}
+		
+		set {_duration} to {-rpgSkript::worldeffects::%{_id}%::duration}
+		# t3 is the duration converted to a number, seconds
+		set {_t3} to convertTimespanToSeconds({_duration})		
+		set {_fraction} to {_diff} / {_t3}		
+		set {_radius} to 4.99 + ({_fraction} * 10)
+		loop blocks in radius {_radius} around {_loc}:
+			chance of 5%:
+				show mob spawner flames at loop-block
+		
 			
 
 function handleWorldEffect(index: text):
@@ -951,6 +965,22 @@ function handleWorldEffect(index: text):
 					loop-entity is a player
 				then:
 					applyEffect(loop-entity, "shielded", 5 seconds)
+
+	{_name} is "worldfire":
+		set {_t1} to unix timestamp of 0 seconds ago
+		set {_t2} to unix timestamp of {-rpgSkript::worldeffects::%{_id}%::started}
+		
+		set {_duration} to {-rpgSkript::worldeffects::%{_id}%::duration}
+		# t3 is the duration converted to a number, seconds
+		set {_t3} to convertTimespanToSeconds({_duration})		
+		set {_fraction} to {_diff} / {_t3}		
+		set {_radius} to 4.99 + ({_fraction} * 10)
+		loop entities in radius {_radius} around {_loc}:
+			loop-entity is not a dropped item
+			hasClass(loop-entity, "nethermancer") is false
+			applyEffect(loop-entity, "firestorm", 5 seconds)
+			applyEffect(loop-entity, "antiheal", 5 seconds)
+			damage loop-entity by 3
 			
 	
 				
@@ -6319,6 +6349,58 @@ on left click with water bucket:
 		apply weakness 1 without particles to event-player for 1 minute replacing the existing effect	
 		regenHeat(event-player, -100)
 		send "&4You drink some water to cool down." to event-player
+
+on left click with orange dye:
+	hasClass(event-player, "nethermancer") is true:
+		subMana(event-player, 750) is false:
+			send "&4Not enough mana to cast Worldfire!" to event-player
+			stop
+		regenHeat(event-player, -1000)
+		createWorldEffect(location of event-player's targeted block, "worldfire", 60 seconds, event-player)
+		apply weakness 1 without particles to event-player for 10 seconds replacing the existing effect
+		apply slowness 1 without particles to event-player for 10 seconds replacing the existing effect
+
+on right click with orange dye:
+	hasClass(event-player, "nethermancer") is true:
+		event-player is not flying:
+			send "&4You must be flying to dive!" to event-player
+			stop
+
+		set {_loc} to event-player's targeted block
+		set {_loc} to location 1 meter above {_loc}
+		set pitch of {_loc} to pitch of event-player
+		set yaw of {_loc} to yaw of event-player
+	
+
+		set {_canTp} to true
+		if block at {_loc} is solid:
+			set {_canTp} to false
+		if block 1 meter above {_loc} is solid:
+			set {_canTp} to false
+		if y coordinate of {_loc} is greater than y coordinate of event-player:
+			set {_canTp} to false
+		if {_canTp} is false:
+			send "&4Cannot dive there!" to event-player
+			stop
+
+		subMana(event-player, 250) is false:
+			send "&4Not enough mana to dive!" to event-player
+			stop
+		regenHeat(event-player, -50)
+		
+		send "&dYou dive to your target location!" to event-player
+		teleport event-player to {_loc}
+		create a fake explosion at {_loc}
+		loop all entities in radius 7.5 around {_loc}:
+			isMonster(loop-entity) is true
+			damage loop-entity by 10
+			set {_vec} to vector between {_loc} and loop-entity
+			set y component of {_vec} to 0
+			set {_vec} to normalized {_vec}
+			push loop-entity {_vec} with force 0.8
+			push loop-entity upwards with force 1.2
+			applyEffect(loop-entity, "firestorm", 10 seconds)
+			
 
 #on right click with nether wart:
 #	hasClass(event-player, "nethermancer") is true:
