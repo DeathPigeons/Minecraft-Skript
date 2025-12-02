@@ -1235,7 +1235,7 @@ every 1 seconds:
 			set line 6 of loop-player's scoreboard to " Players: %countEntities(players within 50 meters of loop-player)%"
 			set line 5 of loop-player's scoreboard to " Items on Ground: %countEntities(dropped items within 30 meters of loop-player)%"
 
-		set line 1 of loop-player's scoreboard to "&b LVL / XP : %&fgetLevel(loop-player)% & %getXP(loop-player)% &b/&f %calculateXPForLevel(loop-player)%"
+		set line 1 of loop-player's scoreboard to "&b LVL / XP : &f%getLevel(loop-player)% & %getXP(loop-player)% &b/&f %calculateXPForLevel(loop-player)%"
 
 every 4 ticks:
 	loop all players:
