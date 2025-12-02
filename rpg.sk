@@ -267,6 +267,8 @@ function setMaxHealth(player: player):
 	hasEffect({_player}, "rage") is true:
 		set {_newMax} to {_newMax} * (5 / 3)
 
+	set {_newMax} to {_newMax} * getHealthStat({_player})
+
 	set {_newMax} to ceil({_newMax})
 	if {_player}'s maximum health is not {_newMax}:
 		set {_player}'s maximum health to {_newMax}
@@ -800,18 +802,18 @@ function drawWorldEffect(index: text):
 					show yellow dust at loop-block
 			set {_loctemp} to the location 5 blocks above {_loctemp}
 
-	{_name} is "worldfire":
-		set {_t1} to unix timestamp of 0 seconds ago
-		set {_t2} to unix timestamp of {-rpgSkript::worldeffects::%{_id}%::started}
-		
-		set {_duration} to {-rpgSkript::worldeffects::%{_id}%::duration}
-		# t3 is the duration converted to a number, seconds
-		set {_t3} to convertTimespanToSeconds({_duration})		
-		set {_fraction} to {_diff} / {_t3}		
-		set {_radius} to 4.99 + ({_fraction} * 10)
-		loop blocks in radius {_radius} around {_loc}:
-			chance of 5%:
-				show mob spawner flames at loop-block
+#	{_name} is "worldfire":
+#		set {_t1} to unix timestamp of 0 seconds ago
+#		set {_t2} to unix timestamp of {-rpgSkript::worldeffects::%{_id}%::started}
+#		
+#		set {_duration} to {-rpgSkript::worldeffects::%{_id}%::duration}
+#		# t3 is the duration converted to a number, seconds
+#		set {_t3} to convertTimespanToSeconds({_duration})		
+#		set {_fraction} to {_diff} / {_t3}		
+#		set {_radius} to 4.99 + ({_fraction} * 10)
+#		loop blocks in radius {_radius} around {_loc}:
+#			chance of 5%:
+#				show mob spawner flames at loop-block
 		
 			
 
@@ -966,21 +968,21 @@ function handleWorldEffect(index: text):
 				then:
 					applyEffect(loop-entity, "shielded", 5 seconds)
 
-	{_name} is "worldfire":
-		set {_t1} to unix timestamp of 0 seconds ago
-		set {_t2} to unix timestamp of {-rpgSkript::worldeffects::%{_id}%::started}
-		
-		set {_duration} to {-rpgSkript::worldeffects::%{_id}%::duration}
-		# t3 is the duration converted to a number, seconds
-		set {_t3} to convertTimespanToSeconds({_duration})		
-		set {_fraction} to {_diff} / {_t3}		
-		set {_radius} to 4.99 + ({_fraction} * 10)
-		loop entities in radius {_radius} around {_loc}:
-			loop-entity is not a dropped item
-			hasClass(loop-entity, "nethermancer") is false
-			applyEffect(loop-entity, "firestorm", 5 seconds)
-			applyEffect(loop-entity, "antiheal", 5 seconds)
-			damage loop-entity by 3
+#	{_name} is "worldfire":
+#		set {_t1} to unix timestamp of 0 seconds ago
+#		set {_t2} to unix timestamp of {-rpgSkript::worldeffects::%{_id}%::started}
+#		
+#		set {_duration} to {-rpgSkript::worldeffects::%{_id}%::duration}
+#		# t3 is the duration converted to a number, seconds
+#		set {_t3} to convertTimespanToSeconds({_duration})		
+#		set {_fraction} to {_diff} / {_t3}		
+#		set {_radius} to 4.99 + ({_fraction} * 10)
+#		loop entities in radius {_radius} around {_loc}:
+#			loop-entity is not a dropped item
+#			hasClass(loop-entity, "nethermancer") is false
+#			applyEffect(loop-entity, "firestorm", 5 seconds)
+#			applyEffect(loop-entity, "antiheal", 5 seconds)
+#			damage loop-entity by 3
 			
 	
 				
@@ -1228,10 +1230,12 @@ every 1 seconds:
 				set line 9 of loop-player's scoreboard to "&a Current Form: Human"
 
 		hasClass(loop-player, "rogue") is true:
-			set line 8 of loop-player's scoreboard to "Monsters: %countEntities(monsters within 20 meters of loop-player)%"
-			set line 7 of loop-player's scoreboard to "Animals: %countEntities(animals within 30 meters of loop-player)%"
-			set line 6 of loop-player's scoreboard to "Players: %countEntities(players within 50 meters of loop-player)%"
-			set line 5 of loop-player's scoreboard to "Items on Ground: %countEntities(dropped items within 30 meters of loop-player)%"
+			set line 8 of loop-player's scoreboard to " Monsters: %countEntities(monsters within 20 meters of loop-player)%"
+			set line 7 of loop-player's scoreboard to " Animals: %countEntities(animals within 30 meters of loop-player)%"
+			set line 6 of loop-player's scoreboard to " Players: %countEntities(players within 50 meters of loop-player)%"
+			set line 5 of loop-player's scoreboard to " Items on Ground: %countEntities(dropped items within 30 meters of loop-player)%"
+
+		set line 1 of loop-player's scoreboard to "&b LVL / XP : %&fgetLevel(loop-player)% & %getXP(loop-player)% &b/&f %calculateXPForLevel(loop-player)%"
 
 every 4 ticks:
 	loop all players:
@@ -2057,6 +2061,8 @@ on damage:
 			add 1 experience to getSummoner(uuid of attacker)
 
 	attacker is a player:
+
+		set the damage to the damage * getDamageStat(attacker)
 
 		hasClass(attacker, "nethermancer") is true:
 			chance of 30%:
@@ -6350,15 +6356,15 @@ on left click with water bucket:
 		regenHeat(event-player, -100)
 		send "&4You drink some water to cool down." to event-player
 
-on left click with orange dye:
-	hasClass(event-player, "nethermancer") is true:
-		subMana(event-player, 750) is false:
-			send "&4Not enough mana to cast Worldfire!" to event-player
-			stop
-		regenHeat(event-player, -1000)
-		createWorldEffect(location of event-player's targeted block, "worldfire", 60 seconds, event-player)
-		apply weakness 1 without particles to event-player for 10 seconds replacing the existing effect
-		apply slowness 1 without particles to event-player for 10 seconds replacing the existing effect
+#on left click with orange dye:
+#	hasClass(event-player, "nethermancer") is true:
+#		subMana(event-player, 750) is false:
+#			send "&4Not enough mana to cast Worldfire!" to event-player
+#			stop
+#		regenHeat(event-player, -1000)
+#		createWorldEffect(location of event-player's targeted block, "worldfire", 60 seconds, event-player)
+#		apply weakness 1 without particles to event-player for 10 seconds replacing the existing effect
+#		apply slowness 1 without particles to event-player for 10 seconds replacing the existing effect
 
 on right click with orange dye:
 	hasClass(event-player, "nethermancer") is true:
