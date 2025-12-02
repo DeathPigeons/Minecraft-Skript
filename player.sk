@@ -1,5 +1,5 @@
 on script unload:
-  broadcast "&f{&bPlayer Skript&f} &bUnloading evil script..."
+  broadcast "&f{&bPlayer Skript&f} &bUnloading player script..."
 
 on script load:
   scriptBroadcast("&bLoading player script...")
@@ -42,7 +42,7 @@ function getXP(player: player):: number:
   return {playerSkript::playerXP::%{_player}%}
 
 on death of a monster:
-  loop players in radius 20 around victim
+  loop players in radius 20 around victim:
     set {_xpdropped} to 1 * ({rpgdiff})
     if {-evilSkript::%victim%::isBoss} is true:
       set {_xpdropped} to {_xpdropped} * 1.5
@@ -54,7 +54,7 @@ function useResearchPoint(player: player, num: number):: boolean:
   if {playerSkript::numResearchPoints::%{_player}%} is not set:
     set {playerSkript::numResearchPoints::%{_player}%} to 0  
 
-  if {playerSkript::numResearchPoints::%{_player}%} is >= {_num}:
+  if {playerSkript::numResearchPoints::%{_player}%} is greater than or equal to {_num}:
     set {playerSkript::numResearchPoints::%{_player}%} to {playerSkript::numResearchPoints::%{_player}%} - {_num}
     return true
   else:
@@ -69,7 +69,7 @@ function increaseDamageStat(player: player):
   if {playerSkript::damageStat::%{_player}%} is not set:
     set {playerSkript::damageStat::%{_player}%} to 1
   set {playerSkript::damageStat::%{_player}%} to {playerSkript::damageStat::%{_player}%} + 0.05 
-  send "&bDamage Stat increased to %{playerSkript::damageStat::%{_player}%}%"
+  send "&bDamage Stat increased to %getDamageStat({_player})%" to {_player}
 
 function getDamageStat(player: player):: number:
   if {playerSkript::damageStat::%{_player}%} is not set:
@@ -80,7 +80,7 @@ function increaseHealthStat(player: player):
   if {playerSkript::healthStat::%{_player}%} is not set:
     set {playerSkript::healthStat::%{_player}%} to 1
   set {playerSkript::healthStat::%{_player}%} to {playerSkript::healthStat::%{_player}%} + 0.05 
-  send "&bDamage Stat increased to %{playerSkript::damageStat::%{_player}%}%"
+  send "&bDamage Stat increased to %getHealthStat({_player})%" to {_player}
 
 function getHealthStat(player: player):: number:
   if {playerSkript::healthStat::%{_player}%} is not set:
@@ -97,35 +97,34 @@ command /playerresearch:
 		open {_menu} to player
 
 function populatePlayerResearchMenu(player: player, menu: inventory):	
-  set {_item} to pink wool named "&bResearch Points Available - %getResearchPoints(event-player)%"
+  set {_item} to pink wool named "&bResearch Points Available - %getResearchPoints({_player})%"
   set slot 1 of {_menu} to {_item}
-  
-	set {_item} to red wool named "&7Damage"
-	set line 1 of {_item}'s lore to "&bIncreases Dealt Physical Damage by Player (NOT MAGICAL DAMAGE)"
-	set slot 2 of {_menu} to {_item}
 
-	set {_item} to green wool named "&7Health"
-	set line 1 of {_item}'s lore to "&bIncreases Dealt Physical Damage by Player (NOT MAGICAL DAMAGE)"
-	set slot 3 of {_menu} to {_item}
+  set {_item} to red wool named "&7Damage"
+  set line 1 of {_item}'s lore to "&bIncreases Dealt Physical Damage by Player (NOT MAGICAL DAMAGE)"
+  set slot 2 of {_menu} to {_item}  
+  set {_item} to green wool named "&7Health"
+  set line 1 of {_item}'s lore to "&bIncreases Dealt Physical Damage by Player (NOT MAGICAL DAMAGE)"
+  set slot 3 of {_menu} to {_item}
 	
 
 on inventory click:
-	event-inventory is not event-player's inventory
-	name of event-inventory is "&bPlayer Research"
-	cancel event
+  event-inventory is not event-player's inventory
+  name of event-inventory is "&bPlayer Research"
+  cancel event
 
   if index of event-slot is 1:
     stop
-	if index of event-slot is 2:
+  if index of event-slot is 2:
     if useResearchPoint(event-player, 1) is false:
       send "&4No Research Points!" to event-player
       stop
     increaseDamageStat(event-player)
-	if index of event-slot is 3:
+  if index of event-slot is 3:
     if useResearchPoint(event-player, 1) is false:
       send "&4No Research Points!" to event-player
       stop
     increaseHealthStat(event-player)
 		
 	
-	populatePlayerResearchMenu(player, event-inventory)
+  populatePlayerResearchMenu(player, event-inventory)
