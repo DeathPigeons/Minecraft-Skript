@@ -48,6 +48,8 @@ on death of a monster:
       set {_xpdropped} to {_xpdropped} * 1.5
     set {_xpdropped} to floor({_xpdropped})
 
+    addXP(loop-player, {_xpdropped})
+
 # Player Research
 
 function useResearchPoint(player: player, num: number):: boolean:
@@ -104,7 +106,7 @@ function populatePlayerResearchMenu(player: player, menu: inventory):
   set line 1 of {_item}'s lore to "&bIncreases Dealt Physical Damage by Player (NOT MAGICAL DAMAGE)"
   set slot 2 of {_menu} to {_item}  
   set {_item} to green wool named "&7Health"
-  set line 1 of {_item}'s lore to "&bIncreases Dealt Physical Damage by Player (NOT MAGICAL DAMAGE)"
+  set line 1 of {_item}'s lore to "&bIncreases Maximum Health of Player"
   set slot 3 of {_menu} to {_item}
 	
 
