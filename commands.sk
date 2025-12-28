@@ -151,8 +151,9 @@ command /sharestats:
 		broadcast "&a%player% is sharing their stats:"
 		broadcast "&aHealth: %health of player%/%maximum health of player%"
 		broadcast "&aMana: %{rpgSkript::mana::%player%}% / %{rpgSkript::maxMana::%player%}%"
+		broadcast "&aPlayer Level: %getLevel(player)%"
 		if hasClass(player, "nethermancer") is true:
-			broadcast "&a%{rpgSkript::heat::%player%}%/1000"
+			broadcast "&aHeat: %{rpgSkript::heat::%player%}%/1000"
 		broadcast "&a%player% is wearing %helmet of player%&a, %chestplate of player%&a, %leggings of player%&a, and %boots of player%"
 
 command /shareitem:
