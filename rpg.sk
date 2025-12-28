@@ -54,7 +54,7 @@ on join:
 	
 
 on chat:
-	set the message to "&6[&8LVL %player's level%&6]&r %message%"
+	set the message to "&6[&8LVL %getLevel(player)%&6]&r %message%"
 	hasClass(player, "rogue") is true:
 		set the message to "&7[&2Rogue&7]&r %message%"
 	hasClass(player, "warrior") is true:
@@ -1235,8 +1235,11 @@ every 1 seconds:
 			set line 6 of loop-player's scoreboard to " Players: %countEntities(players within 50 meters of loop-player)%"
 			set line 5 of loop-player's scoreboard to " Items on Ground: %countEntities(dropped items within 30 meters of loop-player)%"
 
-		set line 1 of loop-player's scoreboard to "&b LVL / XP : &f%getLevel(loop-player)% & %getXP(loop-player)% &b/&f %calculateXPForLevel(loop-player)%"
-
+		if getLevel(loop-player) is less than 100:
+			set line 1 of loop-player's scoreboard to "&b LVL / XP : &f%getLevel(loop-player)% & %getXP(loop-player)% &b/&f %calculateXPForLevel(loop-player)%"
+		else:
+			set line 1 of loop-player's scoreboard to "&b LVL: &f%getLevel(loop-player)%"
+			
 every 4 ticks:
 	loop all players:
 		drawEffects(loop-player)
@@ -1290,6 +1293,7 @@ every 1 seconds:
 				loop all entities in radius 1.5 around loop-entity:
 					chance of 50%:
 						isMinion(loop-entity-2) is false
+						loop-entity-2 is not a player
 						loop-entity-2 is not loop-entity-1
 						applyEffect(loop-entity-2, "firestorm", 10 seconds)
 						scriptDebugBroadcastType("firestorm", "Spreading from %loop-entity-1% to %loop-entity-2%")
@@ -3829,6 +3833,8 @@ function setupMana(player: player):
 
 	if hasEffect({_player}, "resourceboost") is true:
 		set {_newMax} to {_newMax} * 1.25
+
+	set {_newMax} to {_newMax} * getManaStat({_player})
 
 	set {_newMax} to floor({_newMax})
 	if {_newMax} is not {rpgSkript::maxMana::%{_player}%}:
