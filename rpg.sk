@@ -3010,6 +3010,12 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&aGamble")
 				set {_item} to addImbue({_item}, "&7Vampiric")
 				set name of {_item} to "&aGambler's Fallacy"
+		else if {_item} is any axe:
+			set {_ranMythicLore} to a random integer between 0 and 0
+			if {_ranMythicLore} is 0:
+				set {_item} to addImbue({_item}, "&aGamble")
+				set {_item} to addImbue({_item}, "&7Vampiric")
+				set name of {_item} to "&aGambler's Fallacy"
 		else if {_item} is a bow:
 			set {_ranMythicLore} to a random integer between 0 and 0
 			if {_ranMythicLore} is 0:
