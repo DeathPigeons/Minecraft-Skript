@@ -154,8 +154,8 @@ function giveItem(player: player, item: item) :: boolean:
 function hasClass(player: player, class: text) :: boolean:
 	if {_player} has permission "rpg.%{_class}%":
 		return true
-	if hasImbue({_player}, "%{_class}% class") is true:
-		return true
+#	if hasImbue({_player}, "%{_class}% class") is true:
+#		return true
 	return false
 
 function isMonster(entity: entity) :: boolean:
@@ -250,6 +250,9 @@ function setMaxHealth(player: player):
 
 	if hasImbue({_player}, "golem") is true:
 		set {_newMax} to {_newMax} * (1 + (0.2 * countImbue({_player}, "golem")))
+
+	if hasImbue({_player}, "guardian") is true:
+		set {_newMax} to {_newMax} * 1.5
 
 	hasImbue({_player}, "photosynthesis") is true:
 		sun light level at {_player} is greater than 13:
@@ -1647,19 +1650,27 @@ every 2 seconds:
 			enable flight for loop-player
 		else:
 			disable flight for loop-player
+		apply strength 2 without particles to the loop-player for 5 seconds replacing the existing effect
 
-		hasImbue(loop-player, "golem") is true:
-			apply strength 2 without particles to the loop-player for 5 seconds replacing the existing effect
-			if countImbue(loop-player, "golem") is 1:
-				apply slowness 1 without particles to the loop-player for 5 seconds replacing the existing effect
-			else if countImbue(loop-player, "golem") is 2:
-				apply slowness 2 without particles to the loop-player for 5 seconds replacing the existing effect
-			else if countImbue(loop-player, "golem") is 3:
-				apply slowness 3 without particles to the loop-player for 5 seconds replacing the existing effect
-			else if countImbue(loop-player, "golem") is 4:
-				apply slowness 4 without particles to the loop-player for 5 seconds replacing the existing effect
-			else if countImbue(loop-player, "golem") is 5:
-				apply slowness 5 without particles to the loop-player for 5 seconds replacing the existing effect
+		if countImbue(loop-player, "golem") is 5:
+			apply slowness 5 without particles to the loop-player for 5 seconds replacing the existing effect
+			apply strength 1 without particles to the loop-player for 5 seconds replacing the existing effect
+		else if countImbue(loop-player, "golem") is 4:
+			apply slowness 4 without particles to the loop-player for 5 seconds replacing the existing effect
+			apply strength 1 without particles to the loop-player for 5 seconds replacing the existing effect	
+		else if hasImbue(loop-player, "guardian") is true:
+			apply slowness 3 without particles to the loop-player for 5 seconds replacing the existing effect	
+		else if countImbue(loop-player, "golem") is 1:
+			apply slowness 1 without particles to the loop-player for 5 seconds replacing the existing effect
+			apply strength 1 without particles to the loop-player for 5 seconds replacing the existing effect
+		else if countImbue(loop-player, "golem") is 2:
+			apply slowness 2 without particles to the loop-player for 5 seconds replacing the existing effect
+			apply strength 1 without particles to the loop-player for 5 seconds replacing the existing effect
+		else if countImbue(loop-player, "golem") is 3:
+			apply slowness 3 without particles to the loop-player for 5 seconds replacing the existing effect
+			apply strength 1 without particles to the loop-player for 5 seconds replacing the existing effect
+
+
 		hasImbue(loop-player, "photosynthesis") is true:
 			sun light level at loop-player is greater than 13:
 				time in world of loop-player is not between 19:00 and 5:00:
@@ -2449,6 +2460,15 @@ on damage:
 			else:
 				regenHeat(victim, 1)
 
+		if the damage is greater than 0:
+			loop all players:
+				if hasImbue(loop-player, "guardian") is true:
+					loop-player is not victim
+					set {_v} to the vector between loop-player and victim
+					if {_v} is less than 16:
+						set health of loop-player to health of loop-player - the damage * 0.1
+						set the damage to the damage * 0.75
+
 		# Needs to be very last
 		hasEffect(victim, "soulbond") is true:
 			{-rpgSkript::%victim%::soulbondplayer} is alive:
@@ -2482,6 +2502,9 @@ on damage:
 	hasImbue(victim, "Razorplate") is true:
 		event-projectile is not set
 		damage attacker by 5 * countImbue(victim, "Razorplate")
+
+	hasImbue(victim, "guardian") is true:
+		set the damage to the damage * 0.75
 
 	hasImbue(victim, "flame shield") is true:
 		set {_loc} to the victim's location
@@ -3000,11 +3023,16 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&7Iron Will")
 				set name of {_item} to "&8Razorplate"
 		else if {_item} is a shield:
-			set {_ranMythicLore} to a random integer between 0 and 0
+			set {_ranMythicLore} to a random integer between 0 and 1
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&8Razorplate")
 				set {_item} to addImbue({_item}, "&7Iron Will")
 				set name of {_item} to "&8Razorplate"
+			else if {_ranMythicLore} is 1:
+				set {_item} to addImbue({_item}, "&fGuardian")
+				set {_item} to addImbue({_item}, "&8Golem")
+				set {_item} to addImbue({_item}, "&4Health Boost")
+				set name of {_item} to "&fShield of the Protector"
 		else if {_item} is any sword:
 			set {_ranMythicLore} to a random integer between 0 and 0
 			if {_ranMythicLore} is 0:
@@ -3028,7 +3056,7 @@ function generateMythicLore( item: item):: item:
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&aGamble")
 				set {_item} to addImbue({_item}, "&7Vampiric")
-				set name of {_item} to "&aGambler's Fallacy"						
+				set name of {_item} to "&aGambler's Fallacy"
 		set {_item} to addImbue({_item}, "&fUnbreakable")
 		set {_item} to addImbue({_item}, "&fEthereal")
 		set {_item} to addImbue({_item}, "&7Reinforced")
@@ -4828,6 +4856,7 @@ on right click with bone:
 		setupMinion(the skeleton, {_player})
 
 on right click with rotten flesh:
+	hasLore(player's held item, "Butcher's Cuts") is false
 	hasClass(player, "necromancer") is true
 	if subMana(command executor, 10) is false:
 		send "&cYou do not have enough Mana to raise a skeleton!" to command executor
@@ -5573,6 +5602,9 @@ on right click with glow ink sac:
 every 10 seconds:
 	loop all players:
 
+		hasImbue(loop-player, "guardian") is true:
+			apply absorption 5 to the loop-player for 15 seconds replacing the existing effect
+			applyEffect(loop-player, "regen", 15 seconds)
 							
 		hasClass(loop-player, "nethermancer") is true:
 			inventorySmelt(loop-player)
