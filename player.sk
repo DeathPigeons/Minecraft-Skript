@@ -256,19 +256,19 @@ on inventory click:
   name of event-inventory is "&bPlayer Research"
   cancel event
 
-  if index of event-slot is 1:
+  if index of event-slot is 0:
     stop
-  if index of event-slot is 2:
+  if index of event-slot is 1:
     if useResearchPoint(event-player, 1) is false:
       send "&4No Research Points!" to event-player
       stop
     increaseDamageStat(event-player)
-  if index of event-slot is 3:
+  if index of event-slot is 2:
     if useResearchPoint(event-player, 1) is false:
       send "&4No Research Points!" to event-player
       stop
     increaseHealthStat(event-player)
-  if index of event-slot is 4:
+  if index of event-slot is 3:
     if useResearchPoint(event-player, 1) is false:
       send "&4No Research Points!" to event-player
       stop
