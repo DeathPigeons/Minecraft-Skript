@@ -5507,19 +5507,15 @@ function isMinion(entity: entity) :: boolean:
 	return false
 
 function getByUUID(uuid: text) :: entity:
-	benchmarkStart("getByUUID")
 	set {_cacheResult} to getEntityByUUIDCache({_uuid})
 	{_cacheResult} is set:
-		benchmarkEnd("getByUUID")
 		{_cacheResult} is not alive:
 			return {_none}
 		return {_cacheResult}
 	loop all living entities:
 		uuid of loop-entity contains {_uuid}:
 			putEntityByUUIDCache({_uuid}, loop-entity)
-			benchmarkEnd("getByUUID")
 			return loop-entity
-	benchmarkEnd("getByUUID")
 
 local function getEntityByUUIDCache(index: text) :: entity:
 	return {-rpgSkript::cache::entityByUUID::%{_index}%::entity}
