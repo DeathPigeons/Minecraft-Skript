@@ -65,6 +65,7 @@ command /resetResearch:
     set {playerSkript::numResearchPoints::%player%} to getLevel(player) - 1
     set {playerSkript::damageStat::%player%} to 1
     set {playerSkript::healthStat::%player%} to 1
+    set {playerSkript::manaStat::%player%} to 1
 
 function calculateClassCount(player: player):: number:
   set {_classcount} to 0
