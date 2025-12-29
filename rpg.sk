@@ -2461,13 +2461,11 @@ on damage:
 				regenHeat(victim, 1)
 
 		if the damage is greater than 0:
-			loop all players:
+			loop all players in radius 15 around victim:
 				if hasImbue(loop-player, "guardian") is true:
 					loop-player is not victim
-					set {_v} to the vector between loop-player and victim
-					if {_v} is less than 16:
-						set health of loop-player to health of loop-player - the damage * 0.1
-						set the damage to the damage * 0.75
+					set health of loop-player to health of loop-player - the damage * 0.1
+					set the damage to the damage * 0.75
 
 		# Needs to be very last
 		hasEffect(victim, "soulbond") is true:
