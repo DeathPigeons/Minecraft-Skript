@@ -1015,16 +1015,17 @@ function removeNegativeEffects(entity:entity):
 	set {_index} to generateIndex({_entity})
 	loop {-rpgSkript::effects::%{_index}%::*}:
 		if at least one of:
-			loop-value is "shocking"
-			loop-value is "bleeding"
-			loop-value is "vulnerable"
-			loop-value is "infected"
-			loop-value is "disease"
-			loop-value is "mana leak"
-			loop-value is "firestorm"
-			loop-value is "phased"
-			loop-value is "void"
-			loop-value is "levitate"
+			loop-index is "shocking"
+			loop-index is "bleeding"
+			loop-index is "vulnerable"
+			loop-index is "infected"
+			loop-index is "disease"
+			loop-index is "mana leak"
+			loop-index is "firestorm"
+			loop-index is "phased"
+			loop-index is "void"
+			loop-index is "levitate"
+			loop-index is "radiated"
 		then:
 			removeEffect({_entity}, loop-index)
 function removeEffect(entity: entity, name: string):
