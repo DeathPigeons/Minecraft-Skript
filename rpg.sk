@@ -3062,7 +3062,7 @@ function generateMythicLore( item: item):: item:
 		set {_item} to addImbue({_item}, "&7Reinforced")
 		set {_item} to addImbue({_item}, "&7Weightless")
 
-		set {_item} to generateClassLore({_item})
+		#set {_item} to generateClassLore({_item})
 		set {_item} to generateLore({_item})
 
 	return {_item}
@@ -3137,7 +3137,7 @@ function generateLegendaryLore( item: item, name: text):: item:
 			set {_item} to addImbue({_item}, "&7Reinforced")
 			set {_item} to addImbue({_item}, "&7Weightless")
 
-	set {_item} to generateClassLore({_item})
+	#set {_item} to generateClassLore({_item})
 	set {_item} to generateLore({_item})
 	return {_item}
 	
