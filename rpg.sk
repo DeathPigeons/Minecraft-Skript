@@ -7,6 +7,9 @@ Options:
 	debugPrefix: &e[&bDEBUG&e]&r
 	debug: true
 
+	benchmark: true
+	benchmarkSpan: 10 seconds
+
 	drawRadius: 20
 
 on script load:
@@ -89,6 +92,86 @@ on chat:
 		set the message to "&e[&2Monk&e]&r %message%"
 	hasClass(player, "Nethermancer") is true:
 		set the message to "&0[&4Nethermancer&0]&r %message%"
+
+
+function benchmarkStart(type: string):
+	{@benchmark} is true
+	{-rpgSkript::benchmark::%{_type}%} is not set:
+		set {-rpgSkript::benchmark::%{_type}%} to false
+
+	{-rpgSkript::benchmark::%{_type}%} is true
+
+	set {-rpgSkript::benchmark::%{_type}%::start} to now
+
+function benchmarkEnd(type: string):
+	{@benchmark} is true
+	{-rpgSkript::benchmark::%{_type}%} is not set:
+		set {-rpgSkript::benchmark::%{_type}%} to false
+
+	{-rpgSkript::benchmark::%{_type}%} is true
+
+	set {-rpgSkript::benchmark::%{_type}%::end} to now
+	{-rpgSkript::benchmark::%{_type}%::last} is not set:
+		set {-rpgSkript::benchmark::%{_type}%::last} to now
+	{-rpgSkript::benchmark::%{_type}%::runs} is not set:
+		set {-rpgSkript::benchmark::%{_type}%::runs} to 0
+
+	add 1 to {-rpgSkript::benchmark::%{_type}%::runs}
+	set {_runDifference} to difference between {-rpgSkript::benchmark::%{_type}%::start} and now
+
+	{-rpgSkript::benchmark::%{_type}%::runTotal} is not set:
+		set {-rpgSkript::benchmark::%{_type}%::runTotal} to 0 seconds
+	add {_runDifference} to {-rpgSkript::benchmark::%{_type}%::runTotal}
+
+	set {_difference} to difference between {-rpgSkript::benchmark::%{_type}%::last} and now
+
+	{_difference} is more than {@benchmarkSpan}:
+		scriptBroadcast("%{_type}% - %{-rpgSkript::benchmark::%{_type}%::runs}% runs over %{_difference}% (%{-rpgSkript::benchmark::%{_type}%::runTotal}% total time taken)")
+		set {-rpgSkript::benchmark::%{_type}%::last} to now
+		set {-rpgSkript::benchmark::%{_type}%::runs} to 0
+		set {-rpgSkript::benchmark::%{_type}%::runTotal} to 0 seconds
+
+function benchmark(type: string):
+	{@benchmark} is true
+	{-rpgSkript::benchmark::%{_type}%} is not set:
+		set {-rpgSkript::benchmark::%{_type}%} to false
+
+	{-rpgSkript::benchmark::%{_type}%} is true
+
+	{-rpgSkript::benchmark::%{_type}%::last} is not set:
+		set {-rpgSkript::benchmark::%{_type}%::last} to now
+	{-rpgSkript::benchmark::%{_type}%::runs} is not set:
+		set {-rpgSkript::benchmark::%{_type}%::runs} to 0
+
+	add 1 to {-rpgSkript::benchmark::%{_type}%::runs}
+	set {_difference} to difference between {-rpgSkript::benchmark::%{_type}%::last} and now
+
+	{_difference} is more than {@benchmarkSpan}:
+		scriptBroadcast("%{_type}% - %{-rpgSkript::benchmark::%{_type}%::runs}% runs over %{_difference}%")
+		set {-rpgSkript::benchmark::%{_type}%::last} to now
+		set {-rpgSkript::benchmark::%{_type}%::runs} to 0
+
+command /rpgbench <string> <boolean>:
+	trigger:
+		command executor has permission "rpg.control"
+		set {-rpgSkript::benchmark::%arg 1%} to arg 2
+		delete {-rpgSkript::benchmark::%arg 1%::*}
+		arg 2 is true:
+			send "&3Running benchmark %arg 1%" to command executor
+		arg 2 is false:
+			send "&3Disabling benchmark %arg 1%" to command executor
+
+command /rpgbenched:
+	trigger:
+		command executor has permission "rpg.control"
+		loop {-rpgSkript::benchmark::*}:
+			send "&3%loop-index% -> %loop-value%" to command executor
+
+command /rpgbenchreset:
+	trigger:
+		command executor has permission "rpg.control"
+		delete {-rpgSkript::benchmark::*}
+		send "&cEnabled benchmark types reset" to command executor
 
 function rpgLog(message: text):
 	log "%{_message}%" to "rpg/main.log"
