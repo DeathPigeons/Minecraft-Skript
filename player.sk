@@ -69,7 +69,59 @@ command /resetResearch:
 function calculateClassCount(player: player):: number:
   set {_classcount} to 0
 
+  if hasClass({_player}, "rogue") is true:
+    set {_classcount} to {_classcount} + 1
+  if hasClass({_player}, "warrior") is true:
+    set {_classcount} to {_classcount} + 1
+  if hasClass({_player}, "wizard") is true:
+    set {_classcount} to {_classcount} + 1
+  if hasClass({_player}, "paladin") is true:
+    set {_classcount} to {_classcount} + 1
+  if hasClass({_player}, "cleric") is true:
+    set {_classcount} to {_classcount} + 1
+  if hasClass({_player}, "druid") is true:
+    set {_classcount} to {_classcount} + 1
+  if hasClass({_player}, "sorceror") is true:
+    set {_classcount} to {_classcount} + 1
+  if hasClass({_player}, "monk") is true:
+    set {_classcount} to {_classcount} + 1
+  if hasClass({_player}, "necromancer") is true:
+    set {_classcount} to {_classcount} + 1
+  if hasClass({_player}, "nethermancer") is true:
+    set {_classcount} to {_classcount} + 1
+  if hasClass({_player}, "endwarden") is true:
+    set {_classcount} to {_classcount} + 1
+  if hasClass({_player}, "barbarian") is true:
+    set {_classcount} to {_classcount} + 1
+  if hasClass({_player}, "artificer") is true:
+    set {_classcount} to {_classcount} + 1
+  if hasClass({_player}, "herobrine") is true:
+    set {_classcount} to {_classcount} + 1
+
   return {_classcount}
+
+function checkNewClassValidity(player: player):: boolean:
+  set {_numclass} to calculateClassCount({_player})
+
+  if {_numclass} is greater than 2:
+    return false
+  return true
+
+function calculateMaxClasses(player: player):: number:
+  set {_maxclasses} to 1
+
+  if getLevel({_player}) is 100:
+    set {_maxclasses} to 3
+  else if getLevel({_player}) is greater than 49:
+    set {_maxclasses} to 2
+
+  return {_maxclasses}
+
+function giveClassPermission(player: player, class: text):
+  execute console command "permission user %{_player}% permission set rpg.%{_class}%"
+
+function removeClassPermission(player: player, class: text):
+  execute console command "permission user %{_player}% permission unset rpg.%{_class}%"
 
 function useResearchPoint(player: player, num: number):: boolean:
   if {playerSkript::numResearchPoints::%{_player}%} is not set:
@@ -130,20 +182,73 @@ command /playerresearch:
 
 function populatePlayerResearchMenu(player: player, menu: inventory):	
   set {_item} to pink wool named "&bResearch Points Available - %getResearchPoints({_player})%"
-  set slot 1 of {_menu} to {_item}
+  set slot 0 of {_menu} to {_item}
 
   set {_item} to red wool named "&7Damage"
   set line 1 of {_item}'s lore to "&bIncreases Dealt Physical Damage by Player (NOT MAGICAL DAMAGE)"
   set line 2 of {_item}'s lore to "&bCurrent Damage Bonus: %getDamageStat({_player})%"
-  set slot 2 of {_menu} to {_item}  
+  set slot 1 of {_menu} to {_item}  
   set {_item} to green wool named "&7Health"
   set line 1 of {_item}'s lore to "&bIncreases Maximum Health of Player"
   set line 2 of {_item}'s lore to "&bCurrent Health Bonus: %getHealthStat({_player})%"
-  set slot 3 of {_menu} to {_item}
+  set slot 2 of {_menu} to {_item}
   set {_item} to purple wool named "&7Mana"
   set line 1 of {_item}'s lore to "&bIncreases Maximum Mana of Player"
   set line 2 of {_item}'s lore to "&bCurrent Mana Bonus: %getManaStat({_player})%"
-  set slot 4 of {_menu} to {_item}
+  set slot 3 of {_menu} to {_item}
+
+  set {_item} to light grey wool named "&2Rogue"
+  set line 1 of {_item}'s lore to "&cToggles the Rogue Class"
+  set line 2 of {_item}'s lore to "&cToggled: %hasClass({_player}, "rogue")%"
+  set slot 27 of {_menu} to {_item}
+  set {_item} to grey wool named "&cWarrior"
+  set line 1 of {_item}'s lore to "&cToggles the Warrior Class"
+  set line 2 of {_item}'s lore to "&cToggled: %hasClass({_player}, "warrior")%"
+  set slot 28 of {_menu} to {_item}
+  set {_item} to blue wool named "&3Wizard"
+  set line 1 of {_item}'s lore to "&3Toggles the Wizard Class"
+  set line 2 of {_item}'s lore to "&3Toggled: %hasClass({_player}, "wizard")%"
+  set slot 29 of {_menu} to {_item}
+  set {_item} to white wool named "&9Paladin"
+  set line 1 of {_item}'s lore to "&9Toggles the Paladin Class"
+  set line 2 of {_item}'s lore to "&9Toggled: %hasClass({_player}, "paladin")%"
+  set slot 30 of {_menu} to {_item}
+  set {_item} to yellow wool named "&eCleric"
+  set line 1 of {_item}'s lore to "&eToggles the Cleric Class"
+  set line 2 of {_item}'s lore to "&eToggled: %hasClass({_player}, "cleric")%"
+  set slot 31 of {_menu} to {_item}
+  set {_item} to pink wool named "&cSorceror"
+  set line 1 of {_item}'s lore to "&cToggles the Sorceror Class"
+  set line 2 of {_item}'s lore to "&cToggled: %hasClass({_player}, "Sorceror")%"
+  set slot 32 of {_menu} to {_item}
+  set {_item} to black wool named "&7Necromancer"
+  set line 1 of {_item}'s lore to "&7Toggles the Necromancer Class"
+  set line 2 of {_item}'s lore to "&7Toggled: %hasClass({_player}, "necromancer")%"
+  set slot 33 of {_menu} to {_item}
+  set {_item} to dark grey wool named "&4Barbarian"
+  set line 1 of {_item}'s lore to "&4Toggles the Barbarian Class"
+  set line 2 of {_item}'s lore to "&4Toggled: %hasClass({_player}, "barbarian")%"
+  set slot 34 of {_menu} to {_item}
+  set {_item} to purple wool named "&9Endwarden"
+  set line 1 of {_item}'s lore to "&9Toggles the Endwarden Class"
+  set line 2 of {_item}'s lore to "&9Toggled: %hasClass({_player}, "endwarden")%"
+  set slot 35 of {_menu} to {_item}
+  set {_item} to green wool named "&aDruid"
+  set line 1 of {_item}'s lore to "&aToggles the Druid Class"
+  set line 2 of {_item}'s lore to "&aToggled: %hasClass({_player}, "druid")%"
+  set slot 36 of {_menu} to {_item}
+  set {_item} to cyan wool named "&bArtificer"
+  set line 1 of {_item}'s lore to "&bToggles the Artificer Class"
+  set line 2 of {_item}'s lore to "&bToggled: %hasClass({_player}, "artificer")%"
+  set slot 37 of {_menu} to {_item}
+  set {_item} to lime wool named "&2Monk"
+  set line 1 of {_item}'s lore to "&2Toggles the Monk Class"
+  set line 2 of {_item}'s lore to "&2Toggled: %hasClass({_player}, "monk")%"
+  set slot 38 of {_menu} to {_item}
+  set {_item} to red wool named "&4Nethermancer"
+  set line 1 of {_item}'s lore to "&4Toggles the Nethermancer Class"
+  set line 2 of {_item}'s lore to "&4Toggled: %hasClass({_player}, "nethermancer")%"
+  set slot 39 of {_menu} to {_item}
 	
 
 on inventory click:
@@ -168,6 +273,86 @@ on inventory click:
       send "&4No Research Points!" to event-player
       stop
     increaseManaStat(event-player)
+
+  if index of event-slot is 27:
+    if calculateClassCount(event-player) is equal to calculateMaxClasses(event-player):
+      send "&4You are at the max number of classes currently!" to event-player
+      stop
+    else:
+      giveClassPermission(event-player, "rogue")
+  if index of event-slot is 28:
+    if calculateClassCount(event-player) is equal to calculateMaxClasses(event-player):
+      send "&4You are at the max number of classes currently!" to event-player
+      stop
+    else:
+      giveClassPermission(event-player, "warrior")
+  if index of event-slot is 29:
+    if calculateClassCount(event-player) is equal to calculateMaxClasses(event-player):
+      send "&4You are at the max number of classes currently!" to event-player
+      stop
+    else:
+      giveClassPermission(event-player, "wizard")
+  if index of event-slot is 30:
+    if calculateClassCount(event-player) is equal to calculateMaxClasses(event-player):
+      send "&4You are at the max number of classes currently!" to event-player
+      stop
+    else:
+      giveClassPermission(event-player, "paladin")
+  if index of event-slot is 31:
+    if calculateClassCount(event-player) is equal to calculateMaxClasses(event-player):
+      send "&4You are at the max number of classes currently!" to event-player
+      stop
+    else:
+      giveClassPermission(event-player, "cleric")
+  if index of event-slot is 32:
+    if calculateClassCount(event-player) is equal to calculateMaxClasses(event-player):
+      send "&4You are at the max number of classes currently!" to event-player
+      stop
+    else:
+      giveClassPermission(event-player, "sorceror")
+  if index of event-slot is 33:
+    if calculateClassCount(event-player) is equal to calculateMaxClasses(event-player):
+      send "&4You are at the max number of classes currently!" to event-player
+      stop
+    else:
+      giveClassPermission(event-player, "necromancer")
+  if index of event-slot is 34:
+    if calculateClassCount(event-player) is equal to calculateMaxClasses(event-player):
+      send "&4You are at the max number of classes currently!" to event-player
+      stop
+    else:
+      giveClassPermission(event-player, "barbarian")
+  if index of event-slot is 35:
+    if calculateClassCount(event-player) is equal to calculateMaxClasses(event-player):
+      send "&4You are at the max number of classes currently!" to event-player
+      stop
+    else:
+      giveClassPermission(event-player, "endwarden")
+  if index of event-slot is 36:
+    if calculateClassCount(event-player) is equal to calculateMaxClasses(event-player):
+      send "&4You are at the max number of classes currently!" to event-player
+      stop
+    else:
+      giveClassPermission(event-player, "druid")
+  if index of event-slot is 37:
+    if calculateClassCount(event-player) is equal to calculateMaxClasses(event-player):
+      send "&4You are at the max number of classes currently!" to event-player
+      stop
+    else:
+      giveClassPermission(event-player, "artificer")
+  if index of event-slot is 38:
+    if calculateClassCount(event-player) is equal to calculateMaxClasses(event-player):
+      send "&4You are at the max number of classes currently!" to event-player
+      stop
+    else:
+      giveClassPermission(event-player, "monk")
+  if index of event-slot is 39:
+    if calculateClassCount(event-player) is equal to calculateMaxClasses(event-player):
+      send "&4You are at the max number of classes currently!" to event-player
+      stop
+    else:
+      giveClassPermission(event-player, "nethermancer")
+  
 		
 	
   populatePlayerResearchMenu(player, event-inventory)
