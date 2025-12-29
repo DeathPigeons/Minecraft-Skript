@@ -208,6 +208,43 @@ command /rpgbenchreset:
 		delete {-rpgSkript::benchmark::*}
 		send "&cEnabled benchmark types reset" to command executor
 
+command /rpgflag <string> [<boolean>]:
+	trigger:
+		command executor has permission "rpg.control"
+		set {_flag} to arg 1 in lowercase
+		arg 2 is set:
+			# Set Flag
+			set {rpgSkript::feature_flags::%{_flag}%} to arg 2
+			send "&3Flag set: %{_flag}% -> %arg 2%" to command executor
+		else:
+			# Print flag value
+			send "&3Flag %{_flag}%: %{rpgSkript::feature_flags::%{_flag}%}%" to command executor
+
+command /rpgflags <integer=1>:
+	trigger:
+		command executor has permission "rpg.control"
+
+		loop {rpgSkript::feature_flags::*}:
+			add "&3%loop-index% -> %loop-value%" to {_flagLines::*}
+
+		set {_lines::*} to paginate({_flagLines::*}, arg 1)
+
+		loop {_lines::*}:
+			send loop-value to command executor
+
+command /rpgflagreset:
+	trigger:
+		command executor has permission "rpg.control"
+		delete {rpgSkript::feature_flags::*}
+		send "&dFeature flags reset" to command executor
+		scriptConsoleMessage("Enabled feature flags reset")
+
+function featureEnabled(name: string) :: boolean:
+	replace all " " with "_" in {_name}
+	if {rpgSkript::feature_flags::%{_name}%} is not set:
+		set {rpgSkript::feature_flags::%{_name}%} to true
+	return {rpgSkript::feature_flags::%{_name}%}
+
 function rpgLog(message: text):
 	log "%{_message}%" to "rpg/main.log"
 
