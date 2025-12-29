@@ -21,7 +21,7 @@ function addXP(player: player, xp: number):
   if {playerSkript::playerXP::%{_player}%} is not set:
     set {playerSkript::playerXP::%{_player}%} to 0 
 
-  set {playerSkript::playerXP::%{_player}%} to {playerSkript::playerXP::%{_player}%} + {_xp}
+  set {playerSkript::playerXP::%{_player}%} to {playerSkript::playerXP::%{_player}%} + ({_xp} * (1 + (0.1 * countImbue({_player}, "enlighten"))))
 
   if at least one of:
     {playerSkript::playerXP::%{_player}%} is greater than calculateXPForLevel({_player})
