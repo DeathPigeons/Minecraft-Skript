@@ -23,7 +23,9 @@ on script load:
 
 on script unload:
 	broadcast "{@prefix} &3Unloading script..."
-	
+
+	# Clean up variables and entities and such as needed
+
 	delete {-rpgSkript::fireballs::*}
 	delete {-rpgSkript::cryoballs::*}
 	delete {-rpgSkript::cache::*}
