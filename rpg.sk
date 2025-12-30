@@ -7,7 +7,7 @@ Options:
 	debugPrefix: &e[&bDEBUG&e]&r
 	debug: true
 
-	benchmark: true
+	benchmark: false
 	benchmarkSpan: 10 seconds
 
 	drawRadius: 20
