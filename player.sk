@@ -200,23 +200,23 @@ function calculateCoreStatBonus(player: player, stat: text):: number:
   if {_stat} is "damage":
     if {playerSkript::damageStat::%{_player}%} is not set:
       set {playerSkript::damageStat::%{_player}%} to 0
-    return {playerSkript::damageStat::%{_player}%} * 0.05
+    return 1 + {playerSkript::damageStat::%{_player}%} * 0.05
   if {_stat} is "health":
     if {playerSkript::healthStat::%{_player}%} is not set:
       set {playerSkript::healthStat::%{_player}%} to 0
-    return {playerSkript::healthStat::%{_player}%} * 0.05
+    return 1 + {playerSkript::healthStat::%{_player}%} * 0.05
   if {_stat} is "mana":
     if {playerSkript::manaStat::%{_player}%} is not set:
       set {playerSkript::manaStat::%{_player}%} to 0
-    return {playerSkript::manaStat::%{_player}%} * 0.05
+    return 1 + {playerSkript::manaStat::%{_player}%} * 0.05
   if {_stat} is "magic":
     if {playerSkript::magicDamageStat::%{_player}%} is not set:
       set {playerSkript::magicDamageStat::%{_player}%} to 0
-    return {playerSkript::magicDamageStat::%{_player}%} * 0.05
+    return 1 + {playerSkript::magicDamageStat::%{_player}%} * 0.05
   if {_stat} is "minion":
     if {playerSkript::minionPowerStat::%{_player}%} is not set:
       set {playerSkript::minionPowerStat::%{_player}%} to 0
-    return {playerSkript::minionPowerStat::%{_player}%} * 0.1
+    return 1 + {playerSkript::minionPowerStat::%{_player}%} * 0.1
   return 0
 
    
