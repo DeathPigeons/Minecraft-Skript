@@ -39,6 +39,8 @@ function levelUp(player: player):
   if {playerSkript::numResearchPoints::%{_player}%} is not set:
     set {playerSkript::numResearchPoints::%{_player}%} to 0
   set {playerSkript::numResearchPoints::%{_player}%} to {playerSkript::numResearchPoints::%{_player}%} + 1
+  if mod({playerSkript::playerLevel::%{_player}%}, 5) equals 0:
+    set {playerSkript::numResearchPoints::%{_player}%} to {playerSkript::numResearchPoints::%{_player}%} + 1
   play sound "block.bell.use" with pitch 2.0 at {_player}
 
 function getLevel(player: player):: number:
@@ -66,7 +68,7 @@ command /resetResearch:
   executable by: players
   trigger:
     send "&7Resetting your Research!" to player
-    set {playerSkript::numResearchPoints::%player%} to getLevel(player) - 1
+    set {playerSkript::numResearchPoints::%player%} to (getLevel(player) - 1) + (1 * floor({playerSkript::numResearchPoints::%player%} / 5))
     set {playerSkript::damageStat::%player%} to 1
     set {playerSkript::healthStat::%player%} to 1
     set {playerSkript::manaStat::%player%} to 1
