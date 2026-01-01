@@ -39,7 +39,7 @@ function levelUp(player: player):
   if {playerSkript::numResearchPoints::%{_player}%} is not set:
     set {playerSkript::numResearchPoints::%{_player}%} to 0
   set {playerSkript::numResearchPoints::%{_player}%} to {playerSkript::numResearchPoints::%{_player}%} + 1
-  if mod({playerSkript::playerLevel::%{_player}%}, 5) equals 0:
+  if mod({playerSkript::playerLevel::%{_player}%}, 5) = 0:
     set {playerSkript::numResearchPoints::%{_player}%} to {playerSkript::numResearchPoints::%{_player}%} + 1
   play sound "block.bell.use" with pitch 2.0 at {_player}
 
@@ -69,10 +69,11 @@ command /resetResearch:
   trigger:
     send "&7Resetting your Research!" to player
     set {playerSkript::numResearchPoints::%player%} to (getLevel(player) - 1) + (1 * floor({playerSkript::numResearchPoints::%player%} / 5))
-    set {playerSkript::damageStat::%player%} to 1
-    set {playerSkript::healthStat::%player%} to 1
-    set {playerSkript::manaStat::%player%} to 1
-    set {playerSkript::magicDamageStat::%player%} to 1
+    set {playerSkript::damageStat::%player%} to 0
+    set {playerSkript::healthStat::%player%} to 0
+    set {playerSkript::manaStat::%player%} to 0
+    set {playerSkript::magicDamageStat::%player%} to 0
+    set {playerSkript::minionPowerStat::%player%} to 0
 
 function calculateClassCount(player: player):: number:
   set {_classcount} to 0
