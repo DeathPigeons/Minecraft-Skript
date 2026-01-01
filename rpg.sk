@@ -254,6 +254,9 @@ function setMaxHealth(player: player):
 	if hasImbue({_player}, "guardian") is true:
 		set {_newMax} to {_newMax} * 1.5
 
+	hasEffect({_player}, "inspired") is true:
+		set {_newMax} to {_newMax} * 1.1
+
 	hasImbue({_player}, "photosynthesis") is true:
 		sun light level at {_player} is greater than 13:
 			time in world of {_player} is not between 19:00 and 5:00:
@@ -270,7 +273,7 @@ function setMaxHealth(player: player):
 	hasEffect({_player}, "rage") is true:
 		set {_newMax} to {_newMax} * (5 / 3)
 
-	set {_newMax} to {_newMax} * getHealthStat({_player})
+	set {_newMax} to {_newMax} * calculateCoreStatBonus({_player}, "health")
 
 	set {_newMax} to ceil({_newMax})
 	if {_player}'s maximum health is not {_newMax}:
@@ -508,16 +511,20 @@ function isWearingLightOrLess(player: player) :: boolean:
 		return true
 	hasLore(helmet of {_player}, "light") is false:
 		helmet of {_player} is not (leather helmet or air or chainmail helmet):
-			return false
+			hasLore(helmet of {_player}, "weightless") is false:
+				return false
 	hasLore(chestplate of {_player}, "light") is false:
 		chestplate of {_player} is not (leather chestplate or air or chainmail chestplate):
-			return false
+			hasLore(chestplate of {_player}, "weightless") is false:
+				return false
 	hasLore(leggings of {_player}, "light") is false:
 		leggings of {_player} is not (leather leggings or air or chainmail leggings):
-			return false
+			hasLore(leggings of {_player}, "weightless") is false:
+				return false
 	hasLore(boots of {_player}, "light") is false:
 		boots of {_player} is not (leather boots or air or chainmail boots):
-			return false
+			hasLore(boots of {_player}, "weightless") is false:
+				return false
 	if checkOffHandType({_player}) is not ("weightless" or "light"):
 		return false
 	return true
@@ -544,16 +551,20 @@ function isWearingMediumOrLess(player: player) :: boolean:
 		return true
 	hasLore(helmet of {_player}, "light") is false:
 		helmet of {_player} is (diamond helmet or netherite helmet):
-			return false
+			hasLore(helmet of {_player}, "weightless") is false:
+				return false
 	hasLore(chestplate of {_player}, "light") is false:
 		chestplate of {_player} is (diamond chestplate or netherite chestplate):
-			return false
+			hasLore(chestplate of {_player}, "weightless") is false:
+				return false
 	hasLore(leggings of {_player}, "light") is false:
 		leggings of {_player} is (diamond leggings or netherite leggings):
-			return false
+			hasLore(leggings of {_player}, "weightless") is false:
+				return false
 	hasLore(boots of {_player}, "light") is false:
 		boots of {_player} is (diamond boots or netherite boots):
-			return false
+			hasLore(boots of {_player}, "weightless") is false:
+				return false
 	if checkOffHandType({_player}) is not ("weightless" or "light" or "medium"):
 		return false
 	return true
@@ -1658,16 +1669,16 @@ every 2 seconds:
 		else if countImbue(loop-player, "golem") is 4:
 			apply slowness 4 without particles to the loop-player for 5 seconds replacing the existing effect
 			apply strength 1 without particles to the loop-player for 5 seconds replacing the existing effect	
+		else if countImbue(loop-player, "golem") is 3:
+			apply slowness 3 without particles to the loop-player for 5 seconds replacing the existing effect
+			apply strength 1 without particles to the loop-player for 5 seconds replacing the existing effect
 		else if hasImbue(loop-player, "guardian") is true:
-			apply slowness 3 without particles to the loop-player for 5 seconds replacing the existing effect	
+			apply slowness 2 without particles to the loop-player for 5 seconds replacing the existing effect	
 		else if countImbue(loop-player, "golem") is 1:
 			apply slowness 1 without particles to the loop-player for 5 seconds replacing the existing effect
 			apply strength 1 without particles to the loop-player for 5 seconds replacing the existing effect
 		else if countImbue(loop-player, "golem") is 2:
 			apply slowness 2 without particles to the loop-player for 5 seconds replacing the existing effect
-			apply strength 1 without particles to the loop-player for 5 seconds replacing the existing effect
-		else if countImbue(loop-player, "golem") is 3:
-			apply slowness 3 without particles to the loop-player for 5 seconds replacing the existing effect
 			apply strength 1 without particles to the loop-player for 5 seconds replacing the existing effect
 
 
@@ -1726,6 +1737,11 @@ every 5 seconds:
 					chance of 50%:
 						damage loop-entity-2 by 5
 						applyEffect(loop-entity-2, "levitate", 5 seconds)
+
+		if hasImbue(loop-player, "inspirational") is true:
+			loop all entities in radius 10 around loop-player:
+				isMonster(loop-entity-2) is false
+				applyEffect(loop-entity-2, "inspired", 15 seconds)
 						
 		hasImbue(loop-player, "Raid Leader") is true:	
 			getMinionCount(loop-player) is not equal to calculateMaxMinions(loop-player)
@@ -1766,7 +1782,7 @@ every 5 seconds:
 							apply slowness 255 to loop-entity-3 for 3 seconds replacing the existing effect
 							apply glowing 1 to loop-entity-3 for 3 seconds replacing the existing effect
 							applyEffect(loop-entity-3, "vulnerable", 3 seconds)
-							damage loop-entity-3 by 10 + ({rpgSkript::maxMana::%loop-player%} / 100)
+							damage loop-entity-3 by 15 * calculateCoreStatBonus(loop-player, "minion")
 							exit 1 loop
 
 			
@@ -1837,7 +1853,7 @@ on death:
 		becomeZombie(victim)
 
 	hasEffect(victim, "firestorm") is true:
-		set {_range} to 0.15 * maximum health of victim
+		set {_range} to 0.04 * maximum health of victim
 		if {_range} is greater than 10:
 			set {_range} to 10
 		loop all entities in radius {_range} around victim:
@@ -1925,6 +1941,10 @@ on damage:
 		set the damage to the damage * 2
 	hasImbue(victim, "Subdue to Anger") is true:
 		set the damage to the damage * 1.50
+	hasEffect(victim, "inspired") is true:
+		set the damage to the damage * 0.9
+	hasEffect(attacker, "inspired") is true:
+		set the damage to the damage * 1.1
 	{-evilSkript::%attacker%::isBoss} is true:
 		event-projectile is set:
 			set the damage to the damage * (1.1^({rpgdiff} - 1))
@@ -2078,7 +2098,7 @@ on damage:
 
 	attacker is a player:
 
-		set the damage to the damage * getDamageStat(attacker)
+		set the damage to the damage * calculateCoreStatBonus(attacker, "damage")
 
 		hasClass(attacker, "nethermancer") is true:
 			chance of 30%:
@@ -2193,7 +2213,7 @@ on damage:
 		if victim is a player:
 			set the damage to the damage * 0.5
 	if hasLore(attacker's held item, "Gamble") is true:
-		set {_ran} to a random number between 0.05 and 5
+		set {_ran} to a random number between 0 and 3
 		set the damage to the damage * {_ran}
 	if hasLore(attacker's held item, "Splinter") is true:
 		chance of 30%:
@@ -2211,7 +2231,7 @@ on damage:
 		chance of 25%:
 			applyEffect(victim, "venom", 10 seconds)
 	if hasLore(attacker's helmet, "Subdue to Anger") is true:
-		set {_dmgboost} to a random number between 1 and 5
+		set {_dmgboost} to a random number between 1.5 and 3
 		set the damage to the damage * {_dmgboost}
 	if hasLore(attacker's held item, "Endajack") is true:
 		set the damage to the damage * 1.50
@@ -2221,10 +2241,10 @@ on damage:
 		else if {_raneffect} is 2:
 			applyEffect(victim, "phased", 7.5 seconds)	
 	if hasLore(attacker's held item, "sacrificial") is true:
-		set the damage to the damage * 3.0
+		set the damage to the damage * 5.0
 		if attacker is a player:
 			set health of attacker to health of attacker - (0.1 * maximum health of attacker)
-			applyEffect(attacker, "antiheal", 3 seconds)
+			applyEffect(attacker, "antiheal", 1.5 seconds)
 		chance of 75%:
 			applyEffect(victim, "bleeding", 10 seconds)
 			applyEffect(victim, "vulnerable", 10 seconds)
@@ -2235,7 +2255,7 @@ on damage:
 			applyEffect(victim, "vulnerable", 10 seconds)
 			apply slowness 255 without particles to the victim for 10 seconds replacing the existing effect
 	if hasLore(attacker's held item, "vampiric") is true:
-		set {_heal} to 0.5 * countImbue(attacker, "vampiric")
+		set {_heal} to the damage * 0.1
 		heal(attacker, {_heal})
 	if hasLore(attacker's held item, "hallowed") is true:
 		applyEffect(victim, "hallowed", 10 seconds)
@@ -2485,7 +2505,7 @@ on damage:
 		set {_odamage} to the damage
 
 	hasImbue(victim, "undying") is true:
-		set {_damagered} to (0.3 - (countImbue(victim, "undying") * 0.05)) + ( health of victim / maximum health of victim )
+		set {_damagered} to (0.3 - (countImbue(victim, "undying") * 0.075)) + ( health of victim / maximum health of victim )
 		if {_damagered} is greater than 1:
 			set {_damagered} to 1
 		set the damage to the damage * {_damagered}
@@ -2737,11 +2757,17 @@ function calculateCritical(hit:entity, damaged:entity) :: number:
 			set {_crit} to {_crit} + 0.125
 	hasClass({_hit}, "herobrine") is true:
 		set {_crit} to 1
+	hasImbue({_hit}, "bloodied") is true:
+		set {_crit} to {_crit} + (1 - (health of {_hit} / maximum health of {_hit}))
+	hasImbue({_hit}, "subdue to anger") is true:
+		set {_crit} to {_crit} + 0.2
 	hasEffect({_damaged}, "Void") is true:
 		set {_crit} to {_crit} + 0.1
 	hasEffect({_damaged}, "Vulnerable") is true:
 		set {_crit} to {_crit} + 0.1
 	hasEffect({_hit}, "invisible") is true:
+		set {_crit} to {_crit} + 0.05
+	hasEffect({_hit}, "inspired") is true:
 		set {_crit} to {_crit} + 0.05
 	
 	return {_crit}
@@ -2767,6 +2793,8 @@ function calculateOverpower(hit:entity, damaged:entity) :: number:
 		set {_op} to {_op} + 0.1
 	hasEffect({_damaged}, "Vulnerable") is true:
 		set {_crit} to {_crit} + 0.1
+	hasEffect({_hit}, "inspired") is true:
+		set {_crit} to {_crit} + 0.05
 	return {_op}
 	  
 
@@ -2878,6 +2906,20 @@ function generateLootShield() :: item:
 		
 	return {_item}
 
+function generateLootBook() :: item:
+	set {_item} to a book
+
+	set {_item} to generateLore({_item})
+		
+	return {_item}
+
+function generateLootBanner() :: item:
+	set {_item} to a black standing banner
+
+	set {_item} to generateLore({_item})
+		
+	return {_item}
+
 
 function generateRandomLoot() :: item:
 	scriptDebugBroadcastType("loot", "Generating random loot item")
@@ -2898,7 +2940,7 @@ function generateRandomLoot() :: item:
 
 function generateRandomGear() :: item:
 	scriptDebugBroadcastType("loot", "Generating random gear item")
-	set {_ran} to a random integer between 0 and 7
+	set {_ran} to a random integer between 0 and 9
 	
 	if {_ran} is 0:
 		set {_item} to generateLootHelmet()
@@ -2916,6 +2958,10 @@ function generateRandomGear() :: item:
 		set {_item} to generateLootAxe()
 	if {_ran} is 7:
 		set {_item} to generateLootBow()
+	if {_ran} is 8:
+		set {_item} to generateLootBook()
+	if {_ran} is 9:
+		set {_item} to generateLootBanner()
 
 		
 	return {_item}
@@ -3055,6 +3101,19 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&aGamble")
 				set {_item} to addImbue({_item}, "&7Vampiric")
 				set name of {_item} to "&aGambler's Fallacy"
+		else if {_item} is a banner:
+			set {_ranMythicLore} to a random integer between 0 and 0
+			if {_ranMythicLore} is 0:
+				set {_item} to addImbue({_item}, "&bInspirational")
+				set {_item} to addImbue({_item}, "&fEnlighten")
+				set name of {_item} to "&bFlag of Valor"
+		else if {_item} is a book:
+			set {_ranMythicLore} to a random integer between 0 and 0
+			if {_ranMythicLore} is 0:
+				set {_item} to addImbue({_item}, "&0Grimoire")
+				set {_item} to addImbue({_item}, "&0Minion Boost")
+				set name of {_item} to "&0Tome of Death"				
+				
 		set {_item} to addImbue({_item}, "&fUnbreakable")
 		set {_item} to addImbue({_item}, "&fEthereal")
 		set {_item} to addImbue({_item}, "&7Reinforced")
@@ -3145,7 +3204,14 @@ function generateLore( item: item):: item:
 		{_item} is any armor
 		{_item} is a shield
 		{_item} is a banner
+		{_item} is a book
 	then:
+		set {_chanceboost} to 1
+		if at least one of:
+			{_item} is a book
+			{_item} is a banner
+		then:
+			set {_chanceboost} to 3
 		chance of (2+({rpgdiff}/5))%:
 			set {_item} to addImbue({_item}, "&7Iron Will")
 		chance of (2+({rpgdiff}/5))%:
@@ -3156,21 +3222,23 @@ function generateLore( item: item):: item:
 			set {_item} to addImbue({_item}, "&cFlame Shield")
 		chance of (2+({rpgdiff}/5))%:
 			set {_item} to addImbue({_item}, "&fFrost Shield")
-		chance of (2+({rpgdiff}/5))%:
+		chance of ((2+({rpgdiff}/5))*{_chanceboost})%:
 			set {_item} to addImbue({_item}, "&9Mana Shield")
 		chance of (2+({rpgdiff}/5))%:
 			set {_item} to addImbue({_item}, "&aPhotosynthesis")
-		chance of (2+({rpgdiff}/5))%:
+		chance of ((2+({rpgdiff}/5))*{_chanceboost})%:
 			set {_item} to addImbue({_item}, "&fEnlighten")
-		chance of (2+({rpgdiff}/5))%:
+		chance of ((2+({rpgdiff}/5))*{_chanceboost})%:
 			set {_item} to addImbue({_item}, "&4Health Boost")
-		chance of (2+({rpgdiff}/5))%:
+		chance of ((2+({rpgdiff}/5))*{_chanceboost})%:
 			set {_item} to addImbue({_item}, "&4Energy Boost")
-		chance of (2+({rpgdiff}/5))%:
+		chance of ((2+({rpgdiff}/5))*{_chanceboost})%:
 			set {_item} to addImbue({_item}, "&9Mana Boost")
+		chance of ((2+({rpgdiff}/5))*{_chanceboost})%:
+			set {_item} to addImbue({_item}, "&0Minion Boost")
 		chance of (2+({rpgdiff}/5))%:
 			set {_item} to addImbue({_item}, "&9Light")
-		chance of (2+({rpgdiff}/5))%:
+		chance of ((2+({rpgdiff}/5))*{_chanceboost})%:
 			set {_item} to addImbue({_item}, "&9Speed")
 		chance of (2+({rpgdiff}/5))%:
 			set {_item} to addImbue({_item}, "&fUnbreakable")
@@ -3363,34 +3431,28 @@ on enderman pickup:
 on spawn:
 	isMinion(event-entity) is true:
 		set {_caster} to getSummoner(uuid of event-entity)
+		hasImbue({_caster}, "Grimoire") is true:
+			event-entity is a zombie:
+				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
 		hasImbue({_caster}, "Raid Leader") is true:
-			event-entity is a pillager:	
-				set maximum health of event-entity to 10 *(1.2^(level of {_caster} /10))
+			event-entity is a pillager:
 				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
 				set armor attribute of event-entity to 3
-			event-entity is a vindicator:	
-				set maximum health of event-entity to 10 *(1.2^(level of {_caster} /10))
+			event-entity is a vindicator:
 				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
 				set armor attribute of event-entity to 5
-			set attack damage attribute of entity to (1.2^(level of {_caster} /10)) * attack damage attribute of entity
 		hasClass({_caster}, "druid") is true:
 			event-entity is a wolf:
-				set maximum health of event-entity to 10 *(1.2^(level of {_caster} /10))
 				set movement speed attribute of event-entity to 1.4 * movement speed attribute of event-entity
 				set armor attribute of event-entity to 3
 			event-entity is a spider:
-				set maximum health of event-entity to 12 * (1.2^(level of {_caster} /10))
 				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
 				set armor attribute of event-entity to 0
 			event-entity is a polar bear:
-				set maximum health of event-entity to 16 * (1.2^(level of {_caster} /10))
 				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
 				set armor attribute of event-entity to 5
-			set attack damage attribute of entity to (1.2^(level of {_caster} /10)) * attack damage attribute of entity
-		hasClass({_caster}, "necromancer") is true:
-			event-entity is a skeleton:
-				set attack damage attribute of entity to (1.2^(level of {_caster} /10)) * attack damage attribute of entity
-				set maximum health of entity to (1.2^(level of {_caster} / 10)) * maximum health of entity
+		set attack damage attribute of entity to calculateCoreStatBonus({_caster}, "minion") * (1 + (0.1 * countImbue({_caster}, "Minion Boost"))) * attack damage attribute of entity
+		set maximum health of entity to calculateCoreStatBonus({_caster}, "minion") * (1 + (0.1 * countImbue({_caster}, "Minion Boost"))) * maximum health of entity
 		set the event-entity's display name to "&a%{_caster}%'s Minion"
 		fullHeal(event-entity)
 
@@ -3590,8 +3652,14 @@ on inventory click:
 	populateRogueResearchMenu(player, event-inventory)
 
 on death of a monster:
-	if {rpgSkript::risenDead::%victim%} is true:
-		delete the drops
+
+	loop all players in radius 10 around victim:
+		hasImbue(loop-player, "grimoire") is true:
+			getMinionCount(loop-player) is not equal to calculateMaxMinions(loop-player)	
+			set {_summoner} to loop-player	
+			spawn 1 zombie at the victim:
+				setupMinion(the zombie, {_summoner})
+			
 	attacker is a player:
 		hasClass(attacker, "rogue") is true
 		set {_x} to a random number between 0 and 1000
@@ -3655,6 +3723,9 @@ on death of a monster:
 				damage loop-entity by 2
 				chance of 30%:
 					applyEffect(victim, "radiated", 10 seconds)
+
+	if {rpgSkript::risenDead::%victim%} is true:
+		delete the drops
 
 on death of an animal:
 	attacker is a player:
@@ -3829,20 +3900,21 @@ function setupMana(player: player):
 
 	set {_newMax} to 0
 	if hasClass({_player}, "herobrine") is true:
-		set {_newMax} to (level of {_player}) * 45
+		set {_newMax} to (getLevel({_player})) * 45
 	else if hasClass({_player}, "wizard") is true:
 		if isWearingLightOrLess({_player}) is true:
-			set {_newMax} to (level of {_player}) * 9
+			set {_newMax} to (getLevel({_player})) * 20
 		else if isWearingMediumOrLess({_player}) is true:
-			set {_newMax} to (level of {_player}) * 5
+			set {_newMax} to (getLevel({_player})) * 10
 		else:
-			set {_newMax} to (level of {_player}) * 1.5
+			set {_newMax} to (getLevel({_player})) * 5
+		set {_newMax} to {_newMax} * calculateCoreStatBonus({_player}, "mana")
 	else if hasClass({_player}, "necromancer") is true:
-		set {_newMax} to (level of {_player}) * 6 + 10
+		set {_newMax} to (getLevel({_player})) * 10 + 10
 	else if hasClass({_player}, "sorceror") is true:
 		set {_newMax} to 400
 	else if hasClass({_player}, "druid") is true:
-		set {_newMax} to (level of {_player}) * 6 + 10
+		set {_newMax} to (level of {_player}) * 10 + 10
 	else if hasClass({_player}, "nethermancer") is true:
 		if world of {_player} is "world_nether":
 			set {_newMax} to 2000
@@ -3867,7 +3939,10 @@ function setupMana(player: player):
 	if hasEffect({_player}, "resourceboost") is true:
 		set {_newMax} to {_newMax} * 1.25
 
-	set {_newMax} to {_newMax} * getManaStat({_player})
+	hasEffect({_player}, "inspired") is true:
+		set {_newMax} to {_newMax} * 1.1
+
+	set {_newMax} to {_newMax} * calculateCoreStatBonus({_player}, "mana")
 
 	set {_newMax} to floor({_newMax})
 	if {_newMax} is not {rpgSkript::maxMana::%{_player}%}:
@@ -3939,6 +4014,8 @@ function regenMana(player: player):
 
 	if hasEffect({_player}, "resourceboost") is true:
 		set {_add} to {_add} * 1.25
+
+	set {_add} to {_add} * calculateCoreStatBonus({_player}, "mana")
 	
 	addMana( {_player}, {_add} )
 
@@ -4686,7 +4763,7 @@ on right click with lapis lazuli:
 # Necromancer
 
 on right click with banner:
-	hasLore(event-item, "Raid Leader") is true:
+	lastLoreLine(event-item) is greater than 1:
 		cancel the event
 
 function isMinion(entity: entity) :: boolean:
@@ -4748,12 +4825,18 @@ every 2 seconds:
 
 on death:
 
+	hasImbue(attacker, "radiation") is true:
+		chance of 30%:
+			apply saturation 1 without particles to the attacker for 2 seconds replacing the existing effect
+
 	hasLore(attacker's held item, "butcher") is true:
-		chance of 20%:
+		chance of 25%:
 			set {_drop} to rotten flesh
 			set {_drop} to addImbue({_drop}, "Butcher's Cuts")
 			set name of {_drop} to "&4Butcher's Cuts"
-			add {_drop} to the drops
+			set {_ran} to a random integer between 1 and 3
+			loop {_ran} times:
+				add {_drop} to the drops
 
 	the victim is not a player
 	isMinion(the victim) is true:
@@ -4870,6 +4953,7 @@ on left click with bone:
 	if at least one of:
 		hasClass(event-player, "necromancer") is true
 		hasImbue(event-player, "Raid Leader") is true
+		hasImbue(event-player, "Grimoire") is true
 	then:
 		play sound "entity.player.breath" with pitch 0.7 at player
 		loop getMinions(event-player):
@@ -4955,16 +5039,16 @@ function getMinions(summoner: player) :: entities:
 function calculateMaxMinions(summoner: player) :: number:
 	set {_count} to 0
 	hasClass({_summoner}, "necromancer") is true:
-		set {_count} to 4
-		set {_count} to {_count} + level of {_summoner} / 3
-		{_count} is greater than 18:
-			set {_count} to 18
+		set {_count} to 5
+		set {_count} to {_count} + getLevel({_summoner}) / 20
 		isWearingLightOrLess({_summoner}) is true:
-			set {_count} to {_count} * 1.5
+			set {_count} to {_count} * 2.0
 	hasClass({_summoner}, "druid") is true:
-		set {_count} to 1
+		set {_count} to 3
 	hasImbue({_summoner}, "Raid Leader") is true:
 		set {_count} to {_count} + 5
+	hasImbue({_summoner}, "Grimoire") is true:
+		set {_count} to {_count} + 10
 
 	return floor({_count})
 
