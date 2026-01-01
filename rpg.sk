@@ -366,42 +366,42 @@ function getItemCostForImbue(imbue: text, item: item):: items:
 			{_item} is a crossbow
 		then:
 			return (12 leather)
-	if at least one of:
-		{_item} is a stone pickaxe
-		{_item} is a stone shovel
-		{_item} is a stone hoe
-		{_item} is a stone sword
-		{_item} is a stone axe
-		{_item} is a chain chestplate
-		{_item} is a chain leggings
-		{_item} is a chain boots
-		{_item} is a chain helmet
-	then:
-		return (12 leather and 12 cobblestone)
-	if at least one of:
-		{_item} is a netherite pickaxe
-		{_item} is a netherite shovel
-		{_item} is a netherite hoe
-		{_item} is a netherite sword
-		{_item} is a netherite axe
-		{_item} is a netherite chestplate
-		{_item} is a netherite leggings
-		{_item} is a netherite boots
-		{_item} is a netherite helmet
-	then:
-		return (12 leather and 12 netherite ingot)
-	if at least one of:
-		{_item} is a gold pickaxe
-		{_item} is a gold shovel
-		{_item} is a gold hoe
-		{_item} is a gold sword
-		{_item} is a gold axe
-		{_item} is a gold chestplate
-		{_item} is a gold leggings
-		{_item} is a gold boots
-		{_item} is a gold helmet
-	then:
-		return (12 leather and 12 gold ingot)
+		if at least one of:
+			{_item} is a stone pickaxe
+			{_item} is a stone shovel
+			{_item} is a stone hoe
+			{_item} is a stone sword
+			{_item} is a stone axe
+			{_item} is a chain chestplate
+			{_item} is a chain leggings
+			{_item} is a chain boots
+			{_item} is a chain helmet
+		then:
+			return (12 leather and 12 cobblestone)
+		if at least one of:
+			{_item} is a netherite pickaxe
+			{_item} is a netherite shovel
+			{_item} is a netherite hoe
+			{_item} is a netherite sword
+			{_item} is a netherite axe
+			{_item} is a netherite chestplate
+			{_item} is a netherite leggings
+			{_item} is a netherite boots
+			{_item} is a netherite helmet
+		then:
+			return (12 leather and 12 netherite ingot)
+		if at least one of:
+			{_item} is a gold pickaxe
+			{_item} is a gold shovel
+			{_item} is a gold hoe
+			{_item} is a gold sword
+			{_item} is a gold axe
+			{_item} is a gold chestplate
+			{_item} is a gold leggings
+			{_item} is a gold boots
+			{_item} is a gold helmet
+		then:
+			return (12 leather and 12 gold ingot)
 
 
 
