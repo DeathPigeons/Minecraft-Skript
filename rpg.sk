@@ -2190,6 +2190,11 @@ on damage:
 				scriptDebugBroadcastType("barbariandamage", "%{_odamage}%: Barbarian Projectile Reduction x0.65 -> %{_ndamage}%")
 				set {_odamage} to the damage
 			else if canUseBarbarianAbilities( attacker ) is true:
+				if at least one of:
+					player's off hand item is any sword
+					player's off hand item is any axe
+				then:
+					set the damage to the damage * 1.25
 				set {_damageboost} to 1 + ( {rpgSkript::%attacker%::barbenemies} * 0.05 )
 				set the damage to the damage * ( 1.5 + {_damageboost} )
 				set {_ndamage} to the damage
@@ -6470,9 +6475,9 @@ on left click with lava bucket:
 	hasClass(event-player, "nethermancer") is true:
 		remove event-item from event-player's inventory
 		give bucket to event-player
-		apply saturation 2 without particles to event-player for 30 seconds replacing the existing effect
-		applyEffect(event-player, "regen", 5 minutes)	
-		regenHeat(event-player, 100)
+		apply saturation 2 without particles to event-player for 10 minutes replacing the existing effect
+		applyEffect(event-player, "regen", 10 minutes)	
+		regenHeat(event-player, 500)
 		send "&4You drink some lava for food and heat." to event-player
 
 on left click with water bucket:
