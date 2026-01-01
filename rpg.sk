@@ -2191,8 +2191,8 @@ on damage:
 				set {_odamage} to the damage
 			else if canUseBarbarianAbilities( attacker ) is true:
 				if at least one of:
-					player's off hand item is any sword
-					player's off hand item is any axe
+					attacker's off hand item is any sword
+					attacker's off hand item is any axe
 				then:
 					set the damage to the damage * 1.25
 				set {_damageboost} to 1 + ( {rpgSkript::%attacker%::barbenemies} * 0.05 )
