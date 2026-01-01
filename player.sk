@@ -9,7 +9,7 @@ on script load:
 function calculateXPForLevel(player: player):: number:
   set {_xpneeded} to 0
 
-  set {_xpneeded} to ({playerSkript::playerLevel::%{_player}%} * 10 ) + 10
+  set {_xpneeded} to ({playerSkript::playerLevel::%{_player}%} * 15 ) + 10
 
   return {_xpneeded}
 
@@ -21,7 +21,11 @@ function addXP(player: player, xp: number):
   if {playerSkript::playerXP::%{_player}%} is not set:
     set {playerSkript::playerXP::%{_player}%} to 0 
 
+  if hasEffect({_player}, "inspired") is true:
+    set {_xp} to {_xp} * 1.2
+
   set {playerSkript::playerXP::%{_player}%} to {playerSkript::playerXP::%{_player}%} + ({_xp} * (1 + (0.1 * countImbue({_player}, "enlighten"))))
+
 
   if at least one of:
     {playerSkript::playerXP::%{_player}%} is greater than calculateXPForLevel({_player})
@@ -66,6 +70,7 @@ command /resetResearch:
     set {playerSkript::damageStat::%player%} to 1
     set {playerSkript::healthStat::%player%} to 1
     set {playerSkript::manaStat::%player%} to 1
+    set {playerSkript::magicDamageStat::%player%} to 1
 
 function calculateClassCount(player: player):: number:
   set {_classcount} to 0
@@ -139,38 +144,79 @@ function getResearchPoints(player: player):: number:
     set {playerSkript::numResearchPoints::%{_player}%} to 0 
   return {playerSkript::numResearchPoints::%{_player}%} 
 
-function increaseDamageStat(player: player):
-  if {playerSkript::damageStat::%{_player}%} is not set:
-    set {playerSkript::damageStat::%{_player}%} to 1
-  set {playerSkript::damageStat::%{_player}%} to {playerSkript::damageStat::%{_player}%} + 0.05 
-  send "&bDamage Stat increased to %getDamageStat({_player})%" to {_player}
+function increaseCoreStat(player: player, stat: text):
+  if {_stat} is "damage":
+    if {playerSkript::damageStat::%{_player}%} is not set:
+      set {playerSkript::damageStat::%{_player}%} to 0
+    set {playerSkript::damageStat::%{_player}%} to {playerSkript::damageStat::%{_player}%} + 1
+    send "&bDamage Stat increased to %getCoreStat({_player}, "damage")%" to {_player}
+  if {_stat} is "health":
+    if {playerSkript::healthStat::%{_player}%} is not set:
+      set {playerSkript::healthStat::%{_player}%} to 0
+    set {playerSkript::healthStat::%{_player}%} to {playerSkript::healthStat::%{_player}%} + 1
+    send "&bHealth Stat increased to %getCoreStat({_player}, "health")%" to {_player}
+  if {_stat} is "mana":
+    if {playerSkript::manaStat::%{_player}%} is not set:
+      set {playerSkript::manaStat::%{_player}%} to 0
+    set {playerSkript::manaStat::%{_player}%} to {playerSkript::manaStat::%{_player}%} + 1
+    send "&bMana Stat increased to %getCoreStat({_player}, "mana")%" to {_player}
+  if {_stat} is "magic":
+    if {playerSkript::magicDamageStat::%{_player}%} is not set:
+      set {playerSkript::magicDamageStat::%{_player}%} to 0
+    set {playerSkript::magicDamageStat::%{_player}%} to {playerSkript::magicDamageStat::%{_player}%} + 1
+    send "&bMagic Damage Stat increased to %getCoreStat({_player}, "magic")%" to {_player}
+  if {_stat} is "minion":
+    if {playerSkript::minionPowerStat::%{_player}%} is not set:
+      set {playerSkript::minionPowerStat::%{_player}%} to 0
+    set {playerSkript::minionPowerStat::%{_player}%} to {playerSkript::minionPowerStat::%{_player}%} + 1
+    send "&bMinion Power Stat increased to %getCoreStat({_player}, "minion")%" to {_player}
 
-function getDamageStat(player: player):: number:
-  if {playerSkript::damageStat::%{_player}%} is not set:
-    set {playerSkript::damageStat::%{_player}%} to 1
-  return {playerSkript::damageStat::%{_player}%}
+function getCoreStat(player: player, stat: text):: number:
+  if {_stat} is "damage":
+    if {playerSkript::damageStat::%{_player}%} is not set:
+      set {playerSkript::damageStat::%{_player}%} to 0
+    return {playerSkript::damageStat::%{_player}%}
+  if {_stat} is "health":
+    if {playerSkript::healthStat::%{_player}%} is not set:
+      set {playerSkript::healthStat::%{_player}%} to 0
+    return {playerSkript::healthStat::%{_player}%}
+  if {_stat} is "mana":
+    if {playerSkript::manaStat::%{_player}%} is not set:
+      set {playerSkript::manaStat::%{_player}%} to 0
+    return {playerSkript::manaStat::%{_player}%}
+  if {_stat} is "magic":
+    if {playerSkript::magicDamageStat::%{_player}%} is not set:
+      set {playerSkript::magicDamageStat::%{_player}%} to 0
+    return {playerSkript::magicDamageStat::%{_player}%}
+  if {_stat} is "minion":
+    if {playerSkript::minionPowerStat::%{_player}%} is not set:
+      set {playerSkript::minionPowerStat::%{_player}%} to 0
+    return {playerSkript::minionPowerStat::%{_player}%}
+  return 0
 
-function increaseHealthStat(player: player):
-  if {playerSkript::healthStat::%{_player}%} is not set:
-    set {playerSkript::healthStat::%{_player}%} to 1
-  set {playerSkript::healthStat::%{_player}%} to {playerSkript::healthStat::%{_player}%} + 0.05 
-  send "&bHealth Stat increased to %getHealthStat({_player})%" to {_player}
+function calculateCoreStatBonus(player: player, stat: text):: number:
+  if {_stat} is "damage":
+    if {playerSkript::damageStat::%{_player}%} is not set:
+      set {playerSkript::damageStat::%{_player}%} to 0
+    return {playerSkript::damageStat::%{_player}%} * 0.05
+  if {_stat} is "health":
+    if {playerSkript::healthStat::%{_player}%} is not set:
+      set {playerSkript::healthStat::%{_player}%} to 0
+    return {playerSkript::healthStat::%{_player}%} * 0.05
+  if {_stat} is "mana":
+    if {playerSkript::manaStat::%{_player}%} is not set:
+      set {playerSkript::manaStat::%{_player}%} to 0
+    return {playerSkript::manaStat::%{_player}%} * 0.05
+  if {_stat} is "magic":
+    if {playerSkript::magicDamageStat::%{_player}%} is not set:
+      set {playerSkript::magicDamageStat::%{_player}%} to 0
+    return {playerSkript::magicDamageStat::%{_player}%} * 0.05
+  if {_stat} is "minion":
+    if {playerSkript::minionPowerStat::%{_player}%} is not set:
+      set {playerSkript::minionPowerStat::%{_player}%} to 0
+    return {playerSkript::minionPowerStat::%{_player}%} * 0.1
+  return 0
 
-function getHealthStat(player: player):: number:
-  if {playerSkript::healthStat::%{_player}%} is not set:
-    set {playerSkript::healthStat::%{_player}%} to 1
-  return {playerSkript::healthStat::%{_player}%}
-
-function increaseManaStat(player: player):
-  if {playerSkript::manaStat::%{_player}%} is not set:
-    set {playerSkript::manaStat::%{_player}%} to 1
-  set {playerSkript::manaStat::%{_player}%} to {playerSkript::manaStat::%{_player}%} + 0.05 
-  send "&bMana Stat increased to %getManaStat({_player})%" to {_player}
-
-function getManaStat(player: player):: number:
-  if {playerSkript::manaStat::%{_player}%} is not set:
-    set {playerSkript::manaStat::%{_player}%} to 1
-  return {playerSkript::manaStat::%{_player}%}
    
 command /playerresearch:
 	executable by: players
@@ -186,17 +232,30 @@ function populatePlayerResearchMenu(player: player, menu: inventory):
   set slot 0 of {_menu} to {_item}
 
   set {_item} to red wool named "&7Damage"
-  set line 1 of {_item}'s lore to "&bIncreases Dealt Physical Damage by Player (NOT MAGICAL DAMAGE)"
-  set line 2 of {_item}'s lore to "&bCurrent Damage Bonus: %getDamageStat({_player})%"
+  set line 1 of {_item}'s lore to "&bIncreases Dealt Physical Damage by Player"
+  set line 2 of {_item}'s lore to "&bCurrent Dedicated Points: %getCoreStat({_player}, "damage")%"
+  set line 3 of {_item}'s lore to "&bCurrent Damage Bonus: %calculateCoreStatBonus({_player}, "damage")%"
   set slot 1 of {_menu} to {_item}  
   set {_item} to green wool named "&7Health"
   set line 1 of {_item}'s lore to "&bIncreases Maximum Health of Player"
-  set line 2 of {_item}'s lore to "&bCurrent Health Bonus: %getHealthStat({_player})%"
+  set line 2 of {_item}'s lore to "&bCurrent Dedicated Points: %getCoreStat({_player}, "health")%"
+  set line 3 of {_item}'s lore to "&bCurrent Health Bonus: %calculateCoreStatBonus({_player}, "health")%"
   set slot 2 of {_menu} to {_item}
   set {_item} to purple wool named "&7Mana"
   set line 1 of {_item}'s lore to "&bIncreases Maximum Mana of Player"
-  set line 2 of {_item}'s lore to "&bCurrent Mana Bonus: %getManaStat({_player})%"
+  set line 2 of {_item}'s lore to "&bCurrent Dedicated Points: %getCoreStat({_player}, "mana")%"
+  set line 3 of {_item}'s lore to "&bCurrent Mana Bonus: %calculateCoreStatBonus({_player}, "mana")%"
   set slot 3 of {_menu} to {_item}
+  set {_item} to blue wool named "&7Magic Damage"
+  set line 1 of {_item}'s lore to "&bIncreases Dealt Non-Physical Damage by Player"
+  set line 2 of {_item}'s lore to "&bCurrent Dedicated Points: %getCoreStat({_player}, "magic")%"
+  set line 3 of {_item}'s lore to "&bCurrent Magic Damage Bonus: %calculateCoreStatBonus({_player}, "magic")%"
+  set slot 4 of {_menu} to {_item}
+  set {_item} to black wool named "&7Minion Power"
+  set line 1 of {_item}'s lore to "&bIncreases Overall Strength of Minions"
+  set line 2 of {_item}'s lore to "&bCurrent Dedicated Points: %getCoreStat({_player}, "minion")%"
+  set line 3 of {_item}'s lore to "&bCurrent Minion Power Bonus: %calculateCoreStatBonus({_player}, "minion")%"
+  set slot 5 of {_menu} to {_item}
 
   set {_item} to light grey wool named "&2Rogue"
   set line 1 of {_item}'s lore to "&cToggles the Rogue Class"
@@ -263,17 +322,27 @@ on inventory click:
     if useResearchPoint(event-player, 1) is false:
       send "&4No Research Points!" to event-player
       stop
-    increaseDamageStat(event-player)
+    increaseCoreStat(event-player, "damage")
   if index of event-slot is 2:
     if useResearchPoint(event-player, 1) is false:
       send "&4No Research Points!" to event-player
       stop
-    increaseHealthStat(event-player)
+    increaseCoreStat(event-player, "health")
   if index of event-slot is 3:
     if useResearchPoint(event-player, 1) is false:
       send "&4No Research Points!" to event-player
       stop
-    increaseManaStat(event-player)
+    increaseCoreStat(event-player, "mana")
+  if index of event-slot is 4:
+    if useResearchPoint(event-player, 1) is false:
+      send "&4No Research Points!" to event-player
+      stop
+    increaseCoreStat(event-player, "magic")
+  if index of event-slot is 5:
+    if useResearchPoint(event-player, 1) is false:
+      send "&4No Research Points!" to event-player
+      stop
+    increaseCoreStat(event-player, "minion")
 
   if index of event-slot is 27:
     if calculateClassCount(event-player) is equal to calculateMaxClasses(event-player):
