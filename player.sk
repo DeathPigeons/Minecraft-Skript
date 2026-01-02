@@ -68,7 +68,7 @@ command /resetResearch:
   executable by: players
   trigger:
     send "&7Resetting your Research!" to player
-    set {playerSkript::numResearchPoints::%player%} to (getLevel(player) - 1) + (1 * floor({playerSkript::numResearchPoints::%player%} / 5))
+    set {playerSkript::numResearchPoints::%player%} to (getLevel(player) - 1) + (1 * floor(getLevel(player) / 5))
     set {playerSkript::damageStat::%player%} to 0
     set {playerSkript::healthStat::%player%} to 0
     set {playerSkript::manaStat::%player%} to 0
@@ -217,7 +217,7 @@ function calculateCoreStatBonus(player: player, stat: text):: number:
   if {_stat} is "minion":
     if {playerSkript::minionPowerStat::%{_player}%} is not set:
       set {playerSkript::minionPowerStat::%{_player}%} to 0
-    return 1 + {playerSkript::minionPowerStat::%{_player}%} * 0.1
+    return 1 + {playerSkript::minionPowerStat::%{_player}%} * 0.25
   return 0
 
    
