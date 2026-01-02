@@ -3820,19 +3820,6 @@ on death of a player:
 			cancel the event
 			stop		
 
-	hasImbue(victim, "detonation") is true:
-		loop all entities in radius 15 around victim:
-			isMonster(loop-entity) is true
-			loop-entity is not a dropped item
-			loop-entity is alive
-			create a fake explosion at victim
-			set {_v} to vector between victim and loop-entity
-			set y component of {_vec} to 0
-			set {_vec} to normalized {_vec}
-			push loop-entity {_vec} with force 3
-			push loop-entity upwards with force 1.2
-			damage loop-entity by 50 - (length of {_v} * 2)
-
 	hasClass(victim, "cleric") is true:
 		chance of 30%:
 			cancel the event
