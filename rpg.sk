@@ -506,7 +506,7 @@ function hasLore(item: item, text: text) :: boolean:
 			return true
 	return false
 
-function hasWeaponsLore(player: player, text: text) :: boolean:
+function hasWeaponLore(player: player, text: text) :: boolean:
 	if at least one of:
 		hasLore({_player}'s held item, {_text}) is true
 		hasLore({_player}'s off hand item, {_text}) is true
@@ -3836,15 +3836,15 @@ on death of a player:
 	hasClass(victim, "cleric") is true:
 		chance of 30%:
 			cancel the event
-			send "&6The gods save you from death!" to the player	
+			send "&6The gods save you from death!" to the victim
 			set the health of victim to 0.1 * the maximum health of victim
 			stop
-		subMana(player, 500) is true:
+		subMana(victim, 500) is true:
 			cancel the event
-			send "&6You use your divine powers to escape death!" to the player
+			send "&6You use your divine powers to escape death!" to the victim
 			set the health of victim to 0.1 * the maximum health of victim
 			stop
-			scriptDebugBroadcastType("cleric", "%player% attempts reviving")		
+			scriptDebugBroadcastType("cleric", "%victim% attempts reviving")		
 
 	loop players in radius 15 around victim:
 		loop-player is not victim
@@ -5070,7 +5070,7 @@ function getMinions(summoner: player) :: entities:
 
 function calculateMaxMinions(summoner: player) :: number:
 	set {_count} to 0
-	else if hasClass({_summoner}, "necromancer") is true:
+	if hasClass({_summoner}, "necromancer") is true:
 		set {_count} to 5
 		set {_count} to {_count} + getLevel({_summoner}) / 20
 		isWearingLightOrLess({_summoner}) is true:
