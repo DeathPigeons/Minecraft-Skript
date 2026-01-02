@@ -506,6 +506,14 @@ function hasLore(item: item, text: text) :: boolean:
 			return true
 	return false
 
+function hasWeaponsLore(player: player, text: text) :: boolean:
+	if at least one of:
+		hasLore({_player}'s held item, {_text}) is true
+		hasLore({_player}'s off hand item, {_text}) is true
+	then:
+		return true
+	return false
+
 function isWearingLightOrLess(player: player) :: boolean:
 	if isWearingNothing({_player}) is true:
 		return true
@@ -2217,10 +2225,10 @@ on damage:
 		#this needs to go last
 		if victim is a player:
 			set the damage to the damage * 0.5
-	if hasLore(attacker's held item, "Gamble") is true:
+	if hasWeaponLore(attacker, "Gamble") is true:
 		set {_ran} to a random number between 0 and 3
 		set the damage to the damage * {_ran}
-	if hasLore(attacker's held item, "Splinter") is true:
+	if hasWeaponLore(attacker, "Splinter") is true:
 		chance of 30%:
 			applyEffect(victim, "vulnerable", 10 seconds)
 			loop all entities in radius 10 around victim:
@@ -2231,21 +2239,21 @@ on damage:
 					loop-entity is not victim
 					loop-entity is not attacker
 					damage loop-entity by the damage / 2		
-	if hasLore(attacker's held item, "Venom") is true:
+	if hasWeaponLore(attacker, "Venom") is true:
 		set the damage to the damage * 1.50
 		chance of 25%:
 			applyEffect(victim, "venom", 10 seconds)
 	if hasLore(attacker's helmet, "Subdue to Anger") is true:
 		set {_dmgboost} to a random number between 1.5 and 3
 		set the damage to the damage * {_dmgboost}
-	if hasLore(attacker's held item, "Endajack") is true:
+	if hasWeaponLore(attacker, "Endajack") is true:
 		set the damage to the damage * 1.50
 		set {_raneffect} to a random integer between 0 and 2
 		if {_raneffect} is 1:
 			applyEffect(victim, "levitate", 7.5 seconds)
 		else if {_raneffect} is 2:
 			applyEffect(victim, "phased", 7.5 seconds)	
-	if hasLore(attacker's held item, "sacrificial") is true:
+	if hasWeaponLore(attacker, "sacrificial") is true:
 		set the damage to the damage * 5.0
 		if attacker is a player:
 			set health of attacker to health of attacker - (0.1 * maximum health of attacker)
@@ -2253,35 +2261,35 @@ on damage:
 		chance of 75%:
 			applyEffect(victim, "bleeding", 10 seconds)
 			applyEffect(victim, "vulnerable", 10 seconds)
-	if hasLore(attacker's held item, "butcher") is true:
+	if hasWeaponLore(attacker, "butcher") is true:
 		set the damage to the damage * 1.20
 		chance of 50%:
 			applyEffect(victim, "bleeding", 10 seconds)
 			applyEffect(victim, "vulnerable", 10 seconds)
 			apply slowness 255 without particles to the victim for 10 seconds replacing the existing effect
-	if hasLore(attacker's held item, "vampiric") is true:
+	if hasWeaponLore(attacker, "vampiric") is true:
 		set {_heal} to the damage * 0.1
 		heal(attacker, {_heal})
-	if hasLore(attacker's held item, "hallowed") is true:
+	if hasWeaponLore(attacker, "hallowed") is true:
 		applyEffect(victim, "hallowed", 10 seconds)
-	if hasLore(attacker's held item, "shocking") is true:
+	if hasWeaponLore(attacker, "shocking") is true:
 		applyEffect(victim, "shocking", 2 seconds)
-	if hasLore(attacker's held item, "bleeding") is true:
+	if hasWeaponLore(attacker, "bleeding") is true:
 		applyEffect(victim, "bleeding", 10 seconds)
-	if hasLore(attacker's held item, "mana leak") is true:
+	if hasWeaponLore(attacker, "mana leak") is true:
 		applyEffect(victim, "mana leak", 10 seconds)
-	if hasLore(attacker's held item, "disease") is true:
+	if hasWeaponLore(attacker, "disease") is true:
 		applyEffect(victim, "disease", 30 seconds)
-	if hasLore(attacker's held item, "bloodied") is true:
+	if hasWeaponLore(attacker, "bloodied") is true:
 		set {_damageboost} to 1 + ( 1 - (health of attacker / maximum health of attacker ) )
 		set the damage to the damage * {_damageboost}
-	if hasLore(attacker's held item, "firststrike") is true:
+	if hasWeaponLore(attacker, "firststrike") is true:
 		health of victim is equal to the maximum health of victim:
 			set the damage to the damage * 1.5
 			set {_ndamage} to the damage
 			scriptDebugBroadcastType("loredamage", "%{_odamage}%: Firststrike Damage Bonus x1.5 -> %{_ndamage}%")
 			set {_odamage} to the damage
-	if hasLore(attacker's held item, "siphon") is true:
+	if hasWeaponLore(attacker, "siphon") is true:
 		if victim is a player:
 			subMana(victim, 25, false)
 		addMana(attacker, 15)
@@ -3825,6 +3833,19 @@ on death of a player:
 			push loop-entity upwards with force 1.2
 			damage loop-entity by 50 - (length of {_v} * 2)
 
+	hasClass(victim, "cleric") is true:
+		chance of 30%:
+			cancel the event
+			send "&6The gods save you from death!" to the player	
+			set the health of victim to 0.1 * the maximum health of victim
+			stop
+		subMana(player, 500) is true:
+			cancel the event
+			send "&6You use your divine powers to escape death!" to the player
+			set the health of victim to 0.1 * the maximum health of victim
+			stop
+			scriptDebugBroadcastType("cleric", "%player% attempts reviving")		
+
 	loop players in radius 15 around victim:
 		loop-player is not victim
 		hasClass(loop-player, "paladin") is true:
@@ -4770,7 +4791,13 @@ on right click with lapis lazuli:
 on right click with banner:
 	lastLoreLine(event-item) is greater than 1:
 		cancel the event
+		stop
 
+on place of banner:
+	lastLoreLine(event-item) is greater than 1:
+		cancel the event
+		stop
+		
 function isMinion(entity: entity) :: boolean:
 	{-rpgSkript::minions::%uuid of {_entity}%} is set:
 		return true
@@ -4834,7 +4861,7 @@ on death:
 		chance of 30%:
 			apply saturation 1 without particles to the attacker for 2 seconds replacing the existing effect
 
-	hasLore(attacker's held item, "butcher") is true:
+	hasWeaponLore(attacker, "butcher") is true:
 		chance of 25%:
 			set {_drop} to rotten flesh
 			set {_drop} to addImbue({_drop}, "Butcher's Cuts")
@@ -5043,12 +5070,12 @@ function getMinions(summoner: player) :: entities:
 
 function calculateMaxMinions(summoner: player) :: number:
 	set {_count} to 0
-	hasClass({_summoner}, "necromancer") is true:
+	else if hasClass({_summoner}, "necromancer") is true:
 		set {_count} to 5
 		set {_count} to {_count} + getLevel({_summoner}) / 20
 		isWearingLightOrLess({_summoner}) is true:
 			set {_count} to {_count} * 2.0
-	hasClass({_summoner}, "druid") is true:
+	else if hasClass({_summoner}, "druid") is true:
 		set {_count} to 3
 	hasImbue({_summoner}, "Raid Leader") is true:
 		set {_count} to {_count} + 5
@@ -5070,19 +5097,6 @@ function cullMinions(summoner: player):
 # Cleric
 
 
-
-on resurrect attempt:
-	entity is a player:
-		hasClass(player, "cleric") is true:
-			chance of 30%:
-				uncancel the event
-				send "&6The gods save you from death!" to the player
-				stop
-			subMana(player, 500) is true:
-				uncancel the event
-				send "&6You use your divine powers to escape death!" to the player
-				stop
-			scriptDebugBroadcastType("cleric", "%player% attempts reviving")
 
 on heal:
 	event-entity is a player:
@@ -5561,36 +5575,6 @@ on left click with chains:
 				apply slowness 255 to loop-entity for 3 seconds replacing the existing effect				
 				apply weakness 2 to loop-entity for 5 seconds replacing the existing effect
 				teleport loop-entity to location of the block above the block 2 blocks in front of event-player
-
-on right click with (any sword or any axe):
-	hasClass(event-player, "barbarian") is true
-	canUseBarbarianAbilities(event-player) is true
-	if at least one of:
-		event-player's targeted block is any log
-		event-player's targeted block is any door
-	then:
-		stop
-	if subEnergy(event-player, 1) is false:
-		send "&4You do do not have the Energy to Cleave!" to event-player
-		stop
-	else:
-		send "&cYou Cleave!" to event-player
-		set {_Block} to 0
-		set {_Cone} to 0
-		loop 2 times:
-			add 1 to {_Block}
-			add 2 to {_Cone}
-			set {_GetBlock} to block {_Block} blocks infront of event-player
-			loop all entities in radius {_Cone} around {_GetBlock}:
-				loop-entity is not event-player	
-				set {_randmg} to a random number between 4 and 10
-				if hasEffect(event-player, "rage") is true:
-					damage loop-entity by {_randmg}
-				else:
-					damage loop-entity by {_randmdg}/2
-		
-						
-
 
 
 # Endwarden
