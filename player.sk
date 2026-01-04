@@ -54,13 +54,14 @@ function getXP(player: player):: number:
   return {playerSkript::playerXP::%{_player}%}
 
 on death of a monster:
-  loop players in radius 20 around victim:
-    set {_xpdropped} to 1 * ({rpgdiff})
-    if {-evilSkript::%victim%::isBoss} is true:
-      set {_xpdropped} to {_xpdropped} * 1.5
-    set {_xpdropped} to floor({_xpdropped})
+  isMinion(victim) is false:
+    loop players in radius 20 around victim:
+      set {_xpdropped} to 1 * ({rpgdiff})
+      if {-evilSkript::%victim%::isBoss} is true:
+        set {_xpdropped} to {_xpdropped} * 1.5
+      set {_xpdropped} to floor({_xpdropped})
 
-    addXP(loop-player, {_xpdropped})
+      addXP(loop-player, {_xpdropped})
 
 # Player Research
 
@@ -68,7 +69,7 @@ command /resetResearch:
   executable by: players
   trigger:
     send "&7Resetting your Research!" to player
-    set {playerSkript::numResearchPoints::%player%} to (getLevel(player) - 1) + (1 * floor(getLevel(player) / 5))
+    set {playerSkript::numResearchPoints::%player%} to (getLevel(player)) + (1 * floor(getLevel(player) / 5))
     set {playerSkript::damageStat::%player%} to 0
     set {playerSkript::healthStat::%player%} to 0
     set {playerSkript::manaStat::%player%} to 0
