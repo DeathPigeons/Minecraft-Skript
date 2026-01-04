@@ -27,6 +27,12 @@ on script unload:
 		killMinion(loop-index)
 
 	delete {-rpgSkript::minions::*}
+
+	loop {-rpgSkript::constructs::*}:
+		killMinion(loop-index)
+
+	delete {-rpgSkript::constructs::*}
+	
 	delete {-rpgSkript::effects::*}
 	delete {-rpgSkript::worldeffects::*}
 
@@ -403,21 +409,6 @@ function getItemCostForImbue(imbue: text, item: item):: items:
 		then:
 			return (12 leather and 12 gold ingot)
 
-
-
-
-	
-			
-	# Artificer Non-Weapons/Tools
-
-	else if {_imbue} is "lesser mine":
-		return (1 tnt and 2 redstone)
-	else if {_imbue} is "greater mine":
-		return (1 tnt and 2 redstone)
-	else if {_imbue} is "poison mine":
-		return (1 spider eye and 2 redstone and 1 nether wart)
-	else if {_imbue} is "auto mine":
-		return (4 redstone and 2 copper ingot)
 	# Wizard
 
 	else if {_imbue} is "health":
@@ -1196,7 +1187,7 @@ function drawEffects(entity: entity):
 	hasEffect({_entity}, "void") is true:
 		show rollDice(10, 3) (white dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
 		show rollDice(10, 3) (black dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 0)
-	hasEffect({_entity}, "regen") is true:
+	hasEffect({_entity}, "regeneration") is true:
 		chance of 10%:
 			show rollDice(10, 3) (heart with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, -0.5, 0)
 	hasEffect({_entity}, "radiated") is true:
@@ -1463,7 +1454,7 @@ every 1 seconds:
 			apply weakness 1 without particles to the loop-entity for 5 seconds replacing the existing effect
 
 		hasEffect(loop-entity, "soulbond") is true:
-			applyEffect(loop-entity,"regen", 5 seconds, getEffectSource(loop-entity, "soulbond"))
+			applyEffect(loop-entity,"regeneration", 5 seconds, getEffectSource(loop-entity, "soulbond"))
 			chance of 10%:
 				apply saturation 1 without particles to the loop-entity for 5 seconds replacing the existing effect
 		hasEffect(loop-entity, "soulbond") is false:
@@ -1471,25 +1462,25 @@ every 1 seconds:
 			set {-rpgSkript::%loop-entity%::soulbondplayer} to false
 
 		hasEffect(loop-entity, "rage") is true:
-			applyEffect(loop-entity, "regen", 5 seconds, getEffectSource(loop-entity, "rage"))
+			applyEffect(loop-entity, "regeneration", 5 seconds, getEffectSource(loop-entity, "rage"))
 			apply resistance 1 without particles to loop-entity for 5 seconds replacing the existing effect
 			apply swiftness 1 without particles to loop-entity for 5 seconds replacing the existing effect
 			apply strength 1 without particles to loop-entity for 5 seconds replacing the existing effect
 			apply jump boost 2 without particles to loop-entity for 5 seconds replacing the existing effect
 
-		hasEffect(loop-entity, "regen") is true:
+		hasEffect(loop-entity, "regeneration") is true:
 			if hasEffect(loop-entity, "recentcombat") is true:
-				if hasClass(getEffectSource(loop-entity, "regen"), "cleric") is true:
+				if hasClass(getEffectSource(loop-entity, "regeneration"), "cleric") is true:
 					heal(loop-entity, 1.0 * maximum health of loop-entity)
 				else:
 					heal(loop-entity, 0.5 * maximum health of loop-entity)						
-				scriptDebugBroadcastType("regen", "Regenerating %loop-entity% for %0.05 * maximum health of loop-entity% of %maximum health of loop-entity% health")
+				scriptDebugBroadcastType("regeneration", "Regenerating %loop-entity% for %0.05 * maximum health of loop-entity% of %maximum health of loop-entity% health")
 			else:
-				if hasClass(getEffectSource(loop-entity, "regen"), "cleric") is true:
+				if hasClass(getEffectSource(loop-entity, "regeneration"), "cleric") is true:
 					heal(loop-entity, 1.5 * maximum health of loop-entity)
 				else:
 					heal(loop-entity, 1.0 * maximum health of loop-entity)	
-				scriptDebugBroadcastType("regen", "Regenerating %loop-entity% for %0.1 * maximum health of loop-entity% of %maximum health of loop-entity% health")
+				scriptDebugBroadcastType("regeneration", "Regenerating %loop-entity% for %0.1 * maximum health of loop-entity% of %maximum health of loop-entity% health")
 
 		{-severestorms} is true:
 			isFriendlyMob(loop-entity) is false
@@ -1651,7 +1642,7 @@ every 2 seconds:
 								apply strength 2 without particles to loop-entity-2 for 30 seconds replacing the existing effect
 								apply resistance 1 without particles to loop-entity-2 for 30 seconds replacing the existing effect
 								apply swiftness 1 without particles to loop-entity-2 for 30 seconds replacing the existing effect
-								applyEffect(loop-entity-2, "regen", 30 seconds, loop-player)
+								applyEffect(loop-entity-2, "regeneration", 30 seconds, loop-player)
 								apply absorption 1 without particles to loop-entity-2 for 30 seconds replacing the existing effect
 
 					
@@ -1700,7 +1691,7 @@ every 2 seconds:
 			canUseDruidAbilities(loop-player) is true:	
 				loop all blocks in radius 5 around loop-player:
 					if loop-block is a flower:
-						applyEffect(loop-player, "regen", 3 seconds, loop-player)
+						applyEffect(loop-player, "regeneration", 3 seconds, loop-player)
 
 		hasClass(loop-player, "artificer") is true:
 			if {-rpgSkript::%loop-player%::mineLocation} is set:
@@ -1798,6 +1789,23 @@ every 5 seconds:
 					stop
 
 	loop all players:
+		hasClass(loop-player, "artificer") is true:
+			loop getConstructs(loop-player):
+				if getConstructType(loop-value-2) is "Healing":
+					loop all entities in radius 10 around loop-value-2:
+						isMonster(loop-entity-3) is false
+						applyEffect(loop-entity-3, "regeneration", 10 seconds, loop-player)
+						if health of loop-entity-3 is equal to maximum health of loop-entity-3:
+							apply absorption 2 without particles to the loop-entity-3 for 10 seconds replacing the existing effect							
+				if getConstructType(loop-value-2) is "Tesla":
+					loop all monsters in radius 10 around loop-value-2:
+						isMinion(loop-entity-3) is false
+						apply slowness 3 to loop-entity-3 for 1.5 seconds replacing the existing effect
+						apply glowing 1 to loop-entity-3 for 1.5 seconds replacing the existing effect
+						applyEffect(loop-entity-3, "vulnerable", 3 seconds, loop-player)
+						damage loop-entity-3 by 2 * calculateCoreStatBonus(loop-player, "minion")	
+						wait 1 tick					
+					
 		hasImbue(loop-player, "Anti-Gravity") is true:
 			loop all entities in radius 20 around loop-player:
 				isMonster(loop-entity-2) is true:
@@ -1837,7 +1845,7 @@ every 5 seconds:
 				apply strength 2 without particles to the loop-value-2 for 15 seconds replacing the existing effect
 				apply swiftness 2 without particles to the loop-value-2 for 15 seconds replacing the existing effect
 				apply jump boost 2 without particles to the loop-value-2 for 15 seconds replacing the existing effect
-				applyEffect(loop-value-2, "regen", 15 seconds, {_player})
+				applyEffect(loop-value-2, "regeneration", 15 seconds, {_player})
 				loop-value-2 is a pillager
 				{-rpgSkript::%loop-value-2%::raidMage} is true:
 					loop entities in radius 10 around loop-value-2:
@@ -1848,7 +1856,7 @@ every 5 seconds:
 							create lightning effect at loop-entity-3
 							apply slowness 255 to loop-entity-3 for 3 seconds replacing the existing effect
 							apply glowing 1 to loop-entity-3 for 3 seconds replacing the existing effect
-							applyEffect(loop-entity-3, "vulnerable", 3 seconds, loop-entity-2)
+							applyEffect(loop-entity-3, "vulnerable", 3 seconds, loop-player)
 							damage loop-entity-3 by 15 * calculateCoreStatBonus(loop-player, "minion")
 							exit 1 loop
 
@@ -2726,10 +2734,17 @@ on target:
 		cancel the event
 				
 	isMinion(event-entity) is true:
+		event-entity is an iron golem:
+			if getConstructType(event-entity) is "Healing":
+				cancel the event
+				stop
 		target is a player:
 			cancel the event
 			stop
 		getSummoner(uuid of event-entity) is target:
+			cancel the event
+			stop
+		getArchitect(uuid of event-entity) is target:
 			cancel the event
 			stop
 		isMinion(target) is true:
@@ -3501,7 +3516,7 @@ on consume:
 		cure player
 		removeNegativeEffects(player)
 		apply saturation 3 without particles to player for 1 minute replacing the existing effect
-		applyEffect(player, "regen", 1 minute, player)
+		applyEffect(player, "regeneration", 1 minute, player)
 	if event-item is a spider eye:
 		hasClass(player, "druid") is true:
 			cancel the event
@@ -3512,30 +3527,36 @@ on enderman pickup:
 
 on spawn:
 	isMinion(event-entity) is true:
-		set {_caster} to getSummoner(uuid of event-entity)
-		hasImbue({_caster}, "Grimoire") is true:
-			event-entity is a zombie:
-				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
-		hasImbue({_caster}, "Raid Leader") is true:
-			event-entity is a pillager:
-				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
-				set armor attribute of event-entity to 3
-			event-entity is a vindicator:
-				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
-				set armor attribute of event-entity to 5
-		hasClass({_caster}, "druid") is true:
-			event-entity is a wolf:
-				set movement speed attribute of event-entity to 1.4 * movement speed attribute of event-entity
-				set armor attribute of event-entity to 3
-			event-entity is a spider:
-				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
-				set armor attribute of event-entity to 0
-			event-entity is a polar bear:
-				set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
-				set armor attribute of event-entity to 5
-		set attack damage attribute of entity to calculateCoreStatBonus({_caster}, "minion") * (1 + (0.1 * countImbue({_caster}, "Minion Boost"))) * attack damage attribute of entity
-		set maximum health of entity to calculateCoreStatBonus({_caster}, "minion") * (1 + (0.1 * countImbue({_caster}, "Minion Boost"))) * maximum health of entity
-		set the event-entity's display name to "&a%{_caster}%'s Minion"
+		if event-entity is an iron golem:
+			set {_architect} to getArchitect(uuid of event-entity)
+			set attack damage attribute of entity to (calculateCoreStatBonus({_architect}, "minion")* 0.75) * (1 + (0.075 * countImbue({_architect}, "Minion Boost"))) * attack damage attribute of entity
+			set maximum health of entity to (calculateCoreStatBonus({_architect}, "minion") * 0.75) * (1 + (0.075 * countImbue({_architect}, "Minion Boost"))) * maximum health of entity
+			set the event-entity's display name to "&b%{_architect}%'s %getConstructType(event-entity)% Construct"
+		else:			
+			set {_caster} to getSummoner(uuid of event-entity)
+			hasImbue({_caster}, "Grimoire") is true:
+				event-entity is a zombie:
+					set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
+			hasImbue({_caster}, "Raid Leader") is true:
+				event-entity is a pillager:
+					set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
+					set armor attribute of event-entity to 3
+				event-entity is a vindicator:
+					set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
+					set armor attribute of event-entity to 5
+			hasClass({_caster}, "druid") is true:
+				event-entity is a wolf:
+					set movement speed attribute of event-entity to 1.4 * movement speed attribute of event-entity
+					set armor attribute of event-entity to 3
+				event-entity is a spider:
+					set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
+					set armor attribute of event-entity to 0
+				event-entity is a polar bear:
+					set movement speed attribute of event-entity to 1.2 * movement speed attribute of event-entity
+					set armor attribute of event-entity to 5
+			set attack damage attribute of entity to calculateCoreStatBonus({_caster}, "minion") * (1 + (0.1 * countImbue({_caster}, "Minion Boost"))) * attack damage attribute of entity
+			set maximum health of entity to calculateCoreStatBonus({_caster}, "minion") * (1 + (0.1 * countImbue({_caster}, "Minion Boost"))) * maximum health of entity
+			set the event-entity's display name to "&a%{_caster}%'s Minion"
 		fullHeal(event-entity)
 
 
@@ -4008,7 +4029,7 @@ function setupMana(player: player):
 	else if hasClass({_player}, "cleric") is true:
 		set {_newMax} to 1000
 	else if hasClass({_player}, "artificer") is true:
-		set {_newMax} to getMaxArtificerMana({_player})
+		set {_newMax} to (1 + getLevel({_player}) / 100) * getMaxArtificerMana({_player})
 	else if hasClass({_player}, "paladin") is true:
 		set {_newMax} to 30
 
@@ -4538,10 +4559,6 @@ on right click with stick:
 	show mob spawner flames at (the location 1 block above the player's location)
 
 on right click with gunpowder:
-	hasLore(player's held item, "lesser mine") is false
-	hasLore(player's held item, "greater mine") is false
-	hasLore(player's held item, "poison mine") is false
-	hasLore(player's held item, "auto mine") is false
 	( hasClass(player, "wizard") or hasClass(player, "sorceror") ) is true
 	if subMana(event-player, 100) is false:
 		send "&cYou do not have enough Mana to cast the explosion spell!" to event-player
@@ -4862,7 +4879,9 @@ on place of banner:
 		stop
 		
 function isMinion(entity: entity) :: boolean:
-	{-rpgSkript::minions::%uuid of {_entity}%} is set:
+	if {-rpgSkript::minions::%uuid of {_entity}%} is set:
+		return true
+	else if {-rpgSkript::construct::%uuid of {_entity}%} is set:
 		return true
 	return false
 
@@ -5187,7 +5206,7 @@ command /pray <text>:
 			chance of 40%:
 				send "&6The gods answer and give you strength!" to player
 				play sound "item.trident.thunder" with pitch 2.0 at player
-				applyEffect(player, "regen", 60 seconds, player)
+				applyEffect(player, "regeneration", 60 seconds, player)
 				apply saturation 2 to player for 60 seconds replacing the existing effect
 				apply strength 2 to player for 60 seconds replacing the existing effect
 				apply haste 2 to player for 60 seconds replacing the existing effect
@@ -5202,12 +5221,12 @@ command /channel <text>:
 	executable by: players
 	trigger:
 		hasClass(player, "cleric") is true
-		if arg 1 is "regen":
+		if arg 1 is "regeneration":
 			subMana(player, 300) is false:
 				send "&cYou do not have enough mana to bless nearby allies with regeneration!" to player
 				stop
 			loop players in radius 20 of player:
-				applyEffect(loop-player, "regen", 1800 seconds, player)
+				applyEffect(loop-player, "regeneration", 1800 seconds, player)
 				send "&6A Cleric blesses you with regeneration!" to loop-player
 			play sound "item.trident.thunder" with pitch 2.0 at player
 			send "&6You bless your allies with regeneration!" to player
@@ -5265,7 +5284,7 @@ command /channel <text>:
 					removeNegativeEffects(loop-entity)
 					cure loop-entity
 					applyEffect(loop-entity, "spirit", 60 seconds, player)
-					applyEffect(loop-entity, "regen", 1800 seconds, player)
+					applyEffect(loop-entity, "regeneration", 1800 seconds, player)
 					loop-entity is a player
 					loop-entity is not player
 					send "&6You feel a sense of purity wash over you!" to loop-entity
@@ -5336,7 +5355,7 @@ on right click with totem of undying:
 			force loop-player to respawn
 			teleport loop-player to event-player
 			set health of loop-player to 3
-			applyEffect(loop-player, "regen", 10 seconds, event-player)	
+			applyEffect(loop-player, "regeneration", 10 seconds, event-player)	
 			apply saturation 1 without particles to loop-player for 10 seconds replacing the existing effect	
 			applyEffect(loop-player, "spirit", 10 seconds, event-player)
 			play sound "block.bell.use" with pitch 2.0 at loop-player
@@ -5741,7 +5760,7 @@ every 10 seconds:
 
 		hasImbue(loop-player, "guardian") is true:
 			apply absorption 5 to the loop-player for 15 seconds replacing the existing effect
-			applyEffect(loop-player, "regen", 15 seconds, loop-player)
+			applyEffect(loop-player, "regeneration", 15 seconds, loop-player)
 							
 		hasClass(loop-player, "nethermancer") is true:
 			inventorySmelt(loop-player)
@@ -5969,7 +5988,7 @@ on right click with glistering melon slice:
 					isMinion(loop-entity) is true:
 						getSummoner(uuid of loop-entity) is event-player:
 							apply resistance 2 to the loop-entity for 15 seconds replacing the existing effect
-							applyEffect(loop-entity, "regen", 15 seconds, event-player)
+							applyEffect(loop-entity, "regeneration", 15 seconds, event-player)
 							apply strength 2 to the loop-entity for 15 seconds replacing the existing effect
 
 command /wildshape <text>:
@@ -6118,6 +6137,181 @@ function displayWildshape(player: player):
 		#then:
 			# add 2 to item amount of event-item
 
+function setupConstruct(entity: entity, architect: player, type: string):
+	set {-rpgSkript::constructs::%uuid of {_entity}%} to 1
+	set {-rpgSkript::constructs::%uuid of {_entity}%::architect} to {_architect}
+	set {-rpgSkript::constructs::%uuid of {_entity}%::type} to {_type}
+	reset target of {_entity}
+
+
+function getConstructType(entity: entity):: string:
+	if {-rpgSkript::constructs::%uuid of {_entity}%::type} is set:
+		return {-rpgSkript::constructs::%uuid of {_entity}%::type}
+
+function hasSameArchitect(entity: entity, entity2: entity) :: boolean:
+	{-rpgSkript::constructs::%uuid of {_entity}%::architect} is {-rpgSkript::constructs::%uuid of {_entity2}%::architect}:
+		return true
+	return false
+
+function getArchitect(uuid: text) :: player:
+	{-rpgSkript::constructs::%{_uuid}%::architect} is set:
+		return {-rpgSkript::construct::%{_uuid}%::architect}
+
+function getConstructCount(architect: player) :: number:
+	set {_count} to 0
+	loop {-rpgSkript::architect::*}:
+		getArchitect(loop-index) is {_architect}:
+			set {_count} to {_count} + 1
+	return {_count}
+
+function getConstructUUIDs(architect: player) :: texts:
+	loop {-rpgSkript::constructs::*}:
+		getArchitect(loop-index) is {_architect}:
+			add loop-index to {_list::*}
+	return {_list::*}
+
+function getConstructs(architect: player) :: entities:
+	set {_uuids::*} to getMinionUUIDs({_architect})
+	loop {_uuids::*}:
+		add getByUUID({_uuids::%loop-index%}) to {_list::*}
+	return {_list::*}
+
+function calculateMaxConstructs(architect: player) :: number:
+	set {_count} to 0
+	if hasClass({_architect}, "artificer") is true:
+		if getLevel({_architect}) is greater than -1:
+			set {_count} to {_count} + 1
+		if getLevel({_architect}) is greater than 49:
+			set {_count} to {_count} + 1
+		if getLevel({_architect}) is greater than 99:
+			set {_count} to {_count} + 1
+
+	return floor({_count})
+
+function cullConstructs(architect: player):
+	set {_toRemove} to getConstructCount({_architect}) - calculateMaxConstructs({_architect})
+	loop {-rpgSkript::constructs::*}:
+		{_toRemove} > 0:
+			getArchitect(loop-index) is {_architect}:
+				killConstruct(loop-index)
+				set {_toRemove} to {_toRemove} - 1
+
+function deleteConstruct(uuid: text):
+	#broadcast "&7Deleting minion"
+	delete {-rpgSkript::constructs::%{_uuid}%}
+	delete {-rpgSkript::constructs::%{_uuid}%::*}
+
+	set {_entity} to getByUUID({_uuid})
+	{_entity} is set:
+		reset target of {_entity}
+
+function killConstruct(uuid: text):
+	#broadcast "&7Killing minion"
+	kill getByUUID({_uuid})
+	deleteConstruct({_uuid})
+
+command /assemble <text>:
+	executable by: players
+	trigger:
+		if hasClass(player, "artificer") is true:
+			if at least one of:
+				arg 1 is "tesla"
+				arg 1 is "healing"
+				arg 1 is "warrior"
+			then:
+				if getConstructCount(player) is less than calculateMaxConstructs(player):
+					if arg 1 is "tesla":
+						if hasResearch(player, "tesla_construct") is false:
+							send "&4Research the Tesla Construct Ability first!" to player
+							stop
+						else:
+							if subMana(player, 750) is false:
+								send "&4Not enough mana to craft a Tesla Construct!" to player
+								stop
+							else:
+								send "&bYou use your expertise to craft a Tesla Construct!" to player
+								spawn 1 golem at the player:
+									setupConstruct(the golem, player, "Tesla")
+					else if arg 1 is "healing":
+						if hasResearch(player, "healing_construct") is false:
+							send "&4Research the Healing Construct Ability first!" to player
+							stop
+						else:
+							if subMana(player, 750) is false:
+								send "&4Not enough mana to craft a Healing Construct!" to player
+								stop
+							else:
+								send "&bYou use your expertise to craft a Healing Construct!" to player
+								spawn 1 golem at the player:
+									setupConstruct(the golem, player, "Healing")
+					else if arg 1 is "warrior":
+						if subMana(player, 500) is false:
+							send "&4Not enough mana to craft a Construct!" to player
+							stop
+						else:
+							send "&bYou use your expertise to craft a Construct!" to player
+							spawn 1 golem at the player:
+								setupConstruct(the golem, player, "Warrior")
+				else:
+					send "&4You have the max number of Constructs for your level!" to player
+			else:
+				send "&4Not a Valid Construct Type!" to player
+		else:
+			send "&4You are not an Artificer!" to player
+
+command /controlpanel:
+	executable by: players
+	trigger:
+		hasClass(player, "artificer") is false:
+			send "&dYou are not a Artificer!"
+			exit
+		set {_menu} to a new chest inventory with 6 rows named "&bArtificer Control Panel"
+		
+		populateArtificerControlPanelMenu(player, {_menu})
+		
+		open {_menu} to player
+
+function populateArtificerControlPanelMenu(player: player, menu: inventory):
+	set {_item} to red wool named "&4Healing Construct"
+	if hasResearch({_player}, "healing_construct") is true:
+		set {_item} to lime wool named "&bHealing Construct"
+	set line 1 of {_item}'s lore to "&bAllows you to Construct Non-Damaging Healing Constructs"
+	set slot 0 of {_menu} to {_item}
+
+	set {_item} to red wool named "&4Tesla Construct"
+	if hasResearch({_player}, "tesla_construct") is true:
+		set {_item} to lime wool named "&bTesla Construct"
+	set line 1 of {_item}'s lore to "&bAllows you to Construct AoF Tesla Constructs"
+	set slot 1 of {_menu} to {_item}
+
+
+on inventory click:
+	event-inventory is not event-player's inventory
+	name of event-inventory is "&bArtificer Control Panel"
+	cancel event
+
+	if index of event-slot is 0:
+		if hasResearch(player, "healing_construct") is true:
+			send "&4You already have this research!" to player
+		else:
+			if takeItems( player, (64 redstone and 32 copper ingot and 16 iron ingot) ) is false:
+				send "&cDo not have the necessary items to unlock this! Items Needed: 64 Redstone and 32 Copper Ingot and 16 Iron Ingot" to player
+				stop
+			addResearch(player, "healing_construct")
+
+	if index of event-slot is 0:
+		if hasResearch(player, "tesla_construct") is true:
+			send "&4You already have this research!" to player
+		else:
+			if takeItems( player, (64 redstone and 32 lapis lazuli and 16 nether quartz) ) is false:
+				send "&cDo not have the necessary items to unlock this! Items Needed: 64 Redstone and 32 lapis lazuli and 16 nether quartz" to player
+				stop
+			addResearch(player, "tesla_construct")
+
+	
+	populateArtificerControlPanelMenu(player, event-inventory)
+			
+
 command /fix:
 	executable by: players
 	trigger:
@@ -6186,18 +6380,7 @@ command /artifice <text>:
 					else:
 						send "&cYou do not have the required items to add that imbuement!" to player
 				else:
-					send "&cWrong item for that Artifice! %{_imbue}% must goes on Tools!" to the player
-			else if player's held item is gunpowder:
-				if at least one of:
-					{_imbue} is "lesser mine"
-					{_imbue} is "greater mine"
-					{_imbue} is "auto mine"
-					{_imbue} is "poison mine"
-				then:
-					if takeItems(player, getItemCostForImbue({_imbue}, {_item})) is true:
-						set player's held item to addImbue({_item}, "&b%{_imbue}%")				
-				else:
-					send "&cWrong item for that Artifice!" to the player			
+					send "&cWrong item for that Artifice! %{_imbue}% must goes on Tools!" to the player		
 			else:
 				send "&cNot a Valid Artifice!" to the player
 				stop
@@ -6213,69 +6396,6 @@ command /worktable:
 		else:
 			send "&cNot an Artificer" to the player
 
-command /activate <text>:
-	executable by: players
-	trigger:
-		if hasClass(player, "artificer") is true:
-			if arg 1 is "Mine":
-				if {-rpgSkript::%player%::mineLocation} is set:
-					if {-rpgSkript::%player%::minePower} is "greater":			
-						detonate(block at {-rpgSkript::%player%::mineLocation}, 4.99)
-						loop all entities in radius 5 around {-rpgSkript::%player%::mineLocation}:
-							loop-entity is not a dropped item
-							set {_vec} to vector between block at {-rpgSkript::%player%::mineLocation} and loop-entity
-							set y component of {_vec} to 0
-							set {_vec} to normalized {_vec}
-							push loop-entity {_vec} with force 1.4
-							push loop-entity upwards with force 0.9
-							damage loop-entity by 8.0
-						create a fake explosion at {-rpgSkript::%player%::mineLocation}
-
-					else if {-rpgSkript::%player%::minePower} is "lesser":			
-						detonate(block at {-rpgSkript::%player%::mineLocation}, 2.99)
-						loop all entities in radius 3 around {-rpgSkript::%player%::mineLocation}:
-							loop-entity is not a dropped item
-							set {_vec} to vector between block at {-rpgSkript::%player%::mineLocation} and loop-entity
-							set y component of {_vec} to 0
-							set {_vec} to normalized {_vec}
-							push loop-entity {_vec} with force 1.2
-							push loop-entity upwards with force 0.7
-							damage loop-entity by 5.0
-						create a fake explosion at {-rpgSkript::%player%::mineLocation}
-
-					if {-rpgSkript::%player%::minePoison} is true:
-						createWorldEffect({-rpgSkript::%player%::mineLocation}, "poison_gas", 20 seconds, player)	
-
-					send "&6Mine Detonated!" to the player
-					set {-_rpgSkript::%player%::minePoison} to false
-					set {-_rpgSkript::%player%::mineAuto} to false
-					clear {-rpgSkript::%player%::mineLocation}
-					clear {-rpgSkript::%player%::minePower}
-			else:
-				send "&cNo Tool to Activate" to the player	
-		else:
-			send "&cNot an Artificer" to the player
-
-on right click with gunpowder:
-	if hasClass(event-player, "artificer") is true:
-		if at least one of:
-			hasLore(event-player's held item, "lesser mine") is true
-			hasLore(event-player's held item, "greater mine") is true
-			hasLore(event-player's held item, "poison mine") is true
-		then:
-			set {-rpgSkript::%event-player%::mineAuto} to "false"
-			set {-rpgSkript::%event-player%::minePoison} to "false"
-			set {-rpgSkript::%event-player%::mineLocation} to location of event-block
-			if hasLore(event-player's held item, "greater mine") is true:
-				set {-rpgSkript::%event-player%::minePower} to "greater"
-			else if hasLore(event-player's held item, "lesser mine") is true:
-				set {-rpgSkript::%event-player%::minePower} to "lesser"
-			if hasLore(event-player's held item, "poison mine") is true:
-				set {-rpgSkript::%event-player%::minePoison} to true
-			if hasLore(event-player's held item, "auto mine") is true:
-				set {-rpgSkript::%event-player%::mineAuto} to true
-			send "&6Mine Set!" to the event-player
-			
 
 function isArmorArtificeImbue(imbue: text) :: boolean:
 	if at least one of:
@@ -6336,6 +6456,7 @@ function getMaxArtificerMana(player: player) :: number:
 	set {_cartography} to false
 	set {_ender} to false
 	set {_cauldron} to false
+	set {_loom} to false
 
 	set {_newMax} to 0
 
@@ -6345,15 +6466,15 @@ function getMaxArtificerMana(player: player) :: number:
 	loop all blocks in radius 4 around {_loc}:
 		if loop-block is an anvil:
 			if {_anvil} is false:
-				set {_newMax} to {_newMax} + 40
+				set {_newMax} to {_newMax} + 50
 				set {_anvil} to true
 		if loop-block is a crafting table:
 			if {_crafting} is false:
-				set {_newMax} to {_newMax} + 10
+				set {_newMax} to {_newMax} + 50
 				set {_crafting} to true
 		if loop-block is an enchanting table:
 			if {_enchanting} is false:
-				set {_newMax} to {_newMax} + 40
+				set {_newMax} to {_newMax} + 50
 				set {_enchanting} to true
 		if loop-block is a smithing table:
 			if {_smithing} is false:
@@ -6361,40 +6482,44 @@ function getMaxArtificerMana(player: player) :: number:
 				set {_smithing} to true
 		if loop-block is a furnace:
 			if {_furnace} is false:
-				set {_newMax} to {_newMax} + 25
+				set {_newMax} to {_newMax} + 50
 				set {_furnace} to true
 		if loop-block is an blast furnace:
 			if {_blast} is false:
-				set {_newMax} to {_newMax} + 35
+				set {_newMax} to {_newMax} + 50
 				set {_blast} to true
 		if loop-block is a grindstone:
 			if {_grindstone} is false:
-				set {_newMax} to {_newMax} + 20
+				set {_newMax} to {_newMax} + 50
 				set {_grindstone} to true
 		if loop-block is a stonecutter:
 			if {_stonecutter} is false:
-				set {_newMax} to {_newMax} + 35
+				set {_newMax} to {_newMax} + 50
 				set {_stonecutter} to true
 		if loop-block is a chest:
 			if {_chest} is false:
-				set {_newMax} to {_newMax} + 10
+				set {_newMax} to {_newMax} + 50
 				set {_chest} to true
 		if loop-block is a fletching table:
 			if {_fletching} is false:
-				set {_newMax} to {_newMax} + 20
+				set {_newMax} to {_newMax} + 50
 				set {_fletching} to true
 		if loop-block is a cartography table:
 			if {_cartography} is false:
-				set {_newMax} to {_newMax} + 15
+				set {_newMax} to {_newMax} + 50
 				set {_cartography} to true
 		if loop-block is an ender chest:
 			if {_ender} is false:
-				set {_newMax} to {_newMax} + 30
+				set {_newMax} to {_newMax} + 50
 				set {_ender} to true
 		if loop-block is a cauldron:
 			if {_cauldron} is false:
-				set {_newMax} to {_newMax} + 15
+				set {_newMax} to {_newMax} + 50
 				set {_cauldron} to true
+		if loop-block is a loom:
+			if {_loom} is false:
+				set {_newMax} to {_newMax} + 50
+				set {_loom} to true
 
 	return {_newMax}
 
@@ -6526,7 +6651,7 @@ on left click with lava bucket:
 		remove event-item from event-player's inventory
 		give bucket to event-player
 		apply saturation 2 without particles to event-player for 10 minutes replacing the existing effect
-		applyEffect(event-player, "regen", 10 minutes, event-player)	
+		applyEffect(event-player, "regeneration", 10 minutes, event-player)	
 		regenHeat(event-player, 500)
 		send "&4You drink some lava for food and heat." to event-player
 
