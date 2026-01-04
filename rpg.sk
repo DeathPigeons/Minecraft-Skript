@@ -1790,6 +1790,9 @@ every 5 seconds:
 
 	loop all players:
 		hasClass(loop-player, "artificer") is true:
+			hasResearch(loop-player, "mining_helmet") is true:
+				light level at loop-player is less than 11:
+					apply night vision 2 without particles to the loop-player for 15 seconds replacing the existing effect						
 			loop getConstructs(loop-player):
 				if getConstructType(loop-value-2) is "Healing":
 					loop all entities in radius 10 around loop-value-2:
@@ -2408,7 +2411,15 @@ on damage:
 		else if isWearingNothing(victim) is false:
 			set the damage to the damage * 0.9
 			
-
+		hasClass(victim, "artificer") is true:
+			damage cause is fall:
+				hasResearch(victim, "cushioned_soles") is true:
+					set the damage to the damage * 0.20
+			attacker is set:
+				hasResearch(victim, "countermeasures") is true:
+					chance of 50%:
+						damage the attacker by the damage * 0.2
+						set the damage to the damage * 0.8
 		hasClass(victim, "nethermancer") is true:
 			if at least one of:
 				damage cause is lava
@@ -3910,6 +3921,18 @@ on death of a player:
 				rageTrigger(victim)
 			cancel the event
 			stop		
+
+	hasClass(victim, "artificer") is true:
+		hasResearch(victim, "life-saving_procedures") is true:
+			{rpgSkript::%victim%::lastSave} is not set:
+				set {rpgSkript::%victim%::lastSave} to 30 minutes ago
+			difference between {rpgSkript::%victim%::lastSave} and now is less than 5 minutes:
+				send "&4Your suit cannot save you at this time!" to victim
+				stop
+			set {rpgSkript::%victim%::lastSave} to now
+			cancel the event
+			applyEffect(victim, "regneration", 10 seconds, victim)			
+			applyEffect(victim, "spirit", 10 seconds, victim)	
 
 	hasClass(victim, "cleric") is true:
 		chance of 30%:
@@ -6284,6 +6307,30 @@ function populateArtificerControlPanelMenu(player: player, menu: inventory):
 	set line 1 of {_item}'s lore to "&bAllows you to Construct AoF Tesla Constructs"
 	set slot 1 of {_menu} to {_item}
 
+	set {_item} to red wool named "&4Mining Helmet"
+	if hasResearch({_player}, "mining_helmet") is true:
+		set {_item} to lime wool named "&bMining Helmet"
+	set line 1 of {_item}'s lore to "&bGrants you permanent Night Vision at low-light levels"
+	set slot 8 of {_menu} to {_item}
+
+	set {_item} to red wool named "&4Countermeasures"
+	if hasResearch({_player}, "countermeasures") is true:
+		set {_item} to lime wool named "&bCountermeasures"
+	set line 1 of {_item}'s lore to "&bYour Exo-Suit is fine-tuned for defense"
+	set slot 16 of {_menu} to {_item}
+
+	set {_item} to red wool named "&4Life-Saving Procedures"
+	if hasResearch({_player}, "life-saving_procedures") is true:
+		set {_item} to lime wool named "&bLife-Saving Procedurs"
+	set line 1 of {_item}'s lore to "&bYour Exo-Suit is capable of helping you survive near-death experiences"
+	set slot 24 of {_menu} to {_item}
+
+	set {_item} to red wool named "&4Cushioned Soles"
+	if hasResearch({_player}, "cushioned_soles") is true:
+		set {_item} to lime wool named "&bCushioned Soles"
+	set line 1 of {_item}'s lore to "&bGreatly reduces fall damage"
+	set slot 32 of {_menu} to {_item}
+
 
 on inventory click:
 	event-inventory is not event-player's inventory
@@ -6299,7 +6346,7 @@ on inventory click:
 				stop
 			addResearch(player, "healing_construct")
 
-	if index of event-slot is 0:
+	if index of event-slot is 1:
 		if hasResearch(player, "tesla_construct") is true:
 			send "&4You already have this research!" to player
 		else:
@@ -6307,6 +6354,42 @@ on inventory click:
 				send "&cDo not have the necessary items to unlock this! Items Needed: 64 Redstone and 32 lapis lazuli and 16 nether quartz" to player
 				stop
 			addResearch(player, "tesla_construct")
+
+	if index of event-slot is 8:
+		if hasResearch(player, "mining_helmet") is true:
+			send "&4You already have this research!" to player
+		else:
+			if takeItems( player, (32 redstone and 16 nether quartz and 4 glass) ) is false:
+				send "&cDo not have the necessary items to unlock this! Items Needed: 32 redstone and 16 nether quartz and 4 glass" to player
+				stop
+			addResearch(player, "mining_helmet")
+
+	if index of event-slot is 16:
+		if hasResearch(player, "countermeasures") is true:
+			send "&4You already have this research!" to player
+		else:
+			if takeItems( player, (32 redstone and 16 iron ingot and 8 copper ingot) ) is false:
+				send "&cDo not have the necessary items to unlock this! Items Needed: 32 redstone and 16 iron ingot and 8 copper ingot" to player
+				stop
+			addResearch(player, "countermeasures")
+
+	if index of event-slot is 24:
+		if hasResearch(player, "life-saving_procedures") is true:
+			send "&4You already have this research!" to player
+		else:
+			if takeItems( player, (64 redstone and 32 iron ingot and 16 copper ingot and 8 diamond) ) is false:
+				send "&cDo not have the necessary items to unlock this! Items Needed: 64 redstone and 32 iron ingot and 16 copper ingot and 8 diamond" to player
+				stop
+			addResearch(player, "life-saving_procedures")
+
+	if index of event-slot is 32:
+		if hasResearch(player, "cushioned_soles") is true:
+			send "&4You already have this research!" to player
+		else:
+			if takeItems( player, (16 copper ingot and 8 leather and 4 slime ball) ) is false:
+				send "&cDo not have the necessary items to unlock this! Items Needed: 16 copper ingot and 8 leather and 4 slime ball" to player
+				stop
+			addResearch(player, "cushioned_soles")
 
 	
 	populateArtificerControlPanelMenu(player, event-inventory)
