@@ -151,10 +151,25 @@ command /sharestats:
 		broadcast "&a%player% is sharing their stats:"
 		broadcast "&aHealth: %health of player%/%maximum health of player%"
 		broadcast "&aMana: %{rpgSkript::mana::%player%}% / %{rpgSkript::maxMana::%player%}%"
+		broadcast "&aEnergy: %{rpgSkript::energy::%player%}% / %{rpgSkript::maxEnergy::%player%}%"
 		broadcast "&aPlayer Level: %getLevel(player)%"
 		if hasClass(player, "nethermancer") is true:
 			broadcast "&aHeat: %{rpgSkript::heat::%player%}%/1000"
-		broadcast "&a%player% is wearing %helmet of player%&a, %chestplate of player%&a, %leggings of player%&a, and %boots of player%"
+		if hasClass(player, "druid") is true:
+			broadcast "&aWildshape: %{rpgSkript::%player%::wildshape}% / %{rpgSkript::%player%::maxWildshape}%"
+			if {rpgSkript::%player%::batshape} is true:
+				broadcast "&aCurrent Form: Bat"
+			else if {rpgSkript::%player%::wolfshape} is true:
+				broadcast "&aCurrent Form: Wolf"
+			else if {rpgSkript::%player%::spidershape} is true:
+				broadcast "&aCurrent Form: Spider"
+			else if {rpgSkript::%player%::horseshape} is true:
+				broadcast "&aCurrent Form: Horse"
+			else if {rpgSkript::%player%::bearshape} is true:
+				broadcast "&aCurrent Form: Bear"
+			else if {rpgSkript::%player%::humanshape} is true:
+				broadcast "&aCurrent Form: Human"
+		broadcast "&a%player% is wearing %helmet of player%&a, %chestplate of player%&a, %leggings of player%&a, %boots of player%, and %off hand item of player%"
 
 command /shareitem:
 	executable by: players
