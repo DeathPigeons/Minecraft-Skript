@@ -925,7 +925,10 @@ function handleWorldEffect(index: text):
 			isMonster(loop-entity) is true:
 				loop-entity is a spider:
 					exit 1 loop
-			damage loop-entity by 0.5
+			if {_creator} is a player:
+				damage loop-entity by 0.5 * calculateCoreStatBonus({_creator}, "magic")
+			else:
+				damage loop-entity by 0.5
 			if {-evilSkript::%{_creator}%::isBoss} is true:
 				damage loop-entity by 1.5
 				isMinion(loop-entity) is true:
@@ -938,7 +941,10 @@ function handleWorldEffect(index: text):
 			hasClass(loop-entity, "endwarden") is true:
 				applyEffect(loop-entity, "invisible", 5 seconds, {_creator})
 				exit 1 loop
-			damage loop-entity by 1
+			if {_creator} is a player:
+				damage loop-entity by 1 * calculateCoreStatBonus({_creator}, "magic")
+			else:
+				damage loop-entity by 1
 			{rpgSkript::%loop-entity%::isBoss} is false
 			apply slowness 2 to the loop-entity for 5 seconds replacing the existing effect
 			apply blindness 2 to the loop-entity for 5 seconds replacing the existing effect
@@ -956,7 +962,10 @@ function handleWorldEffect(index: text):
 			push loop-entity upwards with force 0.75
 			applyEffect(loop-entity, "void", 30 seconds, {_creator})
 			subMana(loop-entity, 30, false)
-			damage loop-entity by 1.5
+			if {_creator} is a player:
+				damage loop-entity by 1.5 * calculateCoreStatBonus({_creator}, "magic")
+			else:
+				damage loop-entity by 1.5
 			set {_monsters} to {_monsters} + 1
 			wait 3 ticks
 			if {_monsters} is greater than 9:
@@ -977,7 +986,10 @@ function handleWorldEffect(index: text):
 	{_name} is "holy beam":
 		loop all entities in radius 15 around {_loc}:
 			loop-entity is a monster
-			damage loop-entity by 3
+			if {_creator} is a player:
+				damage loop-entity by 3 * calculateCoreStatBonus({_creator}, "magic")
+			else:
+				damage loop-entity by 3
 
 	{_name} is "dampen":
 		loop all entities in radius 10 around {_loc}:
@@ -1749,7 +1761,7 @@ every 2 seconds:
 						create lightning effect at loop-entity-2
 						apply slowness 255 to loop-entity-2 for 3 seconds replacing the existing effect
 						apply glowing 1 to loop-entity-2 for 3 seconds replacing the existing effect
-						damage loop-entity-2 by 10 + ({rpgSkript::maxMana::%loop-player%} / 100)
+						damage loop-entity-2 by 10 * calculateCoreStatBonus(loop-player, "magic")
 	
 
 			
@@ -3700,7 +3712,8 @@ on death of a monster:
 
 	loop all players in radius 10 around victim:
 		hasImbue(loop-player, "grimoire") is true:
-			getMinionCount(loop-player) is not equal to calculateMaxMinions(loop-player)	
+			getMinionCount(loop-player) is not equal to calculateMaxMinions(loop-player)
+			isMinion(victim) is false	
 			set {_summoner} to loop-player	
 			spawn 1 zombie at the victim:
 				setupMinion(the zombie, {_summoner})
@@ -4402,7 +4415,10 @@ function explodeFireball(index: string):
 	loop all entities in radius 8 around ({_loc}):
 		loop-entity is not a dropped item
 		hasClass(loop-entity, "nethermancer") is false
-		damage loop-entity by 60
+		if {-rpgSkript::fireballs::%{_index}%::caster} is set:
+			damage loop-entity by 60 * calculateCoreStatBonus({-rpgSkript::fireballs::%{_index}%::caster}, "magic")
+		else:
+			damage loop-entity by 60
 	create an explosion with force 3 at {_loc}
 	if {-rpgSkript::fireballs::%{_index}%::caster} is set:
 		add 5 experience to {-rpgSkript::fireballs::%{_index}%::caster}
@@ -4470,7 +4486,10 @@ function explodeCryoball(index: string):
 	delete {-rpgSkript::cryoballs::%{_index}%}
 	loop all entities in radius 14 around ({_loc}):
 		loop-entity is not a dropped item
-		damage loop-entity by 3
+		if {-rpgSkript::cryoballs::%{_index}%::caster} is set:
+			damage loop-entity by 3 * calculateCoreStatBonus({-rpgSkript::cryoballs::%{_index}%::caster}, "magic")
+		else:
+			damage loop-entity by 3
 		apply slowness 3 to loop-entity for 8 seconds replacing the existing effect
 	if {-rpgSkript::cryoballs::%{_index}%::caster} is set:
 		add 3 experience to {-rpgSkript::cryoballs::%{_index}%::caster}
@@ -4506,7 +4525,7 @@ on right click with gunpowder:
 	play sound "item.firecharge.use" at event-player
 	loop all entities in radius 8 around (event-player's targeted block):
 		loop-entity is not a dropped item
-		damage loop-entity by 24
+		damage loop-entity by 24 * calculateCoreStatBonus(event-player, "magic")
 		add 4 experience to the player
 	create an explosion with force 5 at the event-player's targeted block
 	add 10 experience to the player
@@ -4525,7 +4544,7 @@ on right click with nether quartz:
 		isMonster(loop-entity) is true
 		loop-entity's health is greater than 0
 		create lightning effect at the loop-entity
-		damage loop-entity by 8
+		damage loop-entity by 8 * calculateCoreStatBonus(event-player, "magic")
 		add 5 experience to the player
 	add 14 experience to the player
 	show mob spawner flames at (the location 1 block above the player's location)
@@ -4551,7 +4570,7 @@ on right click with magma cream:
 	make player execute command "/cast fireball"
 
 on right click with flint:
-	( hasClass(player, "wizard") or hasClass(player, "sorceror") ) is true
+	( hasClass(player, "wizard") or hasClass(player, "sorceror") or hasClass(player, "nethermancer")) is true
 	if subMana(event-player, 18) is false:
 		send "&cYou do not have enough Mana to cast the ignite spell!" to event-player
 		stop
@@ -4560,7 +4579,7 @@ on right click with flint:
 	loop all entities in radius 13 around (event-player's targeted block):
 		loop-entity is not a dropped item
 		loop-entity is not player
-		ignite loop-entity for 10 seconds
+		applyEffect(loop-entity, "firestorm", 10 seconds, event-player)
 		show mob spawner flames at (the location 1 block above the loop-entity's location)
 		add 1 experience to the player
 	add 4 experience to the player
@@ -4580,7 +4599,7 @@ on right click with blaze rod:
 		set {_vec} to the vector between {_block} and the loop-entity
 		set {_vec} to normalized {_vec}
 		push loop-entity {_vec} with force 2
-		damage loop-entity by 200
+		damage loop-entity by 200 * calculateCoreStatBonus(event-player, "magic")
 		add 16 experience to the player
 	create an explosion with force 0 at {_block}
 	explodeRadius({_block}, 13)
@@ -4602,7 +4621,7 @@ on right click with diamond:
 	loop all entities in radius 22 around (event-player's targeted block):
 		loop-entity is not a dropped item
 		loop-entity is not the player
-		damage loop-entity by 90
+		damage loop-entity by 90 * calculateCoreStatBonus(event-player, "magic")
 		add 12 experience to the player
 	create lightning effect at the event-player's targeted block
 	create an explosion with force 12 at the event-player's targeted block
@@ -4611,9 +4630,9 @@ on right click with diamond:
 
 on right click with feather:
 	( hasClass(player, "wizard") or hasClass(player, "cleric") ) is true
-	set {_amount} to 2
+	set {_amount} to 2 * calculateCoreStatBonus(event-player, "magic")
 	hasClass(player, "cleric") is true:
-		set {_amount} to 4
+		set {_amount} to 4 * calculateCoreStatBonus(event-player, "magic")
 	set {_t} to targeted entity of player
 	{_t} is a player:
 		if subMana(event-player, 150) is false:
