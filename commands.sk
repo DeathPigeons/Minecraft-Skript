@@ -169,6 +169,10 @@ command /sharestats:
 				broadcast "&aCurrent Form: Bear"
 			else if {rpgSkript::%player%::humanshape} is true:
 				broadcast "&aCurrent Form: Human"
+		if calculateMaxMinions(player) is greater than 0:
+			broadcast "&aMinions: %getMinionCount(player)% / %calculateMaxMinions(player)%"
+		if calculateMaxConstructs(player) is greater than 0:
+			broadcast "&aConstructs: %getConstructCount(player)% / %calculateMaxConstructs(player)%"
 		broadcast "&a%player% is wearing %helmet of player%&a, %chestplate of player%&a, %leggings of player%&a, %boots of player%, and %off hand item of player%"
 
 command /shareitem:
