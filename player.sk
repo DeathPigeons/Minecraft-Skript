@@ -24,6 +24,9 @@ function addXP(player: player, xp: number):
   if hasEffect({_player}, "inspired") is true:
     set {_xp} to {_xp} * 1.2
 
+  if hasClass({_player}, "wizard") is true:
+    set {_xp} to {_xp} * 1.1
+
   set {playerSkript::playerXP::%{_player}%} to {playerSkript::playerXP::%{_player}%} + ({_xp} * (1 + (0.1 * countImbue({_player}, "enlighten"))))
 
 
