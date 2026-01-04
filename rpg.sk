@@ -1077,6 +1077,16 @@ function applyEffect(entity: entity, name: string, duration: timespan, source: e
 	set {-rpgSkript::effects::%{_index}%::%{_name}%::source} to {_source}
 	set {-rpgSkript::effects::%{_index}%::%{_name}%::applied} to now
 
+	if {_name} is "bleeding":
+		if hasEffect({_entity}, "bloodrend") is true:
+			if {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} is not set:
+				set {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} to 0
+			if getEffectSource({_entity}, "bleeding") is a player:
+				set {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} to {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} + ((0.025 * calculateCoreStatBonus(getEffectSource({_entity}, "bleeding"), "damage")) * convertTimespanToSeconds({_duration}))
+			else:
+				set {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} to {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} + (0.025 * convertTimespanToSeconds({_duration}))
+
+	
 function hasEffect(entity: entity, name: string) :: boolean:
 	{_entity} is a player:
 		hasImbue({_entity}, "%{_name}% effect") is true:
@@ -1314,6 +1324,11 @@ every 1 seconds:
 		set {_effectDamage} to 0
 		set {_ndamage} to {_effectDamage}
 		set {_odamage} to {_effectDamage}
+		hasEffect(loop-entity, "bloodrend") is true:
+			set {_index} to generateIndex(loop-entity)
+			if {-rpgSkript::effects::%{_index}%::bleeding::bleedtotal} * (1 - (0.15 * countImbue(loop-entity, "iron will") )) is greater than health of loop-entity:
+				kill loop-entity
+				exit 1 loop
 		hasEffect(loop-entity, "firestorm") is true:
 			if:
 				isMinion(loop-entity) is false
@@ -2129,6 +2144,9 @@ on damage:
 			else:
 				chance of 20%:
 					apply poison 1 without particles to the victim for 5 seconds replacing the existing effect
+		attacker is a wolf:
+			chance of 50%:
+				applyEffect(victim, "bleeding", 5 seconds, getSummoner(uuid of attacker))
 	attacker is an enderman:
 		chance of 35%:
 			applyEffect(victim, "phased", 20 seconds, attacker)
@@ -2138,6 +2156,7 @@ on damage:
 			set {_ndamage} to the damage
 			scriptDebugBroadcastType("effectdamage", "%{_odamage}%: Enderman Phased Damage Bonus x1.2 -> %{_ndamage}%")
 			set {_odamage} to the damage
+	
 	if isMinion(victim) is true:
 		damage cause is fire:
 			if hasClass(getSummoner(uuid of victim), "nethermancer") is true:
@@ -2272,6 +2291,8 @@ on damage:
 	if hasWeaponLore(attacker, "Gamble") is true:
 		set {_ran} to a random number between 0 and 3
 		set the damage to the damage * {_ran}
+	if hasWeaponLore(attacker, "Bloodrend") is true:
+		applyEffect(victim, "bloodrend", 15 seconds, attacker)
 	if hasWeaponLore(attacker, "Splinter") is true:
 		chance of 30%:
 			applyEffect(victim, "vulnerable", 10 seconds, attacker)
@@ -3141,11 +3162,15 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&7Vampiric")
 				set name of {_item} to "&aGambler's Fallacy"
 		else if {_item} is any axe:
-			set {_ranMythicLore} to a random integer between 0 and 0
+			set {_ranMythicLore} to a random integer between 0 and 1
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&aGamble")
 				set {_item} to addImbue({_item}, "&7Vampiric")
 				set name of {_item} to "&aGambler's Fallacy"
+			else if {_ranMythicLore} is 1:
+				set {_item} to addImbue({_item}, "&4Bloodrend")
+				set {_item} to addImbue({_item}, "&4Bleeding")
+				set name of {_item} to "&4Bloodrend"
 		else if {_item} is a bow:
 			set {_ranMythicLore} to a random integer between 0 and 0
 			if {_ranMythicLore} is 0:
