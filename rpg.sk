@@ -2749,8 +2749,12 @@ on target:
 		cancel the event
 				
 	isMinion(event-entity) is true:
+		scriptDebugBroadcastType("construct", "Catching a target by a Minion")
 		event-entity is an iron golem:
-			if getConstructType(event-entity) is "Healing":
+			scriptDebugBroadcastType("construct", "Catching a target by a Construct")
+			if isConstructType(event-entity, "healing") is true:
+				scriptDebugBroadcastType("construct", "Cancelling a Healing Constructs Target")
+				reset target of event-entity
 				cancel the event
 				stop
 		target is a player:
@@ -4977,6 +4981,7 @@ every 2 seconds:
 			loop living entities in radius 10 of {_entity}:
 				if isMonster(loop-entity) is true:
 					loop-entity is not {_architect}:
+						isConstructType({_entity}, "healing") is false
 						set target of {_entity} to loop-entity
 
 		distance between {_entity} and {_architect} is more than 15:
@@ -6205,7 +6210,20 @@ function setupConstruct(entity: entity, architect: player, type: string):
 
 function getConstructType(entity: entity):: string:
 	if {-rpgSkript::constructs::%uuid of {_entity}%::type} is set:
+		scriptDebugBroadcastType("construct", "Fetching Type %{-rpgSkript::constructs::%uuid of {_entity}%::type}% for a Construct")
 		return {-rpgSkript::constructs::%uuid of {_entity}%::type}
+
+function isConstructType(entity: entity, type: string):: boolean:
+	if {_type} is "tesla":
+		if getConstructType({_entity}) is "tesla":
+			return true
+	if {_type} is "healing":
+		if getConstructType({_entity}) is "healing":
+			return true
+	if {_type} is "warrior":
+		if getConstructType({_entity}) is "warrior":
+			return true
+	return false
 
 function hasSameArchitect(entity: entity, entity2: entity) :: boolean:
 	{-rpgSkript::constructs::%uuid of {_entity}%::architect} is {-rpgSkript::constructs::%uuid of {_entity2}%::architect}:
@@ -6218,7 +6236,7 @@ function getArchitect(uuid: text) :: player:
 
 function getConstructCount(architect: player) :: number:
 	set {_count} to 0
-	loop {-rpgSkript::architect::*}:
+	loop {-rpgSkript::constructs::*}:
 		getArchitect(loop-index) is {_architect}:
 			set {_count} to {_count} + 1
 	return {_count}
@@ -6280,6 +6298,7 @@ command /assemble <text>:
 			then:
 				if getConstructCount(player) is less than calculateMaxConstructs(player):
 					set {_loc} to location of player
+					set {_architect} to player
 					if arg 1 is "tesla":
 						if hasResearch(player, "tesla_construct") is false:
 							send "&4Research the Tesla Construct Ability first!" to player
@@ -6292,7 +6311,7 @@ command /assemble <text>:
 								send "&bYou use your expertise to craft a Tesla Construct!" to player
 								scriptDebugBroadcastType("construct", "%player% attempts to spawn a Tesla Construct")
 								spawn 1 iron golem at {_loc}:
-									setupConstruct(the golem, player, "Tesla")
+									setupConstruct(the golem, {_architect}, "Tesla")
 					else if arg 1 is "healing":
 						if hasResearch(player, "healing_construct") is false:
 							send "&4Research the Healing Construct Ability first!" to player
@@ -6305,7 +6324,7 @@ command /assemble <text>:
 								send "&bYou use your expertise to craft a Healing Construct!" to player
 								scriptDebugBroadcastType("construct", "%player% attempts to spawn a Healing Construct")
 								spawn 1 iron golem at {_loc}:
-									setupConstruct(the golem, player, "Healing")
+									setupConstruct(the golem, {_architect}, "Healing")
 					else if arg 1 is "warrior":
 						if subMana(player, 500) is false:
 							send "&4Not enough mana to craft a Construct!" to player
@@ -6314,7 +6333,7 @@ command /assemble <text>:
 							send "&bYou use your expertise to craft a Construct!" to player
 							scriptDebugBroadcastType("construct", "%player% attempts to spawn a Warrior Construct")
 							spawn 1 iron golem at {_loc}:
-								setupConstruct(the golem, player, "Warrior")
+								setupConstruct(the golem, {_architect}, "Warrior")
 				else:
 					send "&4You have the max number of Constructs for your level!" to player
 			else:
