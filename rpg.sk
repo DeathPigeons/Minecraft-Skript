@@ -6275,7 +6275,7 @@ command /assemble <text>:
 				arg 1 is "warrior"
 			then:
 				if getConstructCount(player) is less than calculateMaxConstructs(player):
-					set {_loc} to the location of player
+					set {_loc} to location of player
 					if arg 1 is "tesla":
 						if hasResearch(player, "tesla_construct") is false:
 							send "&4Research the Tesla Construct Ability first!" to player
