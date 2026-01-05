@@ -1276,6 +1276,9 @@ every 1 seconds:
 			set line 6 of loop-player's scoreboard to " Players: %countEntities(players within 50 meters of loop-player)%"
 			set line 5 of loop-player's scoreboard to " Items on Ground: %countEntities(dropped items within 30 meters of loop-player)%"
 
+		hasClass(loop-player, "artificer") is true:
+			set line 4 of loop-player's scoreboard to "&a Constructs: %getConstructCount(loop-player)% / %calculateMaxConstructs(loop-player)%"
+
 		if getLevel(loop-player) is less than 100:
 			set line 1 of loop-player's scoreboard to "&b LVL / XP : &f%getLevel(loop-player)% & %getXP(loop-player)% &b/&f %calculateXPForLevel(loop-player)%"
 		else:
@@ -4905,7 +4908,7 @@ on place of banner:
 function isMinion(entity: entity) :: boolean:
 	if {-rpgSkript::minions::%uuid of {_entity}%} is set:
 		return true
-	else if {-rpgSkript::construct::%uuid of {_entity}%} is set:
+	else if {-rpgSkript::constructs::%uuid of {_entity}%} is set:
 		return true
 	return false
 
@@ -6196,6 +6199,7 @@ function setupConstruct(entity: entity, architect: player, type: string):
 	set {-rpgSkript::constructs::%uuid of {_entity}%} to 1
 	set {-rpgSkript::constructs::%uuid of {_entity}%::architect} to {_architect}
 	set {-rpgSkript::constructs::%uuid of {_entity}%::type} to {_type}
+	scriptDebugBroadcastType("construct", "Setting up a %{-rpgSkript::constructs::%uuid of {_entity}%::type}% Construct created by %{-rpgSkript::constructs::%uuid of {_entity}%::architect}%")
 	reset target of {_entity}
 
 
@@ -6210,7 +6214,7 @@ function hasSameArchitect(entity: entity, entity2: entity) :: boolean:
 
 function getArchitect(uuid: text) :: player:
 	{-rpgSkript::constructs::%{_uuid}%::architect} is set:
-		return {-rpgSkript::construct::%{_uuid}%::architect}
+		return {-rpgSkript::constructs::%{_uuid}%::architect}
 
 function getConstructCount(architect: player) :: number:
 	set {_count} to 0
@@ -6286,6 +6290,7 @@ command /assemble <text>:
 								stop
 							else:
 								send "&bYou use your expertise to craft a Tesla Construct!" to player
+								scriptDebugBroadcastType("construct", "%player% attempts to spawn a Tesla Construct")
 								spawn 1 iron golem at {_loc}:
 									setupConstruct(the golem, player, "Tesla")
 					else if arg 1 is "healing":
@@ -6298,6 +6303,7 @@ command /assemble <text>:
 								stop
 							else:
 								send "&bYou use your expertise to craft a Healing Construct!" to player
+								scriptDebugBroadcastType("construct", "%player% attempts to spawn a Healing Construct")
 								spawn 1 iron golem at {_loc}:
 									setupConstruct(the golem, player, "Healing")
 					else if arg 1 is "warrior":
@@ -6306,6 +6312,7 @@ command /assemble <text>:
 							stop
 						else:
 							send "&bYou use your expertise to craft a Construct!" to player
+							scriptDebugBroadcastType("construct", "%player% attempts to spawn a Warrior Construct")
 							spawn 1 iron golem at {_loc}:
 								setupConstruct(the golem, player, "Warrior")
 				else:
