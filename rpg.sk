@@ -6275,6 +6275,7 @@ command /assemble <text>:
 				arg 1 is "warrior"
 			then:
 				if getConstructCount(player) is less than calculateMaxConstructs(player):
+					set {_loc} to the location of player
 					if arg 1 is "tesla":
 						if hasResearch(player, "tesla_construct") is false:
 							send "&4Research the Tesla Construct Ability first!" to player
@@ -6285,7 +6286,7 @@ command /assemble <text>:
 								stop
 							else:
 								send "&bYou use your expertise to craft a Tesla Construct!" to player
-								spawn 1 golem at the player:
+								spawn 1 iron golem at {_loc}:
 									setupConstruct(the golem, player, "Tesla")
 					else if arg 1 is "healing":
 						if hasResearch(player, "healing_construct") is false:
@@ -6297,7 +6298,7 @@ command /assemble <text>:
 								stop
 							else:
 								send "&bYou use your expertise to craft a Healing Construct!" to player
-								spawn 1 golem at the player:
+								spawn 1 iron golem at {_loc}:
 									setupConstruct(the golem, player, "Healing")
 					else if arg 1 is "warrior":
 						if subMana(player, 500) is false:
@@ -6305,7 +6306,7 @@ command /assemble <text>:
 							stop
 						else:
 							send "&bYou use your expertise to craft a Construct!" to player
-							spawn 1 golem at the player:
+							spawn 1 iron golem at {_loc}:
 								setupConstruct(the golem, player, "Warrior")
 				else:
 					send "&4You have the max number of Constructs for your level!" to player
