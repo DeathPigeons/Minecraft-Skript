@@ -1549,12 +1549,12 @@ every 1 seconds:
 					set {_effectDamage} to {_effectDamage} + ({_dmg} * calculateCoreStatBonus(getEffectSource({_entity}, "venom"), "damage"))
 				else:
 					set {_effectDamage} to {_effectDamage} + {_dmg}
-				apply weakness 1 without particles to the {_entity} for 2 seconds replacing the existing effect
+				apply weakness 1 without particles to {_entity} for 2 seconds replacing the existing effect
 				applyEffect({_entity}, "vulnerable", 7.5 seconds, getEffectSource({_entity}, "venom"))
 		hasEffect({_entity}, "cacooned") is true:
-			apply weakness 2 without particles to the {_entity} for 2 seconds replacing the existing effect
-			apply slowness 255 without particles to the {_entity} for 2 seconds replacing the existing effect
-			apply blindness 1 without particles to the {_entity} for 2 seconds replacing the existing effect
+			apply weakness 2 without particles to {_entity} for 2 seconds replacing the existing effect
+			apply slowness 255 without particles to {_entity} for 2 seconds replacing the existing effect
+			apply blindness 1 without particles to {_entity} for 2 seconds replacing the existing effect
 			set {_effectDamage} to {_effectDamage} + 0.5
 			applyEffect({_entity}, "vulnerable", 7.5 seconds, getEffectSource({_entity}, "cacooned"))				
 			chance of 33%:
@@ -1563,7 +1563,7 @@ every 1 seconds:
 					set attack damage attribute of the spider to 0.75 * attack damage attribute of the cave spider
 					set maximum health of the spider to 2.5						
 		hasEffect({_entity}, "shocking") is true:
-			apply slowness 255 without particles to the {_entity} for 2 seconds replacing the existing effect
+			apply slowness 255 without particles to {_entity} for 2 seconds replacing the existing effect
 			loop all entities in radius 5 around {_entity}:
 				loop-entity is not {_entity}
 				hasEffect(loop-entity, "shocking") is false
@@ -1602,12 +1602,12 @@ every 1 seconds:
 			apply glowing 1 without particles to {_entity} for 5 seconds replacing the existing effect
 
 		hasEffect({_entity}, "invisible") is true:
-			apply invisibility 1 without particles to the {_entity} for 5 seconds replacing the existing effect
+			apply invisibility 1 without particles to {_entity} for 5 seconds replacing the existing effect
 			hasImbue({_entity}, "spidersilk") is true:
 				light level at {_entity} is less than 11
 				applyEffect({_entity}, "invisible", 5 seconds, {_entity})			
 			hasClass({_entity}, "rogue") is true:
-				apply swiftness 4 without particles to the {_entity} for 5 seconds replacing the existing effect
+				apply swiftness 4 without particles to {_entity} for 5 seconds replacing the existing effect
 				light level at {_entity} is less than 11
 				applyEffect({_entity}, "invisible", 5 seconds, {_entity})
 				scriptDebugBroadcastType("rogue", "Resetting Rogue Invisibility")
@@ -1616,7 +1616,7 @@ every 1 seconds:
 					reset target of loop-monster
 
 		hasEffect({_entity}, "levitate") is true:
-			apply levitation 1 without particles to the {_entity} for 5 seconds replacing the existing effect
+			apply levitation 1 without particles to {_entity} for 5 seconds replacing the existing effect
 			applyEffect({_entity}, "vulnerable", 5 seconds, getEffectSource({_entity}, "levitate"))
 
 		hasEffect({_entity}, "corrupting dunes") is true:
@@ -1690,7 +1690,7 @@ every 1 seconds:
 			scriptDebugBroadcastType("shielded", "Reducing Effect Damage to 0 on %{_entity}%")
 			stop
 
-		if hasImbue(loop-entity, "guardian") is true:
+		if hasImbue({_entity}, "guardian") is true:
 			set {_effectDamage} to {_effectDamage} * 0.75
 			
 		if {_effectDamage} is not 0:
