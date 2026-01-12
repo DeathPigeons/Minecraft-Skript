@@ -9,7 +9,7 @@ on script load:
 function calculateXPForLevel(player: player):: number:
   set {_xpneeded} to 0
 
-  set {_xpneeded} to ({playerSkript::playerLevel::%{_player}%} * 15 ) + 10
+  set {_xpneeded} to floor(10 + 200 * (1.027^({playerSkript::playerLevel::%{_player}%}) - 1 ))
 
   return {_xpneeded}
 
@@ -38,6 +38,8 @@ function addXP(player: player, xp: number):
 
 function levelUp(player: player):
   set {playerSkript::playerXP::%{_player}%} to {playerSkript::playerXP::%{_player}%} - calculateXPForLevel({_player})
+  if {playerSkript::playerXP::%{_player}%} is greater than calculateXPForLevel({_player}):
+    levelUp({_player})
   set {playerSkript::playerLevel::%{_player}%} to {playerSkript::playerLevel::%{_player}%} + 1
   if {playerSkript::numResearchPoints::%{_player}%} is not set:
     set {playerSkript::numResearchPoints::%{_player}%} to 0
