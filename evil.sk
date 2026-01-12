@@ -384,12 +384,18 @@ function summonButcher(player:player, chance:number):
         set held item of the zombie to generateLootAxe()
         set held item of the zombie to generateLegendaryLore(held item of the zombie, "Butcher")
       set off hand item of the zombie to generateLootShield() 
-      set helmet of the zombie to generateMythicLore(helmet of zombie)
-      set chestplate of the zombie to generateMythicLore(chestplate of zombie)
-      set leggings of the zombie to generateMythicLore(leggings of zombie)
-      set boots of the zombie to generateMythicLore(boots of zombie)
-      set off hand item of the zombie to generateMythicLore(off hand item of zombie)
-      set held item of the zombie to generateMythicLore(held item of zombie)	
+      chance of (2 * {rpgdiff})%:
+        set helmet of the zombie to generateMythicLore(helmet of zombie)
+      chance of (2 * {rpgdiff})%:
+        set chestplate of the zombie to generateMythicLore(chestplate of zombie)
+      chance of (2 * {rpgdiff})%:
+        set leggings of the zombie to generateMythicLore(leggings of zombie)
+      chance of (2 * {rpgdiff})%:
+        set boots of the zombie to generateMythicLore(boots of zombie)
+      chance of (2 * {rpgdiff})%:
+        set off hand item of the zombie to generateMythicLore(off hand item of zombie)
+      chance of (2 * {rpgdiff})%:
+        set held item of the zombie to generateMythicLore(held item of zombie)	
       scriptDebugBroadcastType("difficulty", "Spawning a Butcher at %{_player}%")  
       add uuid of the zombie to {-evilSkript::bossMobs::*}
 
@@ -613,11 +619,16 @@ function makeBoss(entity:entity):
     set held item of {_entity} to generateLootBow()
     set held item of {_entity} to generateLegendaryLore(held item of {_entity}, "Headhunter")
     heal {_entity}
-  set helmet of {_entity} to generateMythicLore(helmet of {_entity})
-  set chestplate of {_entity} to generateMythicLore(chestplate of {_entity})
-  set leggings of {_entity} to generateMythicLore(leggings of {_entity})
-  set boots of {_entity} to generateMythicLore(boots of {_entity})
-  set off hand item of {_entity} to generateMythicLore(off hand item of {_entity})
+  chance of (2 * {rpgdiff})%:
+    set helmet of {_entity} to generateMythicLore(helmet of {_entity})
+  chance of (2 * {rpgdiff})%:
+    set chestplate of {_entity} to generateMythicLore(chestplate of {_entity})
+  chance of (2 * {rpgdiff})%:
+    set leggings of {_entity} to generateMythicLore(leggings of {_entity})
+  chance of (2 * {rpgdiff})%:
+    set boots of {_entity} to generateMythicLore(boots of {_entity})
+  chance of (2 * {rpgdiff})%:
+    set off hand item of {_entity} to generateMythicLore(off hand item of {_entity})
   set held item of {_entity} to generateMythicLore(held item of {_entity})	
         
   add uuid of {_entity} to {-evilSkript::bossMobs::*}
@@ -775,6 +786,9 @@ every 10 seconds:
 
     if loop-entity is a spider:
       if {-evilSkript::%loop-entity%::isBoss} is true:
+        hasEffect(loop-entity, "silenced") is true:
+          chance of 30%:
+            stop
         loop all players in radius 10 around loop-entity:
           set {_ability} to a random integer between 1 and 3
           if {_ability} is 1:
@@ -797,6 +811,9 @@ every 10 seconds:
              
     if loop-entity is a zombie:
       if {-evilSkript::%loop-entity%::isButcher} is true:
+        hasEffect(loop-entity, "silenced") is true:
+          chance of 30%:
+            stop
         chance of 30%:
           set {_Block} to 0
           set {_Cone} to 0
@@ -813,12 +830,18 @@ every 10 seconds:
               chance of 50%:
                 applyEffect(loop-entity-2, "bleeding", 5 seconds, loop-entity-1)
       if {-evilSkript::%loop-entity%::Rotwalker} is true:
+        hasEffect(loop-entity, "silenced") is true:
+          chance of 30%:
+            stop
         loop all players in radius 20 around loop-entity:
           chance of 30%:
             applyEffect(loop-player, "radiated", 30 seconds, loop-entity-1)
             send "&aYou feel your blood boil!" to loop-player
     if loop-entity is an evoker:
       {-evilSkript::%loop-entity%::isBoss} is true
+      hasEffect(loop-entity, "silenced") is true:
+        chance of 30%:
+      stop
       chance of 50%:
         loop all players in radius 20 around loop-entity:
           hasEffect(loop-player, "invisible") is false
