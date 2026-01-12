@@ -263,6 +263,9 @@ function setMaxHealth(player: player):
 	hasEffect({_player}, "inspired") is true:
 		set {_newMax} to {_newMax} * 1.1
 
+	hasEffect({_player}, "amplified") is true:
+		set {_newMax} to {_newMax} * 1.1
+
 	hasImbue({_player}, "photosynthesis") is true:
 		sun light level at {_player} is greater than 13:
 			time in world of {_player} is not between 19:00 and 5:00:
@@ -1794,6 +1797,10 @@ every 5 seconds:
 
 	loop all players:
 		hasClass(loop-player, "artificer") is true:
+			hasResearch(loop-player, "arm_drills") is true:
+				set {rpgSkript::%loop-player%::drillCharges} to {rpgSkript::%loop-player%::drillCharges} + 1
+				if {rpgSkript::%loop-player%::drillCharges} is greater than 5:
+					set {rpgSkript::%loop-player%::drillCharges} to 5
 			hasResearch(loop-player, "mining_helmet") is true:
 				light level at loop-player is less than 11:
 					apply night vision 2 without particles to the loop-player for 15 seconds replacing the existing effect						
@@ -1803,7 +1810,17 @@ every 5 seconds:
 						isMonster(loop-entity-3) is false
 						applyEffect(loop-entity-3, "regeneration", 10 seconds, loop-player)
 						if health of loop-entity-3 is equal to maximum health of loop-entity-3:
-							apply absorption 2 without particles to the loop-entity-3 for 10 seconds replacing the existing effect							
+							apply absorption 2 without particles to the loop-entity-3 for 10 seconds replacing the existing effect					
+						chance of 20%:
+							apply saturation 2 without particles to the loop-entity-3 for 3 seconds replacing the existing effect
+				if getConstructType(loop-value-2) is "Amplifier":
+					loop all entities in radius 10 around loop-value-2:
+						isMonster(loop-entity-3) is false
+						applyEffect(loop-entity-3, "smplified", 10 seconds, loop-player)
+				if getConstructType(loop-value-2) is "Silencer":
+					loop all entities in radius 10 around loop-value-2:
+						isMonster(loop-entity-3) is true
+						applyEffect(loop-entity-3, "silenced", 10 seconds, loop-player)
 				if getConstructType(loop-value-2) is "Tesla":
 					loop all monsters in radius 10 around loop-value-2:
 						isMinion(loop-entity-3) is false
@@ -1811,7 +1828,38 @@ every 5 seconds:
 						apply glowing 1 to loop-entity-3 for 1.5 seconds replacing the existing effect
 						applyEffect(loop-entity-3, "vulnerable", 3 seconds, loop-player)
 						damage loop-entity-3 by 2 * calculateCoreStatBonus(loop-player, "minion")	
-						wait 1 tick					
+						wait 1 tick
+				if getConstructType(loop-value-2) is "Gravitron":
+					set {_ability} to a random integer between 0 and 1
+					loop all monsters in radius 10 around loop-value-2:
+						isMinion(loop-entity-3) is false
+						if {_ability} is 0:
+							chance of 30%:
+								set {_vec} to normalized vector between loop-value-2 and loop-entity-3
+								push loop-entity-3 {_vec} with force 0.9
+								push loop-entity-3 upwards with force 0.6
+								apply slowness 3 to loop-entity-3 for 1.5 seconds replacing the existing effect
+								damage loop-entity-3 by 2 * calculateCoreStatBonus(loop-player, "minion")
+						if {_ability} is 1:
+							chance of 30%:
+								set {_vec} to normalized vector between loop-entity-3 and loop-value-2
+								push loop-entity-3 {_vec} with force 0.9
+								push loop-entity-3 upwards with force 0.6
+								apply slowness 3 to loop-entity-3 for 1.5 seconds replacing the existing effect
+								damage loop-entity-3 by 2 * calculateCoreStatBonus(loop-player, "minion")	
+						wait 1 tick
+				if getConstructType(loop-value-2) is "missile":
+					set {_canFire} to true
+					loop all monsters in radius 10 around loop-value-2:
+						{_canFire} is true
+						isMinion(loop-entity-3) is false
+						chance of 30%:
+							loop all monsters in radius 3 around loop-entity-3:
+								isMinion(loop-entity-4) is false
+								damage loop-entity-3 by 5 * calculateCoreStatBonus(loop-player, "minion")	
+								create a fake explosion at loop-entity-3
+								set {_canFire} to false
+						wait 1 tick							
 					
 		hasImbue(loop-player, "Anti-Gravity") is true:
 			loop all entities in radius 20 around loop-player:
@@ -2021,6 +2069,10 @@ on damage:
 
 	hasEffect(victim, "vulnerable") is true:
 		set the damage to the damage * 2
+	hasEffect(victim, "silenced") is true:
+		set the damage to the damage * 1.5
+	hasEffect(attacker, "amplified") is true:
+		set the damage to the damage * 1.5
 	hasImbue(victim, "Subdue to Anger") is true:
 		set the damage to the damage * 1.50
 	hasEffect(victim, "inspired") is true:
@@ -2702,6 +2754,11 @@ on damage:
 	
 on target:
 
+	hasEffect(event-entity, "silenced") is true:
+		chance of 30%:
+			cancel the event
+			stop
+
 	{-evilSkript::%event-entity%::summoner} is true:
 		{rpgSkript::%event-entity%::lastSummon} is not set:
 			set {rpgSkript::%event-entity%::lastSummon} to 30 minutes ago
@@ -2752,8 +2809,13 @@ on target:
 		scriptDebugBroadcastType("construct", "Catching a target by a Minion")
 		event-entity is an iron golem:
 			scriptDebugBroadcastType("construct", "Catching a target by a Construct")
-			if isConstructType(event-entity, "healing") is true:
-				scriptDebugBroadcastType("construct", "Cancelling a Healing Constructs Target")
+			if at least one of:
+				isConstructType(event-entity, "healing") is true
+				isConstructType(event-entity, "amplifier") is true	
+				isConstructType(event-entity, "silencer") is true
+				isConstructType(event-entity, "missile") is true
+			then:	
+				scriptDebugBroadcastType("construct", "Cancelling a Support Constructs Target")
 				reset target of event-entity
 				cancel the event
 				stop
@@ -3551,6 +3613,11 @@ on spawn:
 			set attack damage attribute of entity to (calculateCoreStatBonus({_architect}, "minion")* 0.75) * (1 + (0.075 * countImbue({_architect}, "Minion Boost"))) * attack damage attribute of entity
 			set maximum health of entity to (calculateCoreStatBonus({_architect}, "minion") * 0.75) * (1 + (0.075 * countImbue({_architect}, "Minion Boost"))) * maximum health of entity
 			set the event-entity's display name to "&b%{_architect}%'s %getConstructType(event-entity)% Construct"
+		else if event-entity is a phantom:
+			set {_architect} to getArchitect(uuid of event-entity)
+			set attack damage attribute of entity to (calculateCoreStatBonus({_architect}, "minion")* 0.75) * (1 + (0.075 * countImbue({_architect}, "Minion Boost"))) * attack damage attribute of entity
+			set maximum health of entity to (calculateCoreStatBonus({_architect}, "minion") * 0.75) * (1 + (0.075 * countImbue({_architect}, "Minion Boost"))) * maximum health of entity
+			set the event-entity's display name to "&b%{_architect}%'s %getConstructType(event-entity)% Drone"		
 		else:			
 			set {_caster} to getSummoner(uuid of event-entity)
 			hasImbue({_caster}, "Grimoire") is true:
@@ -4075,6 +4142,9 @@ function setupMana(player: player):
 		set {_newMax} to {_newMax} * 1.25
 
 	hasEffect({_player}, "inspired") is true:
+		set {_newMax} to {_newMax} * 1.1
+
+	hasEffect({_player}, "amplified") is true:
 		set {_newMax} to {_newMax} * 1.1
 
 	set {_newMax} to {_newMax} * calculateCoreStatBonus({_player}, "mana")
@@ -4908,6 +4978,20 @@ on place of banner:
 	lastLoreLine(event-item) is greater than 1:
 		cancel the event
 		stop
+
+on combust:
+	isMinion(entity) is true:
+		cancel the event
+		stop
+		
+on pick up:
+	isMinion(entity) is true:
+		cancel the event
+		stop
+	isMonster(entity) is true:
+		if lastLoreLine(event-item) > 1:
+			cancel the event
+			stop
 		
 function isMinion(entity: entity) :: boolean:
 	if {-rpgSkript::minions::%uuid of {_entity}%} is set:
@@ -4982,6 +5066,9 @@ every 2 seconds:
 				if isMonster(loop-entity) is true:
 					loop-entity is not {_architect}:
 						isConstructType({_entity}, "healing") is false
+						isConstructType({_entity}, "silencer") is false
+						isConstructType({_entity}, "amplifier") is false
+						isConstructType({_entity}, "missile") is false
 						set target of {_entity} to loop-entity
 
 		distance between {_entity} and {_architect} is more than 15:
@@ -5489,6 +5576,9 @@ function setupEnergy(player: player):
 		set {_newEnergy} to {_newEnergy} + 5
 
 	if hasEffect({_player}, "inspired") is true:
+		set {_newEnergy} to {_newEnergy} + 2
+
+	if hasEffect({_player}, "amplified") is true:
 		set {_newEnergy} to {_newEnergy} + 2
 
 	set {_newEnergy} to floor({_newEnergy})
@@ -6129,6 +6219,15 @@ function setupWildshape(player: player):
 	if hasImbue({_player}, "Wildshape Boost") is true:
 		set {_newWildshape} to {_newWildshape} + 0.5 * {_newWildshape} * countImbue({_player}, "Wildshape Boost")
 
+	if hasEffect({_player}, "resourceboost") is true:
+		set {_newWildshape} to {_newWildshape} + 1
+
+	if hasEffect({_player}, "inspired") is true:
+		set {_newWildshape} to {_newWildshape} + 1
+
+	if hasEffect({_player}, "amplified") is true:
+		set {_newWildshape} to {_newWildshape} + 1
+
 	set {_newWildshape} to floor({_newWildshape})
 	if {_newWildshape} is not {rpgSkript::%{_player}%::maxWildshape}:
 		set {rpgSkript::%{_player}%::maxWildshape} to {_newWildshape}
@@ -6202,6 +6301,29 @@ function displayWildshape(player: player):
 		#then:
 			# add 2 to item amount of event-item
 
+on right click with air:
+	hasClass(event-player, "artificer") is true:
+		event-player's off hand item is air
+		hasResearch(event-player, "arm_drills") is true:
+			{rpgSkript::%event-player%::drillCharges} is not set:
+				set {rpgSkript::%event-player%::drilLCharges} to 5
+			if {rpgSkript::%event-player%::drillCharges} is less than 1:
+				send "&cYou must wait before you can drill again!" to event-player
+				stop
+			else:
+				loop all blocks in radius 0.99 around event-player's targeted block:
+					if at least one of:
+						loop-block is gravel
+						loop-block is dirt
+						loop-block is grass block
+						loop-block is sand
+						loop-block is any leaves
+						loop-block is stone
+						loop-block is sandstone
+						loop-block is deepslate
+					then:
+						break loop-block naturally
+
 function setupConstruct(entity: entity, architect: player, type: string):
 	set {-rpgSkript::constructs::%uuid of {_entity}%} to 1
 	set {-rpgSkript::constructs::%uuid of {_entity}%::architect} to {_architect}
@@ -6224,6 +6346,21 @@ function isConstructType(entity: entity, type: string):: boolean:
 			return true
 	if {_type} is "warrior":
 		if getConstructType({_entity}) is "warrior":
+			return true
+	if {_type} is "amplifier":
+		if getConstructType({_entity}) is "amplifier":
+			return true
+	if {_type} is "silencer":
+		if getConstructType({_entity}) is "silencer":
+			return true
+	if {_type} is "guardian":
+		if getConstructType({_entity}) is "guardian":
+			return true
+	if {_type} is "missile":
+		if getConstructType({_entity}) is "missile":
+			return true
+	if {_type} is "gravitron":
+		if getConstructType({_entity}) is "gravitron":
 			return true
 	return false
 
@@ -6293,6 +6430,11 @@ command /assemble <text>:
 				arg 1 is "tesla"
 				arg 1 is "healing"
 				arg 1 is "warrior"
+				arg 1 is "amplifier"
+				arg 1 is "silencer"
+				arg 1 is "gravitron"
+				arg 1 is "guardian"
+				arg 1 is "missile"
 			then:
 				if getConstructCount(player) is less than calculateMaxConstructs(player):
 					set {_loc} to location of player
@@ -6323,6 +6465,71 @@ command /assemble <text>:
 								scriptDebugBroadcastType("construct", "%player% attempts to spawn a Healing Construct")
 								spawn 1 iron golem at {_loc}:
 									setupConstruct(the golem, {_architect}, "Healing")
+					else if arg 1 is "amplifier":
+						if hasResearch(player, "amplifier_construct") is false:
+							send "&4Research the Amplifier Construct Ability first!" to player
+							stop
+						else:
+							if subMana(player, 750) is false:
+								send "&4Not enough mana to craft a Amplifier Construct!" to player
+								stop
+							else:
+								send "&bYou use your expertise to craft a Amplifier Construct!" to player
+								scriptDebugBroadcastType("construct", "%player% attempts to spawn a Amplifier Construct")
+								spawn 1 iron golem at {_loc}:
+									setupConstruct(the golem, {_architect}, "Amplifier")
+					else if arg 1 is "silencer":
+						if hasResearch(player, "silencer_construct") is false:
+							send "&4Research the Silencer Construct Ability first!" to player
+							stop
+						else:
+							if subMana(player, 750) is false:
+								send "&4Not enough mana to craft a Silencer Construct!" to player
+								stop
+							else:
+								send "&bYou use your expertise to craft a Silencer Construct!" to player
+								scriptDebugBroadcastType("construct", "%player% attempts to spawn a Silencer Construct")
+								spawn 1 iron golem at {_loc}:
+									setupConstruct(the golem, {_architect}, "Silencer")
+					else if arg 1 is "gravitron":
+						if hasResearch(player, "gravitron_construct") is false:
+							send "&4Research the Gravitron Construct Ability first!" to player
+							stop
+						else:
+							if subMana(player, 750) is false:
+								send "&4Not enough mana to craft a Gravitron Construct!" to player
+								stop
+							else:
+								send "&bYou use your expertise to craft a Gravitron Construct!" to player
+								scriptDebugBroadcastType("construct", "%player% attempts to spawn a Gravitron Construct")
+								spawn 1 iron golem at {_loc}:
+									setupConstruct(the golem, {_architect}, "Gravitron")
+					else if arg 1 is "guardian":
+						if hasResearch(player, "guardian_construct") is false:
+							send "&4Research the Guardian Construct Ability first!" to player
+							stop
+						else:
+							if subMana(player, 750) is false:
+								send "&4Not enough mana to craft a Guardian Construct!" to player
+								stop
+							else:
+								send "&bYou use your expertise to craft a Guardian Construct!" to player
+								scriptDebugBroadcastType("construct", "%player% attempts to spawn a Guardian Construct")
+								spawn 1 iron golem at {_loc}:
+									setupConstruct(the golem, {_architect}, "Guardian")
+					else if arg 1 is "missile":
+						if hasResearch(player, "missile_drone") is false:
+							send "&4Research the Missile Drone Ability first!" to player
+							stop
+						else:
+							if subMana(player, 750) is false:
+								send "&4Not enough mana to craft a Missile Drone!" to player
+								stop
+							else:
+								send "&bYou use your expertise to craft a Missile Drone!" to player
+								scriptDebugBroadcastType("construct", "%player% attempts to spawn a Missile Drone")
+								spawn 1 phantom at {_loc}:
+									setupConstruct(the phantom, {_architect}, "Missile")									
 					else if arg 1 is "warrior":
 						if subMana(player, 500) is false:
 							send "&4Not enough mana to craft a Construct!" to player
@@ -6364,29 +6571,65 @@ function populateArtificerControlPanelMenu(player: player, menu: inventory):
 	set line 1 of {_item}'s lore to "&bAllows you to Construct AoF Tesla Constructs"
 	set slot 1 of {_menu} to {_item}
 
+	set {_item} to red wool named "&4Guardian Construct"
+	if hasResearch({_player}, "guardian_construct") is true:
+		set {_item} to lime wool named "&bGuardian Construct"
+	set line 1 of {_item}'s lore to "&bAllows you to Construct Guardian Constructs that split damage with you"
+	set slot 2 of {_menu} to {_item}
+
+	set {_item} to red wool named "&4Amplifier Construct"
+	if hasResearch({_player}, "amplifier_construct") is true:
+		set {_item} to lime wool named "&bAmplifier Construct"
+	set line 1 of {_item}'s lore to "&bAllows you to Construct Amplifier Constructs that boost damage"
+	set slot 3 of {_menu} to {_item}
+
+	set {_item} to red wool named "&4Silencer Construct"
+	if hasResearch({_player}, "silencer_construct") is true:
+		set {_item} to lime wool named "&bSilencer Construct"
+	set line 1 of {_item}'s lore to "&bAllows you to Construct Silencer Constructs that debuff enemies"
+	set slot 4 of {_menu} to {_item}
+
+	set {_item} to red wool named "&4Gravitron Construct"
+	if hasResearch({_player}, "gravitron_construct") is true:
+		set {_item} to lime wool named "&bSilencer Construct"
+	set line 1 of {_item}'s lore to "&bAllows you to Construct Gravitron Constructs that pull/launch enemies"
+	set slot 5 of {_menu} to {_item}
+
+	set {_item} to red wool named "&4Missile Drone"
+	if hasResearch({_player}, "missile_drone") is true:
+		set {_item} to lime wool named "&bMissile Drone"
+	set line 1 of {_item}'s lore to "&bAllows you to Construct Missile Drones that fire HE Missiles at targets"
+	set slot 6 of {_menu} to {_item}	
+
 	set {_item} to red wool named "&4Mining Helmet"
 	if hasResearch({_player}, "mining_helmet") is true:
 		set {_item} to lime wool named "&bMining Helmet"
 	set line 1 of {_item}'s lore to "&bGrants you permanent Night Vision at low-light levels"
 	set slot 8 of {_menu} to {_item}
 
+	set {_item} to red wool named "&4Arm Drills"
+	if hasResearch({_player}, "arm_drills") is true:
+		set {_item} to lime wool named "&bArm Drills"
+	set line 1 of {_item}'s lore to "&bYour Exo-Suit has built in Arm Drills that allow you to crush certain materials"
+	set slot 16 of {_menu} to {_item}
+
 	set {_item} to red wool named "&4Countermeasures"
 	if hasResearch({_player}, "countermeasures") is true:
 		set {_item} to lime wool named "&bCountermeasures"
 	set line 1 of {_item}'s lore to "&bYour Exo-Suit is fine-tuned for defense"
-	set slot 16 of {_menu} to {_item}
+	set slot 17 of {_menu} to {_item}
 
 	set {_item} to red wool named "&4Life-Saving Procedures"
 	if hasResearch({_player}, "life-saving_procedures") is true:
 		set {_item} to lime wool named "&bLife-Saving Procedurs"
 	set line 1 of {_item}'s lore to "&bYour Exo-Suit is capable of helping you survive near-death experiences"
-	set slot 24 of {_menu} to {_item}
+	set slot 26 of {_menu} to {_item}
 
 	set {_item} to red wool named "&4Cushioned Soles"
 	if hasResearch({_player}, "cushioned_soles") is true:
 		set {_item} to lime wool named "&bCushioned Soles"
 	set line 1 of {_item}'s lore to "&bGreatly reduces fall damage"
-	set slot 32 of {_menu} to {_item}
+	set slot 35 of {_menu} to {_item}
 
 
 on inventory click:
@@ -6412,6 +6655,51 @@ on inventory click:
 				stop
 			addResearch(player, "tesla_construct")
 
+	if index of event-slot is 2:
+		if hasResearch(player, "guardian_construct") is true:
+			send "&4You already have this research!" to player
+		else:
+			if takeItems( player, (64 redstone and 32 gold ingot and 16 diamond and 4 netherite ingot) ) is false:
+				send "&cDo not have the necessary items to unlock this! Items Needed: 64 redstone and 32 gold ingot and 16 diamond and 4 netherite ingot" to player
+				stop
+			addResearch(player, "guardian_construct")
+
+	if index of event-slot is 3:
+		if hasResearch(player, "amplifier_construct") is true:
+			send "&4You already have this research!" to player
+		else:
+			if takeItems( player, (64 redstone and 32 lapis lazuli and 16 emerald) ) is false:
+				send "&cDo not have the necessary items to unlock this! Items Needed: 64 redstone and 32 lapis lazuli and 16 emerald" to player
+				stop
+			addResearch(player, "amplifier_construct")
+
+	if index of event-slot is 4:
+		if hasResearch(player, "silencer_construct") is true:
+			send "&4You already have this research!" to player
+		else:
+			if takeItems( player, (64 redstone and 32 copper ingot and 16 emerald and 4 diamond) ) is false:
+				send "&cDo not have the necessary items to unlock this! Items Needed: 64 redstone and 32 copper ingot and 16 emerald and 4 diamond" to player
+				stop
+			addResearch(player, "silencer_construct")
+
+	if index of event-slot is 5:
+		if hasResearch(player, "gravitron_construct") is true:
+			send "&4You already have this research!" to player
+		else:
+			if takeItems( player, (64 redstone and 64 iron ingot and 4 obsidian and 4 netherite ingot) ) is false:
+				send "&cDo not have the necessary items to unlock this! Items Needed: 64 redstone and 64 iron ingot and 4 obsidian and 4 netherite ingot" to player
+				stop
+			addResearch(player, "gravitron_construct")
+
+	if index of event-slot is 6:
+		if hasResearch(player, "missile_drone") is true:
+			send "&4You already have this research!" to player
+		else:
+			if takeItems( player, (64 redstone and 32 copper ingot and 16 gunpowder and 4 tnt) ) is false:
+				send "&cDo not have the necessary items to unlock this! Items Needed: 64 redstone and 32 copper ingot and 16 gunpowder and 4 tnt" to player
+				stop
+			addResearch(player, "missile_drone")
+
 	if index of event-slot is 8:
 		if hasResearch(player, "mining_helmet") is true:
 			send "&4You already have this research!" to player
@@ -6422,6 +6710,15 @@ on inventory click:
 			addResearch(player, "mining_helmet")
 
 	if index of event-slot is 16:
+		if hasResearch(player, "arm_drills") is true:
+			send "&4You already have this research!" to player
+		else:
+			if takeItems( player, (64 redstone and 32 iron ingot and 32 copper ingot and 12 diamond) ) is false:
+				send "&cDo not have the necessary items to unlock this! Items Needed: 64 redstone and 32 iron ingot and 32 copper ingot and 12 diamond" to player
+				stop
+			addResearch(player, "arm_drills")
+
+	if index of event-slot is 17:
 		if hasResearch(player, "countermeasures") is true:
 			send "&4You already have this research!" to player
 		else:
@@ -6430,7 +6727,7 @@ on inventory click:
 				stop
 			addResearch(player, "countermeasures")
 
-	if index of event-slot is 24:
+	if index of event-slot is 26:
 		if hasResearch(player, "life-saving_procedures") is true:
 			send "&4You already have this research!" to player
 		else:
@@ -6439,7 +6736,7 @@ on inventory click:
 				stop
 			addResearch(player, "life-saving_procedures")
 
-	if index of event-slot is 32:
+	if index of event-slot is 35:
 		if hasResearch(player, "cushioned_soles") is true:
 			send "&4You already have this research!" to player
 		else:
