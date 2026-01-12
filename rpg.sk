@@ -2767,9 +2767,9 @@ on target:
 			cancel the event
 			stop
 		isMinion(target) is true:
-			hasSameSummoner(event-entity, target) is true:
-				cancel the event
-				stop
+			cancel the event
+			stop
+			
 		event-entity is a pillager:
 			{-rpgSkript::%event-entity%::raidMage} is true:
 				cancel the event
