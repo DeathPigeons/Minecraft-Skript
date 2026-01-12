@@ -5188,6 +5188,8 @@ function setupMinion(entity: entity, summoner: player):
 function hasSameSummoner(entity: entity, entity2: entity) :: boolean:
 	{-rpgSkript::minions::%uuid of {_entity}%::summoner} is {-rpgSkript::minions::%uuid of {_entity2}%::summoner}:
 		return true
+	{-rpgSkript::constructs::%uuid of {_entity}%::architect} is {-rpgSkript::constructs::%uuid of {_entity2}%::architect}:
+		return true
 	return false
 
 function getSummoner(uuid: text) :: player:
@@ -6225,10 +6227,6 @@ function isConstructType(entity: entity, type: string):: boolean:
 			return true
 	return false
 
-function hasSameArchitect(entity: entity, entity2: entity) :: boolean:
-	{-rpgSkript::constructs::%uuid of {_entity}%::architect} is {-rpgSkript::constructs::%uuid of {_entity2}%::architect}:
-		return true
-	return false
 
 function getArchitect(uuid: text) :: player:
 	{-rpgSkript::constructs::%{_uuid}%::architect} is set:
