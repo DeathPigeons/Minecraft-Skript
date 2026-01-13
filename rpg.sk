@@ -1555,6 +1555,8 @@ every 2 seconds:
 
 		setupMana(loop-player)
 		regenMana(loop-player)
+		if hasImbue(loop-player, "Gale's Curse") is true:
+			subMana(loop-player, 50, false)
 
 		setupEnergy(loop-player)
 		regenEnergy(loop-player)
@@ -2075,6 +2077,9 @@ on damage:
 		set the damage to the damage * 1.5
 	hasImbue(victim, "Subdue to Anger") is true:
 		set the damage to the damage * 1.50
+	hasImbue(victim, "Intellectual Barrier") is true:
+		if subMana(victim, the damage, false) is true:
+			set the damage to 0
 	hasEffect(victim, "inspired") is true:
 		set the damage to the damage * 0.9
 	hasEffect(attacker, "inspired") is true:
@@ -3217,17 +3222,25 @@ function generateMythicLore( item: item):: item:
 		return {_item}
 	if chance of (20+({rpgdiff}/5))%:
 		if {_item} is any helmet:
-			set {_ranMythicLore} to a random integer between 0 and 0
+			set {_ranMythicLore} to a random integer between 0 and 1
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&4Subdue to Anger")
 				set {_item} to addImbue({_item}, "&4Undying")
 				set name of {_item} to "&4Subdue to Anger"
+			if {_ranMythicLore} is 1:
+				set {_item} to addImbue({_item}, "&9Intellectual Barrier")
+				set {_item} to addImbue({_item}, "&9Mana Boost")
+				set name of {_item} to "&9Barrier of Intellect"
 		else if {_item} is any chestplate:
-			set {_ranMythicLore} to a random integer between 0 and 0
+			set {_ranMythicLore} to a random integer between 0 and 1
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&8Razorplate")
 				set {_item} to addImbue({_item}, "&7Iron Will")
 				set name of {_item} to "&8Razorplate"
+			if {_ranMythicLore} is 1:
+				set {_item} to addImbue({_item}, "&bGale's Curse")
+				set {_item} to addImbue({_item}, "&fEnlighten")
+				set name of {_item} to "&bHeart of the Magical Storm"
 		else if {_item} is any leggings:
 			set {_ranMythicLore} to a random integer between 0 and 0
 			if {_ranMythicLore} is 0:
@@ -4563,7 +4576,10 @@ function explodeFireball(index: string):
 		loop-entity is not a dropped item
 		hasClass(loop-entity, "nethermancer") is false
 		if {-rpgSkript::fireballs::%{_index}%::caster} is set:
-			damage loop-entity by 60 * calculateCoreStatBonus({-rpgSkript::fireballs::%{_index}%::caster}, "magic")
+			set {_bonus} to 1
+			if hasImbue({-rpgSkript::fireballs::%{_index}%::caster}, "Gale's Curse") is true:
+				set {_bonus} to 1.5
+			damage loop-entity by 60 * calculateCoreStatBonus({-rpgSkript::fireballs::%{_index}%::caster}, "magic") * {_bonus}
 		else:
 			damage loop-entity by 60
 	create an explosion with force 3 at {_loc}
@@ -4633,8 +4649,11 @@ function explodeCryoball(index: string):
 	delete {-rpgSkript::cryoballs::%{_index}%}
 	loop all entities in radius 14 around ({_loc}):
 		loop-entity is not a dropped item
-		if {-rpgSkript::cryoballs::%{_index}%::caster} is set:
-			damage loop-entity by 3 * calculateCoreStatBonus({-rpgSkript::cryoballs::%{_index}%::caster}, "magic")
+		if {-rpgSkript::fireballs::%{_index}%::caster} is set:
+			set {_bonus} to 1
+			if hasImbue({-rpgSkript::fireballs::%{_index}%::caster}, "Gale's Curse") is true:
+				set {_bonus} to 1.5
+			damage loop-entity by 3 * calculateCoreStatBonus({-rpgSkript::fireballs::%{_index}%::caster}, "magic") * {_bonus}
 		else:
 			damage loop-entity by 3
 		apply slowness 3 to loop-entity for 8 seconds replacing the existing effect
@@ -4666,9 +4685,12 @@ on right click with gunpowder:
 		stop
 	send "&dYou speak words of arcane significance and create a powerful explosion!" to event-player
 	play sound "item.firecharge.use" at event-player
+	set {_bonus} to 1
+	if hasImbue(event-player, "Gale's Curse") is true:
+		set {_bonus} to 1.5
 	loop all entities in radius 8 around (event-player's targeted block):
 		loop-entity is not a dropped item
-		damage loop-entity by 24 * calculateCoreStatBonus(event-player, "magic")
+		damage loop-entity by 24 * calculateCoreStatBonus(event-player, "magic") * {_bonus}
 		add 4 experience to the player
 	create an explosion with force 5 at the event-player's targeted block
 	add 10 experience to the player
@@ -4681,13 +4703,16 @@ on right click with nether quartz:
 		stop
 	send "&dYou strike monsters with lightning!" to event-player
 	play sound "entity.player.breath" with pitch 0.7 at player
+	set {_bonus} to 1
+	if hasImbue(event-player, "Gale's Curse") is true:
+		set {_bonus} to 1.5
 	loop all entities in radius 12 around (event-player's targeted block):
 		loop-entity is not a dropped item
 		loop-entity is not a player
 		isMonster(loop-entity) is true
 		loop-entity's health is greater than 0
 		create lightning effect at the loop-entity
-		damage loop-entity by 8 * calculateCoreStatBonus(event-player, "magic")
+		damage loop-entity by 8 * calculateCoreStatBonus(event-player, "magic") * {_bonus}
 		add 5 experience to the player
 	add 14 experience to the player
 	show mob spawner flames at (the location 1 block above the player's location)
@@ -4736,13 +4761,16 @@ on right click with blaze rod:
 	send "&dYou shout, and your thunderous words are met with an equally powerful blast of destruction!" to event-player
 	set {_block} to event-player's targeted block
 	play sound "item.firecharge.use" at event-player
+	set {_bonus} to 1
+	if hasImbue(event-player, "Gale's Curse") is true:
+		set {_bonus} to 1.5
 	loop all entities in radius 50 around {_block}:
 		loop-entity is not a dropped item
 		loop-entity is not the player
 		set {_vec} to the vector between {_block} and the loop-entity
 		set {_vec} to normalized {_vec}
 		push loop-entity {_vec} with force 2
-		damage loop-entity by 200 * calculateCoreStatBonus(event-player, "magic")
+		damage loop-entity by 200 * calculateCoreStatBonus(event-player, "magic") * {_bonus}
 		add 16 experience to the player
 	create an explosion with force 0 at {_block}
 	explodeRadius({_block}, 13)
@@ -4761,10 +4789,13 @@ on right click with diamond:
 	if isLightningRodWithinRangeOf(location of event-player's targeted block, 150, true) is true:
 		send "&dYou sense that your lightning as been absorbed by a lightning rod!"
 		stop
+	set {_bonus} to 1
+	if hasImbue(event-player, "Gale's Curse") is true:
+		set {_bonus} to 1.5
 	loop all entities in radius 22 around (event-player's targeted block):
 		loop-entity is not a dropped item
 		loop-entity is not the player
-		damage loop-entity by 90 * calculateCoreStatBonus(event-player, "magic")
+		damage loop-entity by 90 * calculateCoreStatBonus(event-player, "magic") * {_bonus}
 		add 12 experience to the player
 	create lightning effect at the event-player's targeted block
 	create an explosion with force 12 at the event-player's targeted block
@@ -4789,6 +4820,10 @@ on right click with feather:
 	if subMana(event-player, 150) is false:
 		send "&cYou do not have enough Mana to cast the heal spell!" to event-player
 		stop
+	set {_bonus} to 1
+	if hasImbue(event-player, "Gale's Curse") is true:
+		set {_bonus} to 1.5
+	set {_amount} to {_amount} * {_bonus}
 	heal(event-player, {_amount})
 	send "&6You heal yourself!" to event-player
 	play sound "entity.player.levelup" with pitch 1.5 at event-player
@@ -6300,6 +6335,136 @@ function displayWildshape(player: player):
 			#event-item is any stair
 		#then:
 			# add 2 to item amount of event-item
+
+command /scrap:
+	executable by: players
+	trigger:
+		if hasClass(event-player, "artificer") is false:
+			send "&4You are not an artificer!" to event-player
+			stop
+		if subMana(event-player, 10) is false:
+			send "&4Not enough mana to salvage this object!" to event-player
+			stop
+		set {_item} to player's held item
+		if at least one of:
+			{_item} is any sword
+			player's held item is any axe
+			player's held item is any pickaxe
+			player's held item is any shovel
+			player's held item is any hoe
+			player's held item is a bow
+			player's held item is a crossbow
+			player's held item is a shield
+			player's held item is a trident
+			player's held item is any helmet
+			player's held item is any chestplate
+			player's held item is any leggings
+			player's held item is any boots
+		then:
+			if at least one of:
+				player's held item is a diamond pickaxe
+				player's held item is a diamond shovel
+				player's held item is a diamond hoe
+				player's held item is a diamond sword
+				player's held item is a diamond axe
+				player's held item is a diamond chestplate
+				player's held item is a diamond leggings
+				player's held item is a diamond boots
+				player's held item is a diamond helmet
+			then:
+				give 1 diamond to event-player
+				send "&bYou successfully scrap %player's held item%" to event-player
+				takeItems(event-player, {_item})		
+				stop				
+			if at least one of:
+				player's held item is a netherite pickaxe
+				player's held item is a netherite shovel
+				player's held item is a netherite hoe
+				player's held item is a netherite sword
+				player's held item is a netherite axe
+				player's held item is a netherite chestplate
+				player's held item is a netherite leggings
+				player's held item is a netherite boots
+				player's held item is a netherite helmet
+			then:
+				give 1 netherite ingot to event-player
+				send "&bYou successfully scrap %player's held item%" to event-player
+				takeItems(event-player, {_item})		
+				stop
+			if at least one of:
+				player's held item is a gold pickaxe
+				player's held item is a gold shovel
+				player's held item is a gold hoe
+				player's held item is a gold sword
+				player's held item is a gold axe
+				player's held item is a gold chestplate
+				player's held item is a gold leggings
+				player's held item is a gold boots
+				player's held item is a gold helmet
+			then:
+				give 1 gold ingot to event-player
+				send "&bYou successfully scrap %player's held item%" to event-player
+				takeItems(event-player, {_item})		
+				stop
+			if at least one of:
+				player's held item is a iron pickaxe
+				player's held item is a iron shovel
+				player's held item is a iron hoe
+				player's held item is a iron sword
+				player's held item is a iron axe
+				player's held item is a iron chestplate
+				player's held item is a iron leggings
+				player's held item is a iron boots
+				player's held item is a iron helmet
+				player's held item is a shield
+				player's held item is a chainmail chestplate
+				player's held item is a chainmail leggings
+				player's held item is a chainmail boots
+				player's held item is a chainmail helmet
+			then:
+				give 1 iron ingot to event-player
+				send "&bYou successfully scrap %player's held item%" to event-player
+				takeItems(event-player, {_item})		
+				stop
+			if at least one of:
+				player's held item is a stone pickaxe
+				player's held item is a stone shovel
+				player's held item is a stone hoe
+				player's held item is a stone sword
+				player's held item is a stone axe
+			then:
+				give 1 stone to event-player
+				send "&bYou successfully scrap %player's held item%" to event-player
+				takeItems(event-player, {_item})		
+				stop		
+			if at least one of:
+				player's held item is a wooden pickaxe
+				player's held item is a wooden shovel
+				player's held item is a wooden hoe
+				player's held item is a wooden sword
+				player's held item is a wooden axe
+			then:
+				give 1 stick to event-player
+				send "&bYou successfully scrap %player's held item%" to event-player
+				takeItems(event-player, {_item})		
+				stop
+			if at least one of:
+				player's held item is a crossbow
+				player's held item is a bow
+			then:
+				give 1 stick to event-player
+				give 1 string to event-player
+				send "&bYou successfully scrap %player's held item%" to event-player
+				takeItems(event-player, {_item})		
+				stop			
+			if player's held item is a trident:
+				give 1 copper ingot to event-player
+				send "&bYou successfully scrap %player's held item%" to event-player
+				takeItems(event-player, {_item})		
+				stop	
+		else:
+			send "&4Not a Valid Item to Salvage!" to event-player
+			stop
 
 on right click with air:
 	hasClass(event-player, "artificer") is true:
