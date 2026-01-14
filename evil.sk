@@ -8,6 +8,11 @@ on script unload:
 on script load:
   scriptBroadcast("&9Loading evil script...")
 
+  set {-netherbreach} to false
+  set {-apocalypse} to false
+  set {-bigraid} to false
+  scriptBroadcast("&4Clearing World Events...")
+
 function killBoss(uuid: text):
 	delete getByUUID({_uuid})
 
@@ -155,25 +160,26 @@ on death:
     broadcast "Difficulty is now: %{rpgdiff}%"
 
 every 5 seconds:
-  if {rpgdiff} is less than 0.05:
-    set {rpgdiff} to 0.05
+  if {rpgdiff} is less than 0.01:
+    set {rpgdiff} to 0.01
   if {rpgdiff} is greater than 50:
     set {rpgdiff} to 50
+  {-allowEvents} is true
   if time in world "world" is between 19:00 and 5:00:
     if:
-      {-netherbreach} is not true
-      {-apocalypse} is not true
-      {-bigraid} is not true
+      {-netherbreach} is false
+      {-apocalypse} is false
+      {-bigraid} is false
     then:
       if {lastInvasion} is not set:
-        set {lastInvasion} to 0.5 hours ago
+        set {lastInvasion} to 1.5 hours ago
       difference between {lastInvision} and now is more than 1 hour:
         set {_chance} to log({rpgdiff}) * 12.5 / 75
         if {_chance} > 0:
           chance of {_chance}%:
             set {lastInvasion} to now
             set {_odds} to random number between 1 and 100
-            if {_odds} is less than 60:
+            if {_odds} is less than 30:
               set {-netherbreach} to true
               broadcast "&4A Nether Breach Opens..."
             else if {_odds} is less than 100:
@@ -229,6 +235,14 @@ on weather change:
       {-severestorms} is true:
         broadcast "&cSevere Storms End..."
       set {-severestorms} to false
+
+command /allowWorldEvents <boolean>:
+  trigger:
+    if command executor does not have permission "rpg.spawn":
+      send "&cYou do not have access to that command." to command executor
+      stop
+    set {-allowEvents} to arg 1
+    broadcast "{-allowEvents} set to %{-allowEvents}%" 
 
 command /worldevents <text> <boolean>:
   trigger:
@@ -637,6 +651,11 @@ function makeLunatic(entity:entity):
   set {_entity}'s display name to "&8Lunatic"
   set movement speed attribute of {_entity} to 2 * movement speed attribute of {_entity}
   set maximum health of {_entity} to 5
+
+function isBoss(entity:entity):: boolean:
+  if {-evilSkript::%{_entity}%::isBoss} is set:
+    return {-evilSkript::%{_entity}%::isBoss}
+  return false
     
 command /spawnBoss <text> <player>:
   executable by: players
@@ -841,7 +860,7 @@ every 10 seconds:
       {-evilSkript::%loop-entity%::isBoss} is true
       hasEffect(loop-entity, "silenced") is true:
         chance of 30%:
-      stop
+          stop
       chance of 50%:
         loop all players in radius 20 around loop-entity:
           hasEffect(loop-player, "invisible") is false
