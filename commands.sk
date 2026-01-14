@@ -173,7 +173,7 @@ command /sharestats:
 			broadcast "&aMinions: %getMinionCount(player)% / %calculateMaxMinions(player)%"
 		if calculateMaxConstructs(player) is greater than 0:
 			broadcast "&aConstructs: %getConstructCount(player)% / %calculateMaxConstructs(player)%"
-		broadcast "&a%player% is wearing %helmet of player%&a, %chestplate of player%&a, %leggings of player%&a, %boots of player%, and %off hand item of player%"
+			broadcast "&a%player% is wearing %helmet of player%&a, %chestplate of player%&a, %leggings of player%&a, %boots of player%&a, and %off hand item of player%&a. They are holding a %player's held item%"
 
 command /shareitem:
 	executable by: players
