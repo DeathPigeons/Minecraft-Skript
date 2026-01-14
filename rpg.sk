@@ -275,6 +275,10 @@ function setMaxHealth(player: player):
 		hasImbue({_player}, "iron will") is false:
 			set {_newMax} to {_newMax} * 0.65
 
+	hasImbue({_player}, "Mana Reject") is true:
+		if getMana({_player}) is 0:
+			set {_newMax} to {_newMax} * (1 + (getMaxMana({_player}) / 200))
+
 	hasEffect({_player}, "soulbond") is true:
 		set {_newMax} to {_newMax} * 1.05
 	hasEffect({_player}, "meditated") is true:
@@ -719,6 +723,9 @@ function heal(entity: entity, amount: number) :: boolean:
 	{_entity} is a player:
 		hasClass({_entity}, "cleric") is true:
 			set {_amount} to {_amount} * 2
+	hasImbue({_entity}, "temerity") is true:
+		if health of {_entity} is not less than maximum health of {_entity}:
+			apply absorption 5 to {_entity} for 10 seconds
 	heal {_entity} by {_amount}
 	scriptDebugBroadcastType("heal", "%{_entity}% heals for %{_amount}%")
 	return true
@@ -865,9 +872,7 @@ function handleWorldEffect(index: text):
 						loop-entity is a witch
 					then:
 						continue
-				damage loop-entity by 3
-				isMinion(loop-entity) is true:
-					damage loop-entity by 1.5
+				handleMagicDamage({_creator}, loop-entity, 3, "earth", true)
 				set {_vec} to vector between loop-entity and {_loc}
 				set y component of {_vec} to 0
 				set {_vec} to normalized {_vec}
@@ -878,7 +883,7 @@ function handleWorldEffect(index: text):
 		loop entities in radius 7 around {_loc}:
 			chance of 60%:
 				{rpgSkript::%loop-entity%::isBoss} is false
-				apply poison 1 to the loop-entity for 10 seconds replacing the existing effect
+				handleMagicDamage({_creator}, loop-entity, 0.5, "poison", false)
 				if {-evilSkript::%{_creator}%::isBoss} is true:
 					loop-entity is not an evoker
 					loop-entity is not a ravager
@@ -886,11 +891,11 @@ function handleWorldEffect(index: text):
 					loop-entity is not a vindicator
 					loop-entity is not a vex
 					loop-entity is not a witch
-					apply poison 2 to the loop-entity for 10 seconds replacing the existing effect
+					handleMagicDamage({_creator}, loop-entity, 0.5, "poison", false)
 					apply slowness 2 to the loop-entity for 3 seconds replacing the existing effect
 					apply weakness 2 to the loop-entity for 3 seconds replacing the existing effect
 					isMinion(loop-entity) is true:
-						damage loop-entity by 1.5
+						handleMagicDamage({_creator}, loop-entity, 0.5, "poison", false)
 				else:
 					apply slowness 1 to the loop-entity for 3 seconds replacing the existing effect
 					apply weakness 1 to the loop-entity for 3 seconds replacing the existing effect
@@ -905,7 +910,7 @@ function handleWorldEffect(index: text):
 			isMinion(loop-entity) is true:
 				hasClass( getSummoner(uuid of loop-entity) , "necromancer") is true:
 					exit 1 loop
-			damage loop-entity by 2
+			handleMagicDamage({_creator}, loop-entity, 1, "shadow", false)
 			apply blindness 1 to the loop-entity for 3 seconds replacing the existing effect
 			{rpgSkript::%loop-entity%::isBoss} is false
 			apply weakness 1 to the loop-entity for 3 seconds replacing the existing effect
@@ -919,14 +924,7 @@ function handleWorldEffect(index: text):
 			isMonster(loop-entity) is true:
 				loop-entity is a spider:
 					exit 1 loop
-			if {_creator} is a player:
-				damage loop-entity by 0.5 * calculateCoreStatBonus({_creator}, "magic")
-			else:
-				damage loop-entity by 0.5
-			if {-evilSkript::%{_creator}%::isBoss} is true:
-				damage loop-entity by 1.5
-				isMinion(loop-entity) is true:
-					damage loop-entity by 1.5
+			handleMagicDamage({_creator}, loop-entity, 0.5, "physical", false)
 			{rpgSkript::%loop-entity%::isBoss} is false
 			apply slowness 2 to the loop-entity for 3 seconds replacing the existing effect
 			apply weakness 2 to the loop-entity for 3 seconds replacing the existing effect
@@ -935,10 +933,7 @@ function handleWorldEffect(index: text):
 			hasClass(loop-entity, "endwarden") is true:
 				applyEffect(loop-entity, "invisible", 5 seconds, {_creator})
 				exit 1 loop
-			if {_creator} is a player:
-				damage loop-entity by 1 * calculateCoreStatBonus({_creator}, "magic")
-			else:
-				damage loop-entity by 1
+			handleMagicDamage({_creator}, loop-entity, 1, "shadow", false)
 			{rpgSkript::%loop-entity%::isBoss} is false
 			apply slowness 2 to the loop-entity for 5 seconds replacing the existing effect
 			apply blindness 2 to the loop-entity for 5 seconds replacing the existing effect
@@ -956,10 +951,7 @@ function handleWorldEffect(index: text):
 			push loop-entity upwards with force 0.75
 			applyEffect(loop-entity, "void", 30 seconds, {_creator})
 			subMana(loop-entity, 30, false)
-			if {_creator} is a player:
-				damage loop-entity by 1.5 * calculateCoreStatBonus({_creator}, "magic")
-			else:
-				damage loop-entity by 1.5
+			handleMagicDamage({_creator}, loop-entity, 1.5, "shadow", false)
 			set {_monsters} to {_monsters} + 1
 			wait 3 ticks
 			if {_monsters} is greater than 9:
@@ -980,10 +972,7 @@ function handleWorldEffect(index: text):
 	{_name} is "holy beam":
 		loop all entities in radius 15 around {_loc}:
 			loop-entity is a monster
-			if {_creator} is a player:
-				damage loop-entity by 3 * calculateCoreStatBonus({_creator}, "magic")
-			else:
-				damage loop-entity by 3
+			handleMagicDamage({_creator}, loop-entity, 3, "holy", false)
 
 	{_name} is "dampen":
 		loop all entities in radius 10 around {_loc}:
@@ -1552,11 +1541,15 @@ every 2 seconds:
 
 	loop all players:
 		setMaxHealth(loop-player)
+		if hasImbue(loop-player, "Crown of Thorns") is true:
+			chance of 25%:
+				set health of loop-player to health of loop-player - maximum health of loop-player * 0.1
 
 		setupMana(loop-player)
 		regenMana(loop-player)
 		if hasImbue(loop-player, "Gale's Curse") is true:
-			subMana(loop-player, 50, false)
+			chance of 10%:
+				subMana(loop-player, 0.20 * getMaxMana(loop-player), false)
 
 		setupEnergy(loop-player)
 		regenEnergy(loop-player)
@@ -1776,7 +1769,7 @@ every 2 seconds:
 						create lightning effect at loop-entity-2
 						apply slowness 255 to loop-entity-2 for 3 seconds replacing the existing effect
 						apply glowing 1 to loop-entity-2 for 3 seconds replacing the existing effect
-						damage loop-entity-2 by 10 * calculateCoreStatBonus(loop-player, "magic")
+						handleMagicDamage(loop-player, loop-entity-2, 10, "lightning", true)
 	
 
 			
@@ -1818,7 +1811,7 @@ every 5 seconds:
 				if getConstructType(loop-value-2) is "Amplifier":
 					loop all entities in radius 10 around loop-value-2:
 						isMonster(loop-entity-3) is false
-						applyEffect(loop-entity-3, "smplified", 10 seconds, loop-player)
+						applyEffect(loop-entity-3, "amplified", 10 seconds, loop-player)
 				if getConstructType(loop-value-2) is "Silencer":
 					loop all entities in radius 10 around loop-value-2:
 						isMonster(loop-entity-3) is true
@@ -1829,7 +1822,7 @@ every 5 seconds:
 						apply slowness 3 to loop-entity-3 for 1.5 seconds replacing the existing effect
 						apply glowing 1 to loop-entity-3 for 1.5 seconds replacing the existing effect
 						applyEffect(loop-entity-3, "vulnerable", 3 seconds, loop-player)
-						damage loop-entity-3 by 2 * calculateCoreStatBonus(loop-player, "minion")	
+						handleMagicDamage(loop-player, loop-entity-3, 5, "lightning", true)
 						wait 1 tick
 				if getConstructType(loop-value-2) is "Gravitron":
 					set {_ability} to a random integer between 0 and 1
@@ -1841,14 +1834,14 @@ every 5 seconds:
 								push loop-entity-3 {_vec} with force 0.9
 								push loop-entity-3 upwards with force 0.6
 								apply slowness 3 to loop-entity-3 for 1.5 seconds replacing the existing effect
-								damage loop-entity-3 by 2 * calculateCoreStatBonus(loop-player, "minion")
+								handleMagicDamage(loop-player, loop-entity-3, 2, "physical", true)
 						if {_ability} is 1:
 							chance of 30%:
 								set {_vec} to normalized vector between loop-entity-3 and loop-value-2
 								push loop-entity-3 {_vec} with force 0.9
 								push loop-entity-3 upwards with force 0.6
 								apply slowness 3 to loop-entity-3 for 1.5 seconds replacing the existing effect
-								damage loop-entity-3 by 2 * calculateCoreStatBonus(loop-player, "minion")	
+								handleMagicDamage(loop-player, loop-entity-3, 3, "physical", true)	
 						wait 1 tick
 				if getConstructType(loop-value-2) is "missile":
 					set {_canFire} to true
@@ -1858,7 +1851,7 @@ every 5 seconds:
 						chance of 30%:
 							loop all monsters in radius 3 around loop-entity-3:
 								isMinion(loop-entity-4) is false
-								damage loop-entity-3 by 5 * calculateCoreStatBonus(loop-player, "minion")	
+								handleMagicDamage(loop-player, loop-entity-4, 5, "physical", true)	
 								create a fake explosion at loop-entity-3
 								set {_canFire} to false
 						wait 1 tick							
@@ -1867,8 +1860,17 @@ every 5 seconds:
 			loop all entities in radius 20 around loop-player:
 				isMonster(loop-entity-2) is true:
 					chance of 50%:
-						damage loop-entity-2 by 5
+						handleMagicDamage(loop-player, loop-entity-2, 5, "shadow", false)
 						applyEffect(loop-entity-2, "levitate", 5 seconds, loop-player)
+
+		hasImbue(loop-player, "Penitent") is true:
+			loop all monsters in radius 10 around loop-player:
+				isMonster(loop-entity-2) is true
+				chance of 50%:
+					handleMagicDamage(loop-player, loop-entity-2, 2.5, "ice", false)
+					applyEffect(loop-entity-2, "vulnerable", 5 seconds, loop-player)
+					apply slowness 2 to loop-entity-2 for 5 seconds replacing the existing effect					
+					
 
 		if hasImbue(loop-player, "inspirational") is true:
 			loop all entities in radius 10 around loop-player:
@@ -1914,7 +1916,7 @@ every 5 seconds:
 							apply slowness 255 to loop-entity-3 for 3 seconds replacing the existing effect
 							apply glowing 1 to loop-entity-3 for 3 seconds replacing the existing effect
 							applyEffect(loop-entity-3, "vulnerable", 3 seconds, loop-player)
-							damage loop-entity-3 by 15 * calculateCoreStatBonus(loop-player, "minion")
+							handleMagicDamage(loop-player, loop-entity-3, 10, "lightning", true)
 							exit 1 loop
 
 			
@@ -2201,6 +2203,21 @@ on damage:
 			getSummoner(uuid of the attacker) is the victim:
 				cancel the event
 				stop
+		if hasWeaponLore(getSummoner(uuid of the attacker), "Volatile Death") is true:
+			event-projectile is not set
+			if at least one of:
+				attacker is a pillager
+				attacker is an evoker
+				attacker is a zombie
+				attacker is a skeleton
+			then:
+				loop all monsters in radius 5 around attacker:
+					isMonster(loop-entity) is true
+					handleMagicDamage(getSummoner(uuid of the attacker), loop-entity, 5, "shadow", false)
+					kill the attacker
+					cancel the event
+					stop
+					
 		if at least one of:
 			attacker's held item is a bow
 			attacker's held item is a crossbow
@@ -2234,6 +2251,9 @@ on damage:
 			if hasClass(getSummoner(uuid of victim), "nethermancer") is true:
 				cancel the event
 				stop
+		damage cause is drowning:
+			cancel the event
+			stop
 				
 
 		hasClass(getSummoner(uuid of attacker), "necromancer") is true:
@@ -2360,6 +2380,28 @@ on damage:
 		#this needs to go last
 		if victim is a player:
 			set the damage to the damage * 0.5
+	if hasWeaponLore(attacker, "Sniper") is true:
+		event-projectile is set
+		set {_v} to the vector between attacker and victim
+		set the damage to the damage * (1+(length of {_v} / 10))
+	if hasWeaponLore(attacker, "Demon Hunter") is true:
+		event-projectile is set
+		isMonster(victim) is true
+		set the damage to the damage * 2.5
+	if hasWeaponLore(attacker, "Duelist") is true:
+		if hasEffect(victim, "duelist") is true:
+			if getEffectSource(victim, "duelist") is attacker:
+				set the damage to the damage * 3.0
+		else:
+			set the damage to the damage * 0.8
+		applyEffect(victim, "duelist", 10 seconds, attacker)
+	if hasWeaponLore(victim, "Duelist") is true:
+		if hasEffect(attacker, "duelist") is true:
+			if getEffectSource(attacker, "duelist") is victim:
+				set the damage to the damage * 0.8
+		else:
+			set the damage to the damage * 0.35
+		applyEffect(victim, "duelist", 10 seconds, attacker)		
 	if hasWeaponLore(attacker, "Gamble") is true:
 		set {_ran} to a random number between 0 and 3
 		set the damage to the damage * {_ran}
@@ -2383,6 +2425,10 @@ on damage:
 	if hasLore(attacker's helmet, "Subdue to Anger") is true:
 		set {_dmgboost} to a random number between 1.5 and 3
 		set the damage to the damage * {_dmgboost}
+	if hasLore(attacker's helmet, "Wrestler") is true:
+		attacker's held item is air
+		set the damage to the damage * 2
+		apply slowness 2 to the victim for 5 seconds replacing the existing effect
 	if hasWeaponLore(attacker, "Endajack") is true:
 		set the damage to the damage * 1.50
 		set {_raneffect} to a random integer between 0 and 2
@@ -2441,7 +2487,10 @@ on damage:
 		set {_opchance} to calculateOverpower(attacker, victim)
 
 		chance of {_critchance}:
-			set the damage to the damage * 1.5
+			if hasWeaponLore(attacker, "The Grandfather") is true:
+				set the damage to the damage * 3
+			else:			
+				set the damage to the damage * 1.5
 			#send "&6You landed a critical hit!" to the attacker
 			set {_ndamage} to the damage
 			scriptDebugBroadcastType("critdamage", "%{_odamage}%: Critical Hit Damage Bonus x1.5 -> %{_ndamage}%")
@@ -2677,7 +2726,7 @@ on damage:
 
 	hasImbue(victim, "Razorplate") is true:
 		event-projectile is not set
-		damage attacker by 5 * countImbue(victim, "Razorplate")
+		damage attacker by 10 * countImbue(victim, "Razorplate")
 
 	hasImbue(victim, "guardian") is true:
 		set the damage to the damage * 0.75
@@ -2749,7 +2798,7 @@ on damage:
 				loop-entity is not victim
 				hasClass(loop-entity, "endwarden") is false
 				applyEffect(loop-entity, "void", 10 seconds, victim)
-				damage loop-entity by 1
+				handleMagicDamage(victim, loop-entity, 1, "shadow", true)
 				wait 1 tick
 			set {-rpgSkript::%victim%::darkshroud} to {-rpgSkript::%victim%::darkshroud} - 1
 
@@ -2917,6 +2966,15 @@ on item damage:
 
 function calculateCritical(hit:entity, damaged:entity) :: number:
 	set {_crit} to 0.05
+	hasImbue({_hit}, "esu") is true:
+		if {_hit} has potion effect haste:
+			set {_crit} to {_crit} + 0.1
+		if {_hit} has potion effect speed:
+			set {_crit} to {_crit} + 0.1
+	hasImbue({_hit}, "malefic") is true:
+		isWildshape({_hit}, "wolf") is true:
+			hasEffect({_hit}, "recentcombat") is true:
+				set {_crit} to {_crit} + 0.3
 	hasClass({_hit}, "rogue") is true:
 		set {_crit} to {_crit} + 0.15
 	hasClass({_hit}, "monk") is true:
@@ -2948,6 +3006,8 @@ function calculateCritical(hit:entity, damaged:entity) :: number:
 		set {_crit} to {_crit} + 0.05
 	hasEffect({_hit}, "inspired") is true:
 		set {_crit} to {_crit} + 0.05
+	hasWeaponLore({_hit}, "The Grandfather") is true:
+		set {_crit} to {_crit} + 0.2
 	
 	return {_crit}
 
@@ -3222,7 +3282,7 @@ function generateMythicLore( item: item):: item:
 		return {_item}
 	if chance of (20+({rpgdiff}/5))%:
 		if {_item} is any helmet:
-			set {_ranMythicLore} to a random integer between 0 and 1
+			set {_ranMythicLore} to a random integer between 0 and 2
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&4Subdue to Anger")
 				set {_item} to addImbue({_item}, "&4Undying")
@@ -3231,8 +3291,12 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&9Intellectual Barrier")
 				set {_item} to addImbue({_item}, "&9Mana Boost")
 				set name of {_item} to "&9Barrier of Intellect"
+			if {_ranMythicLore} is 2:
+				set {_item} to addImbue({_item}, "&0Crown of Thorns")
+				set {_item} to addImbue({_item}, "&fEnlighten")
+				set name of {_item} to "&0Crown of Thorns"
 		else if {_item} is any chestplate:
-			set {_ranMythicLore} to a random integer between 0 and 1
+			set {_ranMythicLore} to a random integer between 0 and 2
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&8Razorplate")
 				set {_item} to addImbue({_item}, "&7Iron Will")
@@ -3241,20 +3305,32 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&bGale's Curse")
 				set {_item} to addImbue({_item}, "&fEnlighten")
 				set name of {_item} to "&bHeart of the Magical Storm"
+			if {_ranMythicLore} is 2:
+				set {_item} to addImbue({_item}, "&aWrestler")
+				set {_item} to addImbue({_item}, "&4Health Boost")
+				set name of {_item} to "&aWrestler's Garb"
 		else if {_item} is any leggings:
-			set {_ranMythicLore} to a random integer between 0 and 0
+			set {_ranMythicLore} to a random integer between 0 and 1
 			if {_ranMythicLore} is 0:
-				set {_item} to addImbue({_item}, "&8Razorplate")
+				set {_item} to addImbue({_item}, "&bTemerity")
 				set {_item} to addImbue({_item}, "&7Iron Will")
-				set name of {_item} to "&8Razorplate"
+				set name of {_item} to "&bTemerity"
+			if {_ranMythicLore} is 1:
+				set {_item} to addImbue({_item}, "&4Malefic")
+				set {_item} to addImbue({_item}, "&4Health Boost")
+				set name of {_item} to "&bMalefic Crescent"
 		else if {_item} is any boots:
 			set {_ranMythicLore} to a random integer between 0 and 0
 			if {_ranMythicLore} is 0:
-				set {_item} to addImbue({_item}, "&8Razorplate")
-				set {_item} to addImbue({_item}, "&7Iron Will")
-				set name of {_item} to "&8Razorplate"
+				set {_item} to addImbue({_item}, "&cEsu")
+				set {_item} to addImbue({_item}, "&9Speed")
+				set name of {_item} to "&cEsu's Heirloom"
+			if {_ranMythicLore} is 1:
+				set {_item} to addImbue({_item}, "&fPenitent")
+				set {_item} to addImbue({_item}, "&fFrost Shield")
+				set name of {_item} to "&fPenitent Greaves"
 		else if {_item} is a shield:
-			set {_ranMythicLore} to a random integer between 0 and 1
+			set {_ranMythicLore} to a random integer between 0 and 3
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&8Razorplate")
 				set {_item} to addImbue({_item}, "&7Iron Will")
@@ -3264,12 +3340,25 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&8Golem")
 				set {_item} to addImbue({_item}, "&4Health Boost")
 				set name of {_item} to "&fShield of the Protector"
+			else if {_ranMythicLore} is 2:
+				set {_item} to addImbue({_item}, "&9Mana Reject")
+				set {_item} to addImbue({_item}, "&9Mana Boost")
+				set {_item} to addImbue({_item}, "&4Health Boost")
+				set name of {_item} to "&9Shield of Reject Knowledge"
 		else if {_item} is any sword:
-			set {_ranMythicLore} to a random integer between 0 and 0
+			set {_ranMythicLore} to a random integer between 0 and 2
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&aGamble")
 				set {_item} to addImbue({_item}, "&7Vampiric")
 				set name of {_item} to "&aGambler's Fallacy"
+			if {_ranMythicLore} is 1:
+				set {_item} to addImbue({_item}, "&bDuelist")
+				set {_item} to addImbue({_item}, "&cFirststrike")
+				set name of {_item} to "&bDuelist's Rapier"
+			if {_ranMythicLore} is 2:
+				set {_item} to addImbue({_item}, "&4The Grandfather")
+				set {_item} to addImbue({_item}, "&fEnlighten")
+				set name of {_item} to "&4The Grandfather"
 		else if {_item} is any axe:
 			set {_ranMythicLore} to a random integer between 0 and 1
 			if {_ranMythicLore} is 0:
@@ -3281,17 +3370,25 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&4Bleeding")
 				set name of {_item} to "&4Bloodrend"
 		else if {_item} is a bow:
-			set {_ranMythicLore} to a random integer between 0 and 0
+			set {_ranMythicLore} to a random integer between 0 and 1
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&aGamble")
 				set {_item} to addImbue({_item}, "&7Vampiric")
 				set name of {_item} to "&aGambler's Fallacy"
+			if {_ranMythicLore} is 1:
+				set {_item} to addImbue({_item}, "&bSniper")
+				set {_item} to addImbue({_item}, "&cFirststrike")
+				set name of {_item} to "&bBow of Long Shots"
 		else if {_item} is a crossbow:
-			set {_ranMythicLore} to a random integer between 0 and 0
+			set {_ranMythicLore} to a random integer between 0 and 1
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&aGamble")
 				set {_item} to addImbue({_item}, "&7Vampiric")
 				set name of {_item} to "&aGambler's Fallacy"
+			if {_ranMythicLore} is 1:
+				set {_item} to addImbue({_item}, "&4Demon Hunter")
+				set {_item} to addImbue({_item}, "&fHallowed")
+				set name of {_item} to "&4Demon Hunter"
 		else if {_item} is a banner:
 			set {_ranMythicLore} to a random integer between 0 and 0
 			if {_ranMythicLore} is 0:
@@ -3299,12 +3396,28 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&fEnlighten")
 				set name of {_item} to "&bFlag of Valor"
 		else if {_item} is a book:
-			set {_ranMythicLore} to a random integer between 0 and 0
+			set {_ranMythicLore} to a random integer between 0 and 4
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&0Grimoire")
 				set {_item} to addImbue({_item}, "&0Minion Boost")
-				set name of {_item} to "&0Tome of Death"				
-				
+				set name of {_item} to "&0Tome of Death"	
+			if {_ranMythicLore} is 1:
+				set {_item} to addImbue({_item}, "&4Volatile Death")
+				set {_item} to addImbue({_item}, "&0Minion Boost")
+				set name of {_item} to "&4Volatility of the Horde"	
+			if {_ranMythicLore} is 2:
+				set {_item} to addImbue({_item}, "&9Oculus")
+				set {_item} to addImbue({_item}, "&9Mana Boost")
+				set name of {_item} to "&9The Oculus"
+			if {_ranMythicLore} is 3:
+				set {_item} to addImbue({_item}, "&9Starless")
+				set {_item} to addImbue({_item}, "&9Mana Boost")
+				set name of {_item} to "&9Book of Starless Skies"					
+			if {_ranMythicLore} is 4:
+				set {_item} to addImbue({_item}, "&0Minion Golem")
+				set {_item} to addImbue({_item}, "&0Minion Boost")
+				set name of {_item} to "&0Words of the Golem"	
+								
 		set {_item} to addImbue({_item}, "&fUnbreakable")
 		set {_item} to addImbue({_item}, "&fEthereal")
 		set {_item} to addImbue({_item}, "&7Reinforced")
@@ -3620,7 +3733,7 @@ on enderman pickup:
 		cancel the event
 
 on spawn:
-	isMinion(event-entity) is true:
+	isMinion(event-entity) is true:		
 		if event-entity is an iron golem:
 			set {_architect} to getArchitect(uuid of event-entity)
 			set attack damage attribute of entity to (calculateCoreStatBonus({_architect}, "minion")* 0.75) * (1 + (0.075 * countImbue({_architect}, "Minion Boost"))) * attack damage attribute of entity
@@ -3630,7 +3743,12 @@ on spawn:
 			set {_architect} to getArchitect(uuid of event-entity)
 			set attack damage attribute of entity to (calculateCoreStatBonus({_architect}, "minion")* 0.75) * (1 + (0.075 * countImbue({_architect}, "Minion Boost"))) * attack damage attribute of entity
 			set maximum health of entity to (calculateCoreStatBonus({_architect}, "minion") * 0.75) * (1 + (0.075 * countImbue({_architect}, "Minion Boost"))) * maximum health of entity
-			set the event-entity's display name to "&b%{_architect}%'s %getConstructType(event-entity)% Drone"		
+			set the event-entity's display name to "&b%{_architect}%'s %getConstructType(event-entity)% Drone"
+		else if hasImbue(getSummoner(uuid of event-entity), "minion golem") is true:
+			set {_caster} to getSummoner(uuid of event-entity)
+			set attack damage attribute of entity to (1 + ({-rpgSkript::miniongolem::%{_caster}%} / 5 ) ) * (calculateCoreStatBonus({_caster}, "minion")* 0.75) * (1 + (0.075 * countImbue({_caster}, "Minion Boost"))) * attack damage attribute of entity
+			set maximum health of entity to (1 + ({-rpgSkript::miniongolem::%{_caster}%} / 5 ) ) * (calculateCoreStatBonus({_caster}, "minion") * 0.75) * (1 + (0.075 * countImbue({_caster}, "Minion Boost"))) * maximum health of entity
+			set the event-entity's display name to "&b%{_caster}%'s Minion Golem"			
 		else:			
 			set {_caster} to getSummoner(uuid of event-entity)
 			hasImbue({_caster}, "Grimoire") is true:
@@ -4085,6 +4203,175 @@ every 1 seconds:
 
 # Wizard
 
+function calculateMagicCritical(hit:entity, damaged:entity) :: number:
+	set {_crit} to 0.05
+	hasImbue({_hit}, "esu") is true:
+		if {_hit} has potion effect haste:
+			set {_crit} to {_crit} + 0.1
+		if {_hit} has potion effect speed:
+			set {_crit} to {_crit} + 0.1
+	hasClass({_hit}, "paladin") is true:
+		isMonster({_damaged}) is true:
+			set {_crit} to {_crit} + 0.5
+	hasClass({_hit}, "wizard") is true:
+		set {_crit} to {_crit} + 0.1
+	hasClass({_hit}, "sorceror") is true:
+		set {_crit} to {_crit} + 0.05
+	hasClass({_hit}, "endwarden") is true:
+		set {_crit} to {_crit} + 0.05
+	hasClass({_hit}, "nethermancer") is true:
+		set {_crit} to {_crit} + 0.05
+	hasClass({_hit}, "necromancer") is true:
+		set {_crit} to {_crit} + 0.05
+	hasClass({_hit}, "druid") is true:
+		if {rpgSkript::%{_hit}%::spidershape} is true:
+			set {_crit} to {_crit} + 0.1
+		if {rpgSkript::%{_hit}%::wolfshape} is true:
+			set {_crit} to {_crit} + 0.125
+	hasClass({_hit}, "herobrine") is true:
+		set {_crit} to 1
+	hasImbue({_hit}, "bloodied") is true:
+		set {_crit} to {_crit} + (1 - (health of {_hit} / maximum health of {_hit}))
+	hasImbue({_hit}, "subdue to anger") is true:
+		set {_crit} to {_crit} + 0.2
+	hasImbue({_hit}, "gale's curse") is true:
+		set {_crit} to {_crit} + 0.2
+	hasEffect({_damaged}, "Void") is true:
+		set {_crit} to {_crit} + 0.1
+	hasEffect({_damaged}, "Vulnerable") is true:
+		set {_crit} to {_crit} + 0.1
+	hasEffect({_hit}, "invisible") is true:
+		set {_crit} to {_crit} + 0.05
+	hasEffect({_hit}, "inspired") is true:
+		set {_crit} to {_crit} + 0.05
+	
+	return {_crit}
+
+function handleMagicDamage(caster: entity, target: entity, damage: number, element: string, avoidable: boolean):
+	if hasClass({_target}, "paladin") is true:
+		set {_damage} to {_damage} * 0.5
+	if hasClass({_target}, "wizard") is true:
+		set {_damage} to {_damage} * 0.5
+	if hasClass({_target}, "sorceror") is true:
+		set {_damage} to {_damage} * 0.75
+	if hasClass({_target}, "cleric") is true:
+		set {_damage} to {_damage} * 0.75
+	if hasClass({_target}, "monk") is true:
+		set {_damage} to {_damage} * 0.75
+	if hasClass({_target}, "druid") is true:
+		set {_damage} to {_damage} * 0.75
+	if hasClass({_target}, "endwarden") is true:
+		set {_damage} to {_damage} * 0.75
+	if hasClass({_target}, "rogue") is true:
+		{_avoidable} is true
+		chance of 45%:
+			set {_damage} to 0
+			play sound "entity.player.attack.nodamage" at {_target}
+			send action bar "&2~ ~ DODGE ~ ~" to {_target}
+	if hasClass({_target}, "nethermancer") is true:
+		if {_damage} is greater than 1:
+			regenHeat({_target}, ceiling({_damage} * 0.5))
+		else:
+			regenHeat({_target}, 1)
+		if {_element} is "fire":
+			set {_damage} to 0
+		else:
+			set {_damage} to {_damage} * 0.75
+
+	if isMinion({_target}) is true:
+		if {_element} is "earth":
+			set {_damage} to {_damage} * 1.5
+
+	if hasImbue({_target}, "flame shield") is true:
+		if {_element} is "fire":
+			set {_damage} to {_damage} * 0.75
+	if hasImbue({_target}, "frost shield") is true:
+		if {_element} is "ice":
+			set {_damage} to {_damage} * 0.75
+	if hasImbue({_target}, "mana shield") is true:
+		subMana({_target}, {_damage} * 7.0, false) is true
+		set {_reduction} to 1 - (0.25 * countImbue({_target}, "mana shield") )
+		if {_reduction} is less than 0.5:
+			set {_reduction} to 0.5
+		set {_damage} to {_damage} * {_reduction}
+
+	if hasImbue({_target}, "undying") is true:
+		set {_damagered} to (0.3 - (countImbue({_target}, "undying") * 0.075)) + ( health of {_target} / maximum health of {_target} )
+		if {_damagered} is greater than 1:
+			set {_damagered} to 1
+		set {_damage} to {_damage} * {_damagered}
+	if hasImbue({_target}, "iron will") is true:
+		set {_reduction} to 1 - (0.15 * countImbue({_target}, "iron will") )
+		set {_damage} to {_damage} * {_reduction}
+	if hasImbue({_target}, "guardian") is true:
+		set {_damage} to {_damage} * 0.75
+	if hasImbue({_target}, "shielded") is true:
+		set {_damage} to {_damage} * 0.25
+	if hasImbue({_target}, "subdue to anger") is true:
+		set {_damage} to {_damage} * 1.5
+	if hasImbue({_caster}, "subdue to anger") is true:
+		set {_damage} to {_damage} * 2
+	hasEffect({_target}, "vulnerable") is true:
+		set {_damage} to {_damage} * 2
+	hasEffect({_target}, "void") is true:
+		set {_damage} to {_damage} * 1.5
+	hasEffect({_target}, "levitate") is true:
+		set {_damage} to {_damage} * 1.5
+	hasEffect({_target}, "silenced") is true:
+		set {_damage} to {_target} * 1.5
+	hasEffect({_caster}, "amplified") is true:
+		set {_damage} to {_damage} * 1.5
+	hasImbue({_target}, "Intellectual Barrier") is true:
+		if subMana({_target}, {_damage}, false) is true:
+			set {_damage} to 0
+	hasEffect({_target}, "inspired") is true:
+		set {_damage} to {_damage} * 0.9
+	hasEffect({_target}, "reinforced") is true:
+		set {_damage} to {_damage} * (1 - (0.05 * countImbue({_target}, "reinforced")))
+	hasEffect({_caster}, "inspired") is true:
+		set {_damage} to {_damage} * 1.1
+	hasEffect({_caster}, "starless") is true:
+		set {_damage} to {_damage} * 1.2
+	hasEffect({_target}, "dark shroud") is true:
+		{_avoidable} is true
+		if {-rpgSkript::%{_target}%::darkshroud} is greater than 0:
+			set {_damage} to {_damage} * 0.75
+			play sound "entity.ender_eye.death" with pitch 0.5 at {_target}
+			loop all entities in radius 3 around {_target}:
+				loop-entity is not {_target}
+				hasClass(loop-entity, "endwarden") is false
+				applyEffect(loop-entity, "void", 10 seconds, {_target})
+				handleMagicDamage({_target}, loop-entity, 1, "shadow", true)
+				wait 1 tick
+			set {-rpgSkript::%{_target}%::darkshroud} to {-rpgSkript::%{_target}%::darkshroud} - 1
+				
+	if isBoss({_target}) is true:
+		set {_damage} to {_damage} * 0.5
+
+	if hasImbue({_caster}, "Gale's Curse") is true:
+		set {_damage} to  {_damage} * 1.5
+	set {_critchance} to calculateMagicCritical({_caster}, {_target})
+	chance of {_critchance}%:
+		set {_damage} to {_damage} * 1.5
+	if hasWeaponLore({_caster}, "bloodied") is true:
+		set {_damageboost} to 1 + ( 1 - (health of {_caster} / maximum health of {_caster} ) )
+		set {_damage} to {_damage} * {_damageboost}
+	
+	set {_damage} to {_damage} * calculateCoreStatBonus({_caster}, "magic")
+
+	hasEffect({_target}, "soulbond") is true:
+		{-rpgSkript::%{_target}%::soulbondplayer} is alive:
+			set {_damage} to {_damage} * 0.5
+			set health of {-rpgSkript::%{_target}%::soulbondplayer} to health of {-rpgSkript::%{_target}%::soulbondplayer} - {_damage}
+
+	if {_damage} is greater than 0:
+		loop all players in radius 15 around {_target}:
+			if hasImbue(loop-player, "guardian") is true:
+				loop-player is not {_target}
+				set health of loop-player to health of loop-player - {_damage} * 0.1
+				set {_damage} to {_damage} * 0.75
+
+	set health of {_target} to health of {_target} - {_damage}
 
 
 on place of lightning rod:
@@ -4106,6 +4393,19 @@ function isLightningRodWithinRangeOf(loc: location, range: number, strike: boole
 				create lightning effect at loop-block
 			return true
 		return false
+
+function getMaxMana(player: player):: number:
+	setupMana({_player})
+	if {rpgSkript::maxMana::%{_player}%} is set: 
+		return {rpgSkript::maxMana::%{_player}%}
+	return 0
+
+function getMana(player: player):: number:
+	setupMana({_player})
+	if {rpgSkript::mana::%{_player}%} is set: 
+		return {rpgSkript::mana::%{_player}%}
+	return 0
+	
 
 function setupMana(player: player):
 	if {rpgSkript::mana::%{_player}%} is not set:
@@ -4233,7 +4533,16 @@ function regenMana(player: player):
 	if hasEffect({_player}, "resourceboost") is true:
 		set {_add} to {_add} * 1.25
 
+	if hasEffect({_player}, "amplified") is true:
+		set {_add} to {_add} * 1.1
+
+	if hasEffect({_player}, "inspired") is true:
+		set {_add} to {_add} * 1.1
+
 	set {_add} to {_add} * calculateCoreStatBonus({_player}, "mana")
+
+	if hasImbue({_player}, "mana reject") is true:
+		set {_add} to 0
 	
 	addMana( {_player}, {_add} )
 
@@ -4251,6 +4560,10 @@ function subMana(player: player, amount: number, print: boolean=true) :: boolean
 		return false
 	if hasEffect({_player}, "mana leak") is true:
 		set {_amount} to {_amount} * 1.2
+	if hasImbue({_player}, "starless") is true:
+		if hasEffect({_player}, "starless") is true:
+			set {_amount} to {_amount} * 0.8
+		applyEffect({_player}, "starless", 3 seconds, {_player})
 	if hasMana({_player}, {_amount}, {_print}) is true:
 		set {rpgSkript::mana::%{_player}%} to {rpgSkript::mana::%{_player}%} - {_amount}
 		checkMana({_player})
@@ -4574,14 +4887,7 @@ function explodeFireball(index: string):
 	delete {-rpgSkript::fireballs::%{_index}%}
 	loop all entities in radius 8 around ({_loc}):
 		loop-entity is not a dropped item
-		hasClass(loop-entity, "nethermancer") is false
-		if {-rpgSkript::fireballs::%{_index}%::caster} is set:
-			set {_bonus} to 1
-			if hasImbue({-rpgSkript::fireballs::%{_index}%::caster}, "Gale's Curse") is true:
-				set {_bonus} to 1.5
-			damage loop-entity by 60 * calculateCoreStatBonus({-rpgSkript::fireballs::%{_index}%::caster}, "magic") * {_bonus}
-		else:
-			damage loop-entity by 60
+		handleMagicDamage({-rpgSkript::fireballs::%{_index}%::caster}, loop-entity, 20, "fire", true)
 	create an explosion with force 3 at {_loc}
 	if {-rpgSkript::fireballs::%{_index}%::caster} is set:
 		add 5 experience to {-rpgSkript::fireballs::%{_index}%::caster}
@@ -4649,13 +4955,7 @@ function explodeCryoball(index: string):
 	delete {-rpgSkript::cryoballs::%{_index}%}
 	loop all entities in radius 14 around ({_loc}):
 		loop-entity is not a dropped item
-		if {-rpgSkript::fireballs::%{_index}%::caster} is set:
-			set {_bonus} to 1
-			if hasImbue({-rpgSkript::fireballs::%{_index}%::caster}, "Gale's Curse") is true:
-				set {_bonus} to 1.5
-			damage loop-entity by 3 * calculateCoreStatBonus({-rpgSkript::fireballs::%{_index}%::caster}, "magic") * {_bonus}
-		else:
-			damage loop-entity by 3
+		handleMagicDamage({-rpgSkript::cryoballs::%{_index}%::caster}, loop-entity, 3, "ice", true)
 		apply slowness 3 to loop-entity for 8 seconds replacing the existing effect
 	if {-rpgSkript::cryoballs::%{_index}%::caster} is set:
 		add 3 experience to {-rpgSkript::cryoballs::%{_index}%::caster}
@@ -4685,12 +4985,9 @@ on right click with gunpowder:
 		stop
 	send "&dYou speak words of arcane significance and create a powerful explosion!" to event-player
 	play sound "item.firecharge.use" at event-player
-	set {_bonus} to 1
-	if hasImbue(event-player, "Gale's Curse") is true:
-		set {_bonus} to 1.5
 	loop all entities in radius 8 around (event-player's targeted block):
 		loop-entity is not a dropped item
-		damage loop-entity by 24 * calculateCoreStatBonus(event-player, "magic") * {_bonus}
+		handleMagicDamage(event-player, loop-entity, 8, "physical", true)
 		add 4 experience to the player
 	create an explosion with force 5 at the event-player's targeted block
 	add 10 experience to the player
@@ -4703,16 +5000,13 @@ on right click with nether quartz:
 		stop
 	send "&dYou strike monsters with lightning!" to event-player
 	play sound "entity.player.breath" with pitch 0.7 at player
-	set {_bonus} to 1
-	if hasImbue(event-player, "Gale's Curse") is true:
-		set {_bonus} to 1.5
 	loop all entities in radius 12 around (event-player's targeted block):
 		loop-entity is not a dropped item
 		loop-entity is not a player
 		isMonster(loop-entity) is true
 		loop-entity's health is greater than 0
 		create lightning effect at the loop-entity
-		damage loop-entity by 8 * calculateCoreStatBonus(event-player, "magic") * {_bonus}
+		handleMagicDamage(event-player, loop-entity, 4, "physical", true)
 		add 5 experience to the player
 	add 14 experience to the player
 	show mob spawner flames at (the location 1 block above the player's location)
@@ -4761,16 +5055,13 @@ on right click with blaze rod:
 	send "&dYou shout, and your thunderous words are met with an equally powerful blast of destruction!" to event-player
 	set {_block} to event-player's targeted block
 	play sound "item.firecharge.use" at event-player
-	set {_bonus} to 1
-	if hasImbue(event-player, "Gale's Curse") is true:
-		set {_bonus} to 1.5
 	loop all entities in radius 50 around {_block}:
 		loop-entity is not a dropped item
 		loop-entity is not the player
 		set {_vec} to the vector between {_block} and the loop-entity
 		set {_vec} to normalized {_vec}
 		push loop-entity {_vec} with force 2
-		damage loop-entity by 200 * calculateCoreStatBonus(event-player, "magic") * {_bonus}
+		handleMagicDamage(event-player, loop-entity, 50, "physical", true)
 		add 16 experience to the player
 	create an explosion with force 0 at {_block}
 	explodeRadius({_block}, 13)
@@ -4789,13 +5080,10 @@ on right click with diamond:
 	if isLightningRodWithinRangeOf(location of event-player's targeted block, 150, true) is true:
 		send "&dYou sense that your lightning as been absorbed by a lightning rod!"
 		stop
-	set {_bonus} to 1
-	if hasImbue(event-player, "Gale's Curse") is true:
-		set {_bonus} to 1.5
 	loop all entities in radius 22 around (event-player's targeted block):
 		loop-entity is not a dropped item
 		loop-entity is not the player
-		damage loop-entity by 90 * calculateCoreStatBonus(event-player, "magic") * {_bonus}
+		handleMagicDamage(event-player, loop-entity, 25, "lightning", true)
 		add 12 experience to the player
 	create lightning effect at the event-player's targeted block
 	create an explosion with force 12 at the event-player's targeted block
@@ -4820,10 +5108,7 @@ on right click with feather:
 	if subMana(event-player, 150) is false:
 		send "&cYou do not have enough Mana to cast the heal spell!" to event-player
 		stop
-	set {_bonus} to 1
-	if hasImbue(event-player, "Gale's Curse") is true:
-		set {_bonus} to 1.5
-	set {_amount} to {_amount} * {_bonus}
+	set {_amount} to {_amount}
 	heal(event-player, {_amount})
 	send "&6You heal yourself!" to event-player
 	play sound "entity.player.levelup" with pitch 1.5 at event-player
@@ -4857,6 +5142,17 @@ on right click with amethyst shard:
 	add 1 experience to the event-player
 	wait 2 ticks
 	play sound "entity.enderman.teleport" at event-player
+
+on player teleport:
+	hasImbue(event-player, "Oculus") is true:
+		set {_bonus} to 1
+		if hasImbue(event-player, "Gale's Curse") is true:
+			set {_bonus} to 1.5
+		loop all monsters in radius 15 around event-player:
+			isMonster(loop-entity) is true
+			teleport loop-entity to location of event-player
+			handleMagicDamage(event-player, loop-entity, 8, "physical", true)		
+			applyEffect(loop-entity, "vulnerable", 5 seconds, event-player)	
 
 on right click with clay ball:
 	hasClass(player, "wizard") is true
@@ -5276,7 +5572,7 @@ on left click with redstone:
 				isMinion(loop-entity) is true:
 					getSummoner(uuid of loop-entity) is event-player:
 						continue
-				damage loop-entity by 2
+				handleMagicDamage(event-player, loop-entity, 2, "physical", true)
 				set {_monsters} to {_monsters} + 1
 				play sound "item.trident.riptide_3" with pitch 2 at loop-entity
 				send "&4Your blood has been drained!" to loop-entity
@@ -5295,7 +5591,7 @@ on left click with redstone:
 				isMinion(loop-entity) is true:
 					getSummoner(uuid of loop-entity) is event-player:
 						continue
-				damage loop-entity by {_damage}
+				handleMagicDamage(event-player, loop-entity, {_damage}, "physical", true)
 				play sound "item.trident.riptide_3" with pitch 2 at loop-entity
 		heal(event-player, 3 * {_monsters} )
 
@@ -5338,7 +5634,8 @@ function getMinions(summoner: player) :: entities:
 	return {_list::*}
 
 function calculateMaxMinions(summoner: player) :: number:
-	set {_count} to 0
+	set {_count} to 0 
+	
 	if hasClass({_summoner}, "necromancer") is true:
 		set {_count} to 5
 		set {_count} to {_count} + getLevel({_summoner}) / 20
@@ -5348,8 +5645,14 @@ function calculateMaxMinions(summoner: player) :: number:
 		set {_count} to 3
 	hasImbue({_summoner}, "Raid Leader") is true:
 		set {_count} to {_count} + 5
+	hasImbue({_summoner}, "Volatile Death") is true:
+		set {_count} to {_count} + 5
 	hasImbue({_summoner}, "Grimoire") is true:
 		set {_count} to {_count} + 10
+
+	hasImbue({_summoner}, "minion golem") is true:
+		set {-rpgSkript::miniongolem::%{_summoner}%} to floor({_count})
+		set {_count} to 1
 
 	return floor({_count})
 
@@ -6150,7 +6453,7 @@ on right click with spider eye:
 	spawn 1 spider at the player:
 		setupMinion(the spider, {_player})
 
-on right click with string:
+on left click with string:
 	hasClass(event-player, "druid") is true:
 		canUseDruidAbilities(event-player) is true:
 			if at least one of:
@@ -6181,6 +6484,29 @@ on right click with glistering melon slice:
 							applyEffect(loop-entity, "regeneration", 15 seconds, event-player)
 							apply strength 2 to the loop-entity for 15 seconds replacing the existing effect
 
+function isWildshape(player: player, wildshape: string):: boolean:
+	if hasClass({_player}, "druid") is false:
+		return false
+	if {_wildshape} is "spider":
+		if {rpgSkript::%{_player}%::spidershape} is true:
+			return true
+	if {_wildshape} is "horse":
+		if {rpgSkript::%{_player}%::horseshape} is true:
+			return true
+	if {_wildshape} is "bat":
+		if {rpgSkript::%{_player}%::batshape} is true:
+			return true
+	if {_wildshape} is "wolf":
+		if {rpgSkript::%{_player}%::wolfshape} is true:
+			return true
+	if {_wildshape} is "bear":
+		if {rpgSkript::%{_player}%::bearshape} is true:
+			return true
+	if {_wildshape} is "human":
+		if {rpgSkript::%{_player}%::humanshape} is true:
+			return true
+	return false
+									
 command /wildshape <text>:
 	description: Shapeshift into an Animilistic Form
 	executable by: players
