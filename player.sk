@@ -11,7 +11,7 @@ function calculateXPForLevel(player: player):: number:
 
   set {_xpneeded} to floor(10 + 200 * (1.027^({playerSkript::playerLevel::%{_player}%}) - 1 ))
 
-  return {_xpneeded}
+  return floor({_xpneeded})
 
 function addXP(player: player, xp: number):
   if {playerSkript::playerLevel::%{_player}%} is not set:
@@ -27,7 +27,7 @@ function addXP(player: player, xp: number):
   if hasClass({_player}, "wizard") is true:
     set {_xp} to {_xp} * 1.1
 
-  set {playerSkript::playerXP::%{_player}%} to {playerSkript::playerXP::%{_player}%} + ({_xp} * (1 + (0.1 * countImbue({_player}, "enlighten"))))
+  set {playerSkript::playerXP::%{_player}%} to floor({playerSkript::playerXP::%{_player}%} + ({_xp} * (1 + (0.1 * countImbue({_player}, "enlighten")))))
 
 
   if at least one of:
@@ -38,9 +38,9 @@ function addXP(player: player, xp: number):
 
 function levelUp(player: player):
   set {playerSkript::playerXP::%{_player}%} to {playerSkript::playerXP::%{_player}%} - calculateXPForLevel({_player})
+  set {playerSkript::playerLevel::%{_player}%} to {playerSkript::playerLevel::%{_player}%} + 1
   if {playerSkript::playerXP::%{_player}%} is greater than calculateXPForLevel({_player}):
     levelUp({_player})
-  set {playerSkript::playerLevel::%{_player}%} to {playerSkript::playerLevel::%{_player}%} + 1
   if {playerSkript::numResearchPoints::%{_player}%} is not set:
     set {playerSkript::numResearchPoints::%{_player}%} to 0
   set {playerSkript::numResearchPoints::%{_player}%} to {playerSkript::numResearchPoints::%{_player}%} + 1
@@ -204,26 +204,29 @@ function getCoreStat(player: player, stat: text):: number:
   return 0
 
 function calculateCoreStatBonus(player: player, stat: text):: number:
+  set {_bonus} to 1
+  if hasImbue({_player}, "Crown of Thorns") is true:
+    set {_bonus} to {_bonus} + 0.5
   if {_stat} is "damage":
     if {playerSkript::damageStat::%{_player}%} is not set:
       set {playerSkript::damageStat::%{_player}%} to 0
-    return 1 + {playerSkript::damageStat::%{_player}%} * 0.05
+    return 1 + {playerSkript::damageStat::%{_player}%} * 0.05 * {_bonus}
   if {_stat} is "health":
     if {playerSkript::healthStat::%{_player}%} is not set:
       set {playerSkript::healthStat::%{_player}%} to 0
-    return 1 + {playerSkript::healthStat::%{_player}%} * 0.05
+    return 1 + {playerSkript::healthStat::%{_player}%} * 0.05 * {_bonus}
   if {_stat} is "mana":
     if {playerSkript::manaStat::%{_player}%} is not set:
       set {playerSkript::manaStat::%{_player}%} to 0
-    return 1 + {playerSkript::manaStat::%{_player}%} * 0.05
+    return 1 + {playerSkript::manaStat::%{_player}%} * 0.05 * {_bonus}
   if {_stat} is "magic":
     if {playerSkript::magicDamageStat::%{_player}%} is not set:
       set {playerSkript::magicDamageStat::%{_player}%} to 0
-    return 1 + {playerSkript::magicDamageStat::%{_player}%} * 0.05
+    return 1 + {playerSkript::magicDamageStat::%{_player}%} * 0.05 * {_bonus}
   if {_stat} is "minion":
     if {playerSkript::minionPowerStat::%{_player}%} is not set:
       set {playerSkript::minionPowerStat::%{_player}%} to 0
-    return 1 + {playerSkript::minionPowerStat::%{_player}%} * 0.25
+    return 1 + {playerSkript::minionPowerStat::%{_player}%} * 0.25 * {_bonus}
   return 0
 
    
