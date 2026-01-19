@@ -290,7 +290,7 @@ function setMaxHealth(player: player):
 
 	set {_newMax} to ceil({_newMax})
 	if {_newMax} is greater than 512:
-		set {_player}'s maximum health to 512
+		set {_newMax} to 512
 	if {_player}'s maximum health is not {_newMax}:
 		set {_player}'s maximum health to {_newMax}
 		send "&cYour maximum health has changed to %{_newMax}% hearts" to {_player}
