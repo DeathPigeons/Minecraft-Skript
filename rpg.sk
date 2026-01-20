@@ -7,8 +7,14 @@ Options:
 	debugPrefix: &e[&bDEBUG&e]&r
 	debug: true
 
+
+	benchmark: false
+	benchmarkSpan: 10 seconds
+	
 	drawRadius: 20
 
+	itemsOnPage: 9
+	
 on script load:
 	scriptBroadcast("Loading script...")
 	scriptDebugBroadcast("Debug Output Enabled")
@@ -18,6 +24,8 @@ on script load:
 
 on script unload:
 	broadcast "{@prefix} &3Unloading script..."
+
+	# Clean up variables and entities and such as needed
 	
 	delete {-rpgSkript::fireballs::*}
 	delete {-rpgSkript::cryoballs::*}
@@ -90,6 +98,154 @@ on chat:
 	hasClass(player, "Nethermancer") is true:
 		set the message to "&0[&4Nethermancer&0]&r %message%"
 
+function paginate(lines: texts, page: integer, perPage: integer={_none}) :: texts:
+	{_perPage} is not set:
+		set {_perPage} to {@itemsOnPage}
+
+	set {_count} to countLines({_lines::*})
+	set {_pages} to ceil( {_count} / {_perPage} )
+
+	set {_starting} to ({_page} - 1) * {_perPage}
+	set {_ending} to {_starting} + {_perPage} - 1
+	set {_index} to 0
+
+	add "&b ------- Page %{_page}% / %{_pages}% -------" to {_toRet::*}
+
+	{_page} < 1:
+		return {_toRet::*}
+	{_page} > {_pages}:
+		return {_toRet::*}
+
+	loop {_lines::*}:
+		if {_index} >= {_starting}:
+			if {_index} <= {_ending}:
+				add loop-value to {_toRet::*}
+		add 1 to {_index}
+
+	return {_toRet::*}
+
+function countLines(lines: texts) :: number:
+	set {_toRet} to 0
+	loop {_lines::*}:
+		add 1 to {_toRet}
+	return {_toRet}
+
+function benchmarkStart(type: string):
+	{@benchmark} is true
+	{-rpgSkript::benchmark::%{_type}%} is not set:
+		set {-rpgSkript::benchmark::%{_type}%} to false
+
+	{-rpgSkript::benchmark::%{_type}%} is true
+
+	set {-rpgSkript::benchmark::%{_type}%::start} to now
+
+function benchmarkEnd(type: string):
+	{@benchmark} is true
+	{-rpgSkript::benchmark::%{_type}%} is not set:
+		set {-rpgSkript::benchmark::%{_type}%} to false
+
+	{-rpgSkript::benchmark::%{_type}%} is true
+
+	set {-rpgSkript::benchmark::%{_type}%::end} to now
+	{-rpgSkript::benchmark::%{_type}%::last} is not set:
+		set {-rpgSkript::benchmark::%{_type}%::last} to now
+	{-rpgSkript::benchmark::%{_type}%::runs} is not set:
+		set {-rpgSkript::benchmark::%{_type}%::runs} to 0
+
+	add 1 to {-rpgSkript::benchmark::%{_type}%::runs}
+	set {_runDifference} to difference between {-rpgSkript::benchmark::%{_type}%::start} and now
+
+	{-rpgSkript::benchmark::%{_type}%::runTotal} is not set:
+		set {-rpgSkript::benchmark::%{_type}%::runTotal} to 0 seconds
+	add {_runDifference} to {-rpgSkript::benchmark::%{_type}%::runTotal}
+
+	set {_difference} to difference between {-rpgSkript::benchmark::%{_type}%::last} and now
+
+	{_difference} is more than {@benchmarkSpan}:
+		scriptBroadcast("%{_type}% - %{-rpgSkript::benchmark::%{_type}%::runs}% runs over %{_difference}% (%{-rpgSkript::benchmark::%{_type}%::runTotal}% total time taken)")
+		set {-rpgSkript::benchmark::%{_type}%::last} to now
+		set {-rpgSkript::benchmark::%{_type}%::runs} to 0
+		set {-rpgSkript::benchmark::%{_type}%::runTotal} to 0 seconds
+
+function benchmark(type: string):
+	{@benchmark} is true
+	{-rpgSkript::benchmark::%{_type}%} is not set:
+		set {-rpgSkript::benchmark::%{_type}%} to false
+
+	{-rpgSkript::benchmark::%{_type}%} is true
+
+	{-rpgSkript::benchmark::%{_type}%::last} is not set:
+		set {-rpgSkript::benchmark::%{_type}%::last} to now
+	{-rpgSkript::benchmark::%{_type}%::runs} is not set:
+		set {-rpgSkript::benchmark::%{_type}%::runs} to 0
+
+	add 1 to {-rpgSkript::benchmark::%{_type}%::runs}
+	set {_difference} to difference between {-rpgSkript::benchmark::%{_type}%::last} and now
+
+	{_difference} is more than {@benchmarkSpan}:
+		scriptBroadcast("%{_type}% - %{-rpgSkript::benchmark::%{_type}%::runs}% runs over %{_difference}%")
+		set {-rpgSkript::benchmark::%{_type}%::last} to now
+		set {-rpgSkript::benchmark::%{_type}%::runs} to 0
+
+command /rpgbench <string> <boolean>:
+	trigger:
+		command executor has permission "rpg.control"
+		set {-rpgSkript::benchmark::%arg 1%} to arg 2
+		delete {-rpgSkript::benchmark::%arg 1%::*}
+		arg 2 is true:
+			send "&3Running benchmark %arg 1%" to command executor
+		arg 2 is false:
+			send "&3Disabling benchmark %arg 1%" to command executor
+
+command /rpgbenched:
+	trigger:
+		command executor has permission "rpg.control"
+		loop {-rpgSkript::benchmark::*}:
+			send "&3%loop-index% -> %loop-value%" to command executor
+
+command /rpgbenchreset:
+	trigger:
+		command executor has permission "rpg.control"
+		delete {-rpgSkript::benchmark::*}
+		send "&cEnabled benchmark types reset" to command executor
+
+command /rpgflag <string> [<boolean>]:
+	trigger:
+		command executor has permission "rpg.control"
+		set {_flag} to arg 1 in lowercase
+		arg 2 is set:
+			# Set Flag
+			set {rpgSkript::feature_flags::%{_flag}%} to arg 2
+			send "&3Flag set: %{_flag}% -> %arg 2%" to command executor
+		else:
+			# Print flag value
+			send "&3Flag %{_flag}%: %{rpgSkript::feature_flags::%{_flag}%}%" to command executor
+
+command /rpgflags <integer=1>:
+	trigger:
+		command executor has permission "rpg.control"
+
+		loop {rpgSkript::feature_flags::*}:
+			add "&3%loop-index% -> %loop-value%" to {_flagLines::*}
+
+		set {_lines::*} to paginate({_flagLines::*}, arg 1)
+
+		loop {_lines::*}:
+			send loop-value to command executor
+
+command /rpgflagreset:
+	trigger:
+		command executor has permission "rpg.control"
+		delete {rpgSkript::feature_flags::*}
+		send "&dFeature flags reset" to command executor
+		scriptConsoleMessage("Enabled feature flags reset")
+
+function featureEnabled(name: string) :: boolean:
+	replace all " " with "_" in {_name}
+	if {rpgSkript::feature_flags::%{_name}%} is not set:
+		set {rpgSkript::feature_flags::%{_name}%} to true
+	return {rpgSkript::feature_flags::%{_name}%}
+
 function rpgLog(message: text):
 	log "%{_message}%" to "rpg/main.log"
 
@@ -126,11 +282,16 @@ command /rpgdebug <string> <boolean>:
 		set {-rpgSkript::debug::%arg 1%} to arg 2
 		send "&3Debug logging changed" to command executor
 
-command /rpgdebugged:
+command /rpgdebugged <integer=1>:
 	trigger:
 		command executor has permission "rpg.control"
 		loop {-rpgSkript::debug::*}:
-			send "&3%loop-index% -> %loop-value%" to command executor
+			add "&3%loop-index% -> %loop-value%" to {_debuggedLines::*}
+
+		set {_lines::*} to paginate({_debuggedLines::*}, arg 1)
+
+		loop {_lines::*}:
+			send loop-value to command executor
 
 command /rpgdebugreset:
 	trigger:
@@ -1023,10 +1184,7 @@ every 10 ticks:
 		handleWorldEffect(loop-index)
 
 function generateIndex(entity: entity) :: text:
-	{_entity} is a player:
-		set {_index} to name of {_entity}
-	else:
-		set {_index} to "entity-%uuid of {_entity}%"
+	set {_index} to uuid of {_entity}
 	scriptDebugBroadcastType("generateIndex", "%{_index}%")
 	return {_index}
 
@@ -1052,12 +1210,15 @@ function removeNegativeEffects(entity:entity):
 			loop-index is "radiated"
 		then:
 			removeEffect({_entity}, loop-index)
+			
 function removeEffect(entity: entity, name: string):
 	scriptDebugBroadcastType("removeeffect", "Removing Effect %{_name}% from %{_entity}%")
 	set {_index} to generateIndex({_entity})
 	delete {-rpgSkript::effects::%{_index}%::%{_name}%}
 	delete {-rpgSkript::effects::%{_index}%::%{_name}%::*}
-
+	if size of {-rpgSkript::effects::%{_index}%::*} is less than 1:
+		delete {-rpgSkript::effects::%{_index}%}
+		scriptDebugBroadcastType("effect", "Clearing %{_entity}% from having effects")
 
 function applyEffect(entity: entity, name: string, duration: timespan, source: entity):
 	scriptDebugBroadcastType("applyeffect", "Applying Effect %{_name}% to %{_entity}% for %{_duration}%")
@@ -1066,6 +1227,8 @@ function applyEffect(entity: entity, name: string, duration: timespan, source: e
 	set {-rpgSkript::effects::%{_index}%::%{_name}%::duration} to {_duration}
 	set {-rpgSkript::effects::%{_index}%::%{_name}%::source} to {_source}
 	set {-rpgSkript::effects::%{_index}%::%{_name}%::applied} to now
+	# Also populate entityByUUID cache
+	putEntityByUUIDCache({_index}, {_entity})
 
 	if {_name} is "bleeding":
 		if hasEffect({_entity}, "bloodrend") is true:
@@ -1086,6 +1249,7 @@ function hasEffect(entity: entity, name: string) :: boolean:
 		return false
 	set {_diff} to difference between now and {-rpgSkript::effects::%{_index}%::%{_name}%::applied}
 	{_diff} is greater than {-rpgSkript::effects::%{_index}%::%{_name}%::duration}:
+		removeEffect({_entity}, {_name})
 		return false
 	return true
 
@@ -1312,239 +1476,193 @@ every 4 ticks:
 			apply levitation without particles to the loop-player for 2 seconds replacing the existing effect
 
 every 1 seconds:
-	loop all entities:
-		loop-entity is alive
+	set {_uuids::*} to the indices of {-rpgSkript::effects::*}
+	loop all players:
+		{_uuids::*} does not contain uuid of loop-entity
+		add uuid of loop-entity to {_uuids::*}
+	loop {_uuids::*}:
+		set {_entity} to getByUUID(loop-value)
+		if at least one of:
+			{_entity} is not set
+			false is true # placeholder
+		then:
+			delete {-rpgSkript::effects::%loop-value%}
+			delete {-rpgSkript::effects::%loop-value%::*}
 		set {_effectDamage} to 0
 		set {_ndamage} to {_effectDamage}
 		set {_odamage} to {_effectDamage}
-		hasEffect(loop-entity, "bloodrend") is true:
-			set {_index} to generateIndex(loop-entity)
-			if {-rpgSkript::effects::%{_index}%::bleeding::bleedtotal} * (1 - (0.15 * countImbue(loop-entity, "iron will") )) is greater than health of loop-entity:
-				kill loop-entity
+		hasEffect({_entity}, "bloodrend") is true:
+			set {_index} to generateIndex({_entity})
+			if {-rpgSkript::effects::%{_index}%::bleeding::bleedtotal} * (1 - (0.15 * countImbue({_entity}, "iron will") )) is greater than health of {_entity}:
+				kill {_entity}
 				exit 1 loop
-		hasEffect(loop-entity, "firestorm") is true:
+		hasEffect({_entity}, "firestorm") is true:
 			if:
-				isMinion(loop-entity) is false
-				hasClass(loop-entity, "nethermancer") is false
-				hasClass(getSummoner(uuid of loop-entity), "nethermancer") is false
+				isMinion({_entity}) is false
+				hasClass({_entity}, "nethermancer") is false
+				hasClass(getSummoner(uuid of {_entity}), "nethermancer") is false
 			then:
-				loop-entity is not a dropped item
-				ignite loop-entity
+				{_entity} is not a dropped item
+				ignite {_entity}
 				wait 1 tick
-				if loop-entity is on fire:
-					set {_effectDamage} to {_effectDamage} + (1.5 * calculateCoreStatBonus(getEffectSource(loop-entity, "firestorm"), "magic"))
-					scriptDebugBroadcastType("firestorm", "Damaging %loop-entity% by %1.5 * calculateCoreStatBonus(getEffectSource(loop-entity, "firestorm"), "magic")%")
-					loop players in radius 15 around loop-entity:
+				if {_entity} is on fire:
+					handleMagicDamage(getEffectSource({_entity}, "firestorm"), {_entity}, 1.5, "fire", false)
+					loop players in radius 15 around {_entity}:
 						hasClass(loop-player, "nethermancer") is true:
 							heal(loop-player, 0.1)
 							scriptDebugBroadcastType("firestorm", "Healing Nethermancer %loop-player%")
-				loop all entities in radius 1.5 around loop-entity:
+				loop all entities in radius 1.5 around {_entity}:
 					chance of 50%:
-						isMinion(loop-entity-2) is false
-						loop-entity-2 is not a player
-						loop-entity-2 is not loop-entity-1
-						applyEffect(loop-entity-2, "firestorm", 10 seconds, getEffectSource(loop-entity-1, "firestorm"))
-						scriptDebugBroadcastType("firestorm", "Spreading from %loop-entity-1% to %loop-entity-2%")
-		hasEffect(loop-entity, "hallowed") is true:
-			if isMonster(loop-entity) is true:
-				if getEffectSource(loop-entity, "hallowed") is a player:
-					set {_effectDamage} to {_effectDamage} + (1.0 * calculateCoreStatBonus(getEffectSource(loop-entity, "hallowed"), "magic"))
-				else:
-					set {_effectDamage} to {_effectDamage} + 1.0
-				scriptDebugBroadcastType("hallowed", "Damaging Monster %loop-entity% by 1")
-			else if hasClass(loop-entity, "paladin") is true:
-				heal(loop-entity, 0.5)
-				scriptDebugBroadcastType("hallowed", "Healing Paladin %loop-entity% by 0.5")
+						isMinion(loop-entity) is false
+						loop-entity is not a player
+						loop-entity is not {_entity}
+						applyEffect(loop-entity, "firestorm", 10 seconds, getEffectSource({_entity}, "firestorm"))
+						scriptDebugBroadcastType("firestorm", "Spreading from %{_entity}% to %loop-entity%")
+		hasEffect({_entity}, "hallowed") is true:
+			if isMonster({_entity}) is true:
+				handleMagicDamage(getEffectSource({_entity}, "hallowed"), {_entity}, 1, "divine", false)
+				scriptDebugBroadcastType("hallowed", "Damaging Monster %{_entity}% by 1")
+			else if hasClass({_entity}, "paladin") is true:
+				heal({_entity}, 0.5)
+				scriptDebugBroadcastType("hallowed", "Healing Paladin %{_entity}% by 0.5")
 			else:
-				if getEffectSource(loop-entity, "hallowed") is a player:
-					set {_effectDamage} to {_effectDamage} + (0.5 * calculateCoreStatBonus(getEffectSource(loop-entity, "hallowed"), "magic"))
-				else:
-					set {_effectDamage} to {_effectDamage} + 0.5
-				scriptDebugBroadcastType("hallowed", "Damaging Non-Monster %loop-entity% by 0.5")
-		hasEffect(loop-entity, "bleeding") is true:
-			if hasClass(loop-entity, "warrior") is false:
-				if getEffectSource(loop-entity, "bleeding") is a player:
-					set {_effectDamage} to {_effectDamage} + (0.037 * calculateCoreStatBonus(getEffectSource(loop-entity, "bleeding"), "damage"))
-				else:
-					set {_effectDamage} to {_effectDamage} + 0.037
-				set {_effectDamage} to {_effectDamage} + {_bleed}
-				scriptDebugBroadcastType("bleeding", "Damaging Non-Warrior %loop-entity% by %{_bleed}%")
-		hasEffect(loop-entity, "mana leak") is true:
-			loop-entity is a player
-			set {_loss} to ({rpgSkript::maxMana::%loop-entity%} / 40) / 2
-			subMana(loop-entity, {_loss}, false)
-			scriptDebugBroadcastType("mana_leak", "Taking away %({rpgSkript::maxMana::%loop-entity%} / 40) / 2% Mana from %loop-entity%")
-		hasEffect(loop-entity, "venom") is true:
+				handleMagicDamage(getEffectSource({_entity}, "hallowed"), {_entity}, 0.5, "divine", false)
+				scriptDebugBroadcastType("hallowed", "Damaging Non-Monster %{_entity}% by 0.5")
+		hasEffect({_entity}, "bleeding") is true:
+			if hasClass({_entity}, "warrior") is false:
+				handleMagicDamage(getEffectSource({_entity}, "bleeding"), {_entity}, 0.037 * maximum health of {_entity}, "physical", false)
+				scriptDebugBroadcastType("bleeding", "Damaging Non-Warrior %{_entity}% by %{_bleed}%")
+		hasEffect({_entity}, "mana leak") is true:
+			{_entity} is a player
+			set {_loss} to ({rpgSkript::maxMana::%{_entity}%} / 40) / 2
+			subMana({_entity}, {_loss}, false)
+			scriptDebugBroadcastType("mana_leak", "Taking away %({rpgSkript::maxMana::%{_entity}%} / 40) / 2% Mana from %{_entity}%")
+		hasEffect({_entity}, "venom") is true:
 			chance of 10%:
 				set {_dmg} to a random number between 2.5 and 7.5
-				if getEffectSource(loop-entity, "venom") is a player:
-					set {_effectDamage} to {_effectDamage} + ({_dmg} * calculateCoreStatBonus(getEffectSource(loop-entity, "venom"), "damage"))
-				else:
-					set {_effectDamage} to {_effectDamage} + {_dmg}
-				apply weakness 1 without particles to the loop-entity for 2 seconds replacing the existing effect
-				applyEffect(loop-entity, "vulnerable", 7.5 seconds, getEffectSource(loop-entity, "venom"))
-		hasEffect(loop-entity, "cacooned") is true:
-			apply weakness 2 without particles to the loop-entity for 2 seconds replacing the existing effect
-			apply slowness 255 without particles to the loop-entity for 2 seconds replacing the existing effect
-			apply blindness 1 without particles to the loop-entity for 2 seconds replacing the existing effect
-			set {_effectDamage} to {_effectDamage} + 0.5
-			applyEffect(loop-entity, "vulnerable", 7.5 seconds, getEffectSource(loop-entity, "cacooned"))				
+				handleMagicDamage(getEffectSource({_entity}, "venom"), {_entity}, {_dmg}, "poison", false)
+				apply weakness 1 without particles to {_entity} for 2 seconds replacing the existing effect
+				applyEffect({_entity}, "vulnerable", 7.5 seconds, getEffectSource({_entity}, "venom"))
+		hasEffect({_entity}, "cacooned") is true:
+			apply weakness 2 without particles to {_entity} for 2 seconds replacing the existing effect
+			apply slowness 255 without particles to {_entity} for 2 seconds replacing the existing effect
+			apply blindness 1 without particles to {_entity} for 2 seconds replacing the existing effect
+			damage {_entity} by 0.5
+			applyEffect({_entity}, "vulnerable", 7.5 seconds, getEffectSource({_entity}, "cacooned"))				
 			chance of 33%:
-				spawn 1 cave spider at loop-entity:
+				spawn 1 cave spider at {_entity}:
 					set movement speed attribute of the spider to 3 * movement speed attribute of the cave spider
 					set attack damage attribute of the spider to 0.75 * attack damage attribute of the cave spider
 					set maximum health of the spider to 2.5						
-		hasEffect(loop-entity, "shocking") is true:
-			apply slowness 255 without particles to the loop-entity for 2 seconds replacing the existing effect
-			loop all entities in radius 5 around loop-entity:
-				loop-entity-2 is not loop-entity-1
-				hasEffect(loop-entity-2, "shocking") is false
-				if getEffectSource(loop-entity-1, "shocking") is a player:
-					set {_effectDamage} to {_effectDamage} + (1.0 * calculateCoreStatBonus(getEffectSource(loop-entity-1, "shocking"), "magic"))
-				else:
-					set {_effectDamage} to {_effectDamage} + 1.0
-				scriptDebugBroadcastType("shocking", "Damaging %loop-entity-2% by 1")
-				applyEffect(loop-entity-2, "shocking", 0.1 seconds, getEffectSource(loop-entity-1, "shocking"))
-				set {_vec} to vector between loop-entity-1 and loop-entity-2
+		hasEffect({_entity}, "shocking") is true:
+			apply slowness 255 without particles to {_entity} for 2 seconds replacing the existing effect
+			loop all entities in radius 5 around {_entity}:
+				loop-entity is not {_entity}
+				hasEffect(loop-entity, "shocking") is false
+				handleMagicDamage(getEffectSource({_entity}, "shocking"), {_entity}, 0.5, "lightning", false)
+				applyEffect(loop-entity, "shocking", 0.1 seconds, getEffectSource({_entity}, "shocking"))
+				set {_vec} to vector between {_entity} and loop-entity
 				set y component of {_vec} to 0
 				set {_vec} to normalized {_vec}
-				push loop-entity-2 {_vec} with force 1.4
-				push loop-entity-2 upwards with force 0.8
+				push loop-entity {_vec} with force 1.4
+				push loop-entity upwards with force 0.8
 				chance of 30%:
-					hasEffect(loop-entity-2, "shocking") is false:
-						applyEffect(loop-entity-2, "shocking", 2 seconds, getEffectSource(loop-entity-1, "shocking"))
-		hasEffect(loop-entity, "disease") is true:
-			hasClass(loop-entity, "paladin") is false
-			loop-entity is not a zombie
-			loop-entity is not a skeleton
+					hasEffect(loop-entity, "shocking") is false:
+						applyEffect(loop-entity, "shocking", 2 seconds, getEffectSource({_entity}, "shocking"))
+		hasEffect({_entity}, "disease") is true:
+			hasClass({_entity}, "paladin") is false
+			{_entity} is not a zombie
+			{_entity} is not a skeleton
 			chance of 10%:
-				if getEffectSource(loop-entity, "disease") is a player:
-					set {_effectDamage} to {_effectDamage} + (2.5 * calculateCoreStatBonus(getEffectSource(loop-entity, "disease"), "physical"))
-				else:
-					set {_effectDamage} to {_effectDamage} + 2.5
-				scriptDebugBroadcastType("disease", "Damaging Non-Paladin Non-Zombie/Skeleton %loop-entity% by 2.5")
-			loop all entities in radius 5 around loop-entity:
-				loop-entity-2 is not loop-entity-1
-				loop-entity-2 is alive
+				handleMagicDamage(getEffectSource({_entity}, "disease"), {_entity}, 2.5, "poison", false) 
+			loop all entities in radius 5 around {_entity}:
+				loop-entity is not {_entity}
+				loop-entity is alive
 				chance of 30%:
-					applyEffect(loop-entity-2, "disease", 30 seconds, getEffectSource(loop-entity-1, "disease"))
-					scriptDebugBroadcastType("disease", "Spreading from %loop-entity-1% to %loop-entity-2%")
+					applyEffect(loop-entity, "disease", 30 seconds, getEffectSource({_entity}, "disease"))
+					scriptDebugBroadcastType("disease", "Spreading from %{_entity}% to %loop-entity%")
 
-		hasEffect(loop-entity, "void") is true:
-			apply glowing 1 without particles to the loop-entity for 5 seconds replacing the existing effect
+		hasEffect({_entity}, "void") is true:
+			apply glowing 1 without particles to {_entity} for 5 seconds replacing the existing effect
 
-		hasEffect(loop-entity, "invisible") is true:
-			apply invisibility 1 without particles to the loop-entity for 5 seconds replacing the existing effect
-			hasImbue(loop-entity, "spidersilk") is true:
-				light level at loop-entity is less than 11
-				applyEffect(loop-entity, "invisible", 5 seconds, loop-entity)			
-			hasClass(loop-entity, "rogue") is true:
-				apply swiftness 4 without particles to the loop-entity for 5 seconds replacing the existing effect
-				light level at loop-entity is less than 11
-				applyEffect(loop-entity, "invisible", 5 seconds, loop-entity)
+		hasEffect({_entity}, "invisible") is true:
+			apply invisibility 1 without particles to {_entity} for 5 seconds replacing the existing effect
+			hasImbue({_entity}, "spidersilk") is true:
+				light level at {_entity} is less than 11
+				applyEffect({_entity}, "invisible", 5 seconds, {_entity})			
+			hasClass({_entity}, "rogue") is true:
+				apply swiftness 4 without particles to {_entity} for 5 seconds replacing the existing effect
+				light level at {_entity} is less than 11
+				applyEffect({_entity}, "invisible", 5 seconds, {_entity})
 				scriptDebugBroadcastType("rogue", "Resetting Rogue Invisibility")
-			loop all monsters in radius 10 of loop-entity:
-				target of loop-monster is loop-entity-1:
+			loop all monsters in radius 10 of {_entity}:
+				target of loop-monster is {_entity}:
 					reset target of loop-monster
 
-		hasEffect(loop-entity, "levitate") is true:
-			apply levitation 1 without particles to the loop-entity for 5 seconds replacing the existing effect
-			applyEffect(loop-entity, "vulnerable", 5 seconds, getEffectSource(loop-entity, "levitate"))
+		hasEffect({_entity}, "levitate") is true:
+			apply levitation 1 without particles to {_entity} for 5 seconds replacing the existing effect
+			applyEffect({_entity}, "vulnerable", 5 seconds, getEffectSource({_entity}, "levitate"))
 
-		hasEffect(loop-entity, "corrupting dunes") is true:
-			apply slowness 1 without particles to the loop-entity for 5 seconds replacing the existing effect
-			apply weakness 1 without particles to the loop-entity for 5 seconds replacing the existing effect
+		hasEffect({_entity}, "corrupting dunes") is true:
+			apply slowness 1 without particles to {_entity} for 5 seconds replacing the existing effect
+			apply weakness 1 without particles to {_entity} for 5 seconds replacing the existing effect
 
-		hasEffect(loop-entity, "soulbond") is true:
-			applyEffect(loop-entity,"regeneration", 5 seconds, getEffectSource(loop-entity, "soulbond"))
+		hasEffect({_entity}, "soulbond") is true:
+			applyEffect({_entity},"regeneration", 5 seconds, getEffectSource({_entity}, "soulbond"))
 			chance of 10%:
-				apply saturation 1 without particles to the loop-entity for 5 seconds replacing the existing effect
-		hasEffect(loop-entity, "soulbond") is false:
-			set {-rpgSkript::%loop-entity%::soulbond} to false
-			set {-rpgSkript::%loop-entity%::soulbondplayer} to false
+				apply saturation 1 without particles to {_entity} for 5 seconds replacing the existing effect
+		hasEffect({_entity}, "soulbond") is false:
+			set {-rpgSkript::%{_entity}%::soulbond} to false
+			set {-rpgSkript::%{_entity}%::soulbondplayer} to false
 
-		hasEffect(loop-entity, "rage") is true:
-			applyEffect(loop-entity, "regeneration", 5 seconds, getEffectSource(loop-entity, "rage"))
-			apply resistance 1 without particles to loop-entity for 5 seconds replacing the existing effect
-			apply swiftness 1 without particles to loop-entity for 5 seconds replacing the existing effect
-			apply strength 1 without particles to loop-entity for 5 seconds replacing the existing effect
-			apply jump boost 2 without particles to loop-entity for 5 seconds replacing the existing effect
+		hasEffect({_entity}, "rage") is true:
+			applyEffect({_entity}, "regeneration", 5 seconds, getEffectSource({_entity}, "rage"))
+			apply resistance 1 without particles to {_entity} for 5 seconds replacing the existing effect
+			apply swiftness 1 without particles to {_entity} for 5 seconds replacing the existing effect
+			apply strength 1 without particles to {_entity} for 5 seconds replacing the existing effect
+			apply jump boost 2 without particles to {_entity} for 5 seconds replacing the existing effect
 
-		hasEffect(loop-entity, "regeneration") is true:
-			if hasEffect(loop-entity, "recentcombat") is true:
-				if hasClass(getEffectSource(loop-entity, "regeneration"), "cleric") is true:
-					heal(loop-entity, 1.0 * maximum health of loop-entity)
+		hasEffect({_entity}, "regeneration") is true:
+			if hasEffect({_entity}, "recentcombat") is true:
+				if hasClass(getEffectSource({_entity}, "regeneration"), "cleric") is true:
+					heal({_entity}, 0.1 * maximum health of {_entity})
+					scriptDebugBroadcastType("regeneration", "Regenerating %{_entity}% for %0.1 * maximum health of {_entity}% of %maximum health of {_entity}% health")
 				else:
-					heal(loop-entity, 0.5 * maximum health of loop-entity)						
-				scriptDebugBroadcastType("regeneration", "Regenerating %loop-entity% for %0.05 * maximum health of loop-entity% of %maximum health of loop-entity% health")
+					heal({_entity}, 0.05 * maximum health of {_entity})						
+					scriptDebugBroadcastType("regeneration", "Regenerating %{_entity}% for %0.05 * maximum health of {_entity}% of %maximum health of {_entity}% health")
 			else:
-				if hasClass(getEffectSource(loop-entity, "regeneration"), "cleric") is true:
-					heal(loop-entity, 1.5 * maximum health of loop-entity)
+				if hasClass(getEffectSource({_entity}, "regeneration"), "cleric") is true:
+					heal({_entity}, 0.15 * maximum health of {_entity})
+					scriptDebugBroadcastType("regeneration", "Regenerating %{_entity}% for %0.20 * maximum health of {_entity}% of %maximum health of {_entity}% health")
 				else:
-					heal(loop-entity, 1.0 * maximum health of loop-entity)	
-				scriptDebugBroadcastType("regeneration", "Regenerating %loop-entity% for %0.1 * maximum health of loop-entity% of %maximum health of loop-entity% health")
+					heal({_entity}, 0.1 * maximum health of {_entity})	
+					scriptDebugBroadcastType("regeneration", "Regenerating %{_entity}% for %0.15 * maximum health of {_entity}% of %maximum health of {_entity}% health")
 
 		{-severestorms} is true:
-			isFriendlyMob(loop-entity) is false
+			isFriendlyMob({_entity}) is false
 			if at least one of:
-				biome of loop-entity is desert
-				biome of loop-entity is badlands
+				biome of {_entity} is desert
+				biome of {_entity} is badlands
 			then:
-				if sunlight level at loop-entity is greater than 10:
-					apply weakness 1 without particles to the loop-entity for 5 seconds replacing the existing effect
-					apply slowness 2 without particles to the loop-entity for 5 seconds replacing the existing effect				
-					apply blindness 1 without particles to the loop-entity for 5 seconds replacing the existing effect
+				if sunlight level at {_entity} is greater than 10:
+					apply weakness 1 without particles to {_entity} for 5 seconds replacing the existing effect
+					apply slowness 2 without particles to {_entity} for 5 seconds replacing the existing effect				
+					apply blindness 1 without particles to {_entity} for 5 seconds replacing the existing effect
 					chance of 10%:
-						set {_effectDamage} to {_effectDamage} + 0.75
-						scriptDebugBroadcastType("worldevents", "Damaging %loop-entity% by 0.75 from Sandstorm")						
+						damage {_entity} by 0.75
+						scriptDebugBroadcastType("worldevents", "Damaging %{_entity}% by 0.75 from Sandstorm")						
 			else:
-				sunlight level at loop-entity is greater than or equal to 15
-				if isWearingNothing(loop-entity) is true:
-					set {_effectDamage} to {_effectDamage} + 1
-					scriptDebugBroadcastType("worldevents", "Damaging %loop-entity% by 1 from Acid Rain")	
-				else if isWearingLightOrLess(loop-entity) is true:
-					set {_effectDamage} to {_effectDamage} + 0.75
-					scriptDebugBroadcastType("worldevents", "Damaging %loop-entity% by 0.75 from Acid Rain")	
+				sunlight level at {_entity} is greater than or equal to 15
+				if isWearingNothing({_entity}) is true:
+					damage {_entity} by 1.0
+					scriptDebugBroadcastType("worldevents", "Damaging %{_entity}% by 1 from Acid Rain")	
+				else if isWearingLightOrLess({_entity}) is true:
+					damage {_entity} by 0.75
+					scriptDebugBroadcastType("worldevents", "Damaging %{_entity}% by 0.75 from Acid Rain")	
 				else:
-					set {_effectDamage} to {_effectDamage} + 0.5
-					scriptDebugBroadcastType("worldevents", "Damaging %loop-entity% by 0.5 from Acid Rain")				
-
-		hasClass(loop-entity, "monk") is true:
-			set {_effectDamage} to {_effectDamage} * 0.65
-			scriptDebugBroadcastType("monk", "Reducing Effect Damage by *0.65 on %loop-entity%")
-
-		hasClass(loop-entity, "paladin") is true:
-			set {_effectDamage} to {_effectDamage} * 0.9
-			scriptDebugBroadcastType("paladin", "Reducing Effect Damage by *0.9 on %loop-entity%")
-
-		if hasEffect(loop-entity, "shielded") is true:
-			set {_effectDamage} to 0
-			scriptDebugBroadcastType("shielded", "Reducing Effect Damage to 0 on %loop-entity%")
-			stop
-
-		if hasImbue(loop-entity, "guardian") is true:
-			set {_effectDamage} to {_effectDamage} * 0.75
-
-		if hasEffect(loop-entity, "spirit") is true:
-			set {_effectDamage} to 0			
+					damage {_entity} by 0.5
+					scriptDebugBroadcastType("worldevents", "Damaging %{_entity}% by 0.5 from Acid Rain")				
 			
-		if {_effectDamage} is not 0:
-			set {_reduction} to 1 - (0.15 * countImbue(loop-entity, "iron will") )
-			set {_effectDamage} to {_effectDamage} * {_reduction}
-			scriptDebugBroadcastType("iron_will", "Reducing Effect Damage by *%{_reduction}% on %loop-entity%")
-			
-			if {-evilSkript::%loop-entity%::isBoss} is false:
-				set health of loop-entity to health of loop-entity - {_effectDamage} * {_reduction}
-			else:
-				set health of loop-entity to health of loop-entity - ({_effectDamage} * {_reduction}) * 0.5
-				scriptDebugBroadcastType("boss_mob", "Reducing Effect Damage by 0.5 on %loop-entity%")
-
-			scriptDebugBroadcastType("effect", "Reducing Health of %loop-entity% by %{_effectDamage}%")
-			
-
-
-
-
 every 2 seconds:
 
 	arcaneTide()
@@ -2116,6 +2234,8 @@ on damage:
 		set the damage to the damage * 0.9
 	hasEffect(attacker, "inspired") is true:
 		set the damage to the damage * 1.1
+	hasImbue(attacker, "vibranium") is true:
+		set the damage to the damage * ({-rpgSkript::%attacker%::vibranium}/10) 
 	{-evilSkript::%attacker%::isBoss} is true:
 		event-projectile is set:
 			set the damage to the damage * (1.1^({rpgdiff} - 1))
@@ -2433,7 +2553,12 @@ on damage:
 				set the damage to the damage * 0.8
 		else:
 			set the damage to the damage * 0.35
-		applyEffect(victim, "duelist", 10 seconds, attacker)		
+		applyEffect(victim, "duelist", 10 seconds, attacker)	
+	if hasWeaponLore(attacker, "azurewraith") is true:
+		handleMagicDamage(attacker, victim, 1.5, "ice", true)
+		apply slowness 255 to victim for 2 seconds replacing the existing effect
+		apply weakness 2 to victim for 2 seconds replacing the existing effect
+		applyEffect(victim, "vulnerable", 2 seconds, attacker)
 	if hasWeaponLore(attacker, "Gamble") is true:
 		set {_ran} to a random number between 0 and 3
 		set the damage to the damage * {_ran}
@@ -2843,6 +2968,11 @@ on damage:
 				handleMagicDamage(victim, loop-entity, 1, "shadow", true)
 				wait 1 tick
 			set {-rpgSkript::%victim%::darkshroud} to {-rpgSkript::%victim%::darkshroud} - 1
+
+	hasImbue(victim, "vibranium") is true:
+		if {-rpgSkript::%victim%::vibranium} is not set:
+			set {-rpgSkript::%victim%::vibranium} to 0
+		set {-rpgSkript::%victim%::vibranium} to {-rpgSkript::%victim%::vibranium} + the damage
 
 	if the damage is greater than 0:
 		applyEffect(victim, "recentcombat", 2 seconds, attacker)
@@ -3349,7 +3479,7 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&4Health Boost")
 				set name of {_item} to "&aHelmet of Unconfined Form"
 		else if {_item} is any chestplate:
-			set {_ranMythicLore} to a random integer between 0 and 2
+			set {_ranMythicLore} to a random integer between 0 and 3
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&8Razorplate")
 				set {_item} to addImbue({_item}, "&7Iron Will")
@@ -3362,8 +3492,12 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&aWrestler")
 				set {_item} to addImbue({_item}, "&4Health Boost")
 				set name of {_item} to "&aWrestler's Garb"
+			if {_ranMythicLore} is 3:
+				set {_item} to addImbue({_item}, "&9Vibranium")
+				set {_item} to addImbue({_item}, "&4Health Boost")
+				set name of {_item} to "&9Vibranium Mantle"
 		else if {_item} is any leggings:
-			set {_ranMythicLore} to a random integer between 0 and 1
+			set {_ranMythicLore} to a random integer between 0 and 2
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&bTemerity")
 				set {_item} to addImbue({_item}, "&7Iron Will")
@@ -3372,6 +3506,10 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&4Malefic")
 				set {_item} to addImbue({_item}, "&4Health Boost")
 				set name of {_item} to "&bMalefic Crescent"
+			if {_ranMythicLore} is 2:
+				set {_item} to addImbue({_item}, "&9Soul Tether")
+				set {_item} to addImbue({_item}, "&fEnlighten")
+				set name of {_item} to "&9Soul Tether"
 		else if {_item} is any boots:
 			set {_ranMythicLore} to a random integer between 0 and 2
 			if {_ranMythicLore} is 0:
@@ -3403,7 +3541,7 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&4Health Boost")
 				set name of {_item} to "&9Shield of Reject Knowledge"
 		else if {_item} is any sword:
-			set {_ranMythicLore} to a random integer between 0 and 2
+			set {_ranMythicLore} to a random integer between 0 and 3
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&aGamble")
 				set {_item} to addImbue({_item}, "&7Vampiric")
@@ -3416,8 +3554,12 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&4The Grandfather")
 				set {_item} to addImbue({_item}, "&fEnlighten")
 				set name of {_item} to "&4The Grandfather"
+			if {_ranMythicLore} is 3:
+				set {_item} to addImbue({_item}, "&9Azurewraith")
+				set {_item} to addImbue({_item}, "&9Mana Leah")
+				set name of {_item} to "&9The Azurewraith"
 		else if {_item} is any axe:
-			set {_ranMythicLore} to a random integer between 0 and 1
+			set {_ranMythicLore} to a random integer between 0 and 2
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&aGamble")
 				set {_item} to addImbue({_item}, "&7Vampiric")
@@ -4191,8 +4333,23 @@ on death of a player:
 			chance of 50%:
 				rageTrigger(victim)
 			cancel the event
-			stop		
+			stop	
 
+	loop players:
+		hasImbue(loop-player, "Soul Tether") is true:
+			loop-player is not victim
+			{rpgSkript::%loop-player%::lastTether} is not set:
+				set {rpgSkript::%loop-player%::lastTether} to 30 minutes ago
+			difference between {rpgSkript::%loop-player%::lastTether} and now is less than 5 minutes:
+				send "&4A player's soul slips through your fingers..." to loop-player
+				stop
+			set {rpgSkript::%victim%::lastSave} to now	
+			cancel the event	
+			teleport victim to loop-player
+			applyEffect(victim, "regneration", 10 seconds, loop-player)			
+			applyEffect(victim, "spirit", 10 seconds, loop-player)
+			applyEffect(loop-player, "spirit", 10 seconds, loop-player)	
+			
 	hasClass(victim, "artificer") is true:
 		hasResearch(victim, "life-saving_procedures") is true:
 			{rpgSkript::%victim%::lastSave} is not set:
@@ -4345,15 +4502,23 @@ function handleMagicDamage(caster: entity, target: entity, damage: number, eleme
 			set {_damage} to {_damage} * 0.75
 		if hasClass({_target}, "endwarden") is true:
 			set {_damage} to {_damage} * 0.75
-		
+			if {_element} is "shadow":
+				set {_damage} to 0
+					
 	if hasClass({_target}, "paladin") is true:
 		set {_damage} to {_damage} * 0.5
+		if {_element} is "divine":
+			set {_damage} to 0
 	if hasClass({_target}, "cleric") is true:
 		set {_damage} to {_damage} * 0.85
+		if {_element} is "divine":
+			set {_damage} to 0
 	if hasClass({_target}, "monk") is true:
 		set {_damage} to {_damage} * 0.75
 	if hasClass({_target}, "druid") is true:
 		set {_damage} to {_damage} * 0.8
+		if {_element} is "poison":
+			set {_damage} to {_damage} * 0.25
 		if hasImbue({_target}, "Unconfined Form") is true:
 			set {_damage} to {_damage} * 0.75		
 	if hasClass({_target}, "rogue") is true:
@@ -4667,6 +4832,10 @@ function subMana(player: player, amount: number, print: boolean=true) :: boolean
 	{_player} has permission "rpg.control":
 		return true
 	if {rpgSkript::mana::%{_player}%} is not set:
+		return false
+	if hasEffect({_player}, "spirit") is true:
+		if {_print} is true:
+			send "&4You are in spirit form and cannot spend mana!" to {_player}
 		return false
 	if hasEffect({_player}, "mana leak") is true:
 		set {_amount} to {_amount} * 1.2
@@ -5442,17 +5611,21 @@ function isMinion(entity: entity) :: boolean:
 	return false
 
 function getByUUID(uuid: text) :: entity:
-    set {_cacheResult} to {-rpgSkript::cache::entityByUUID::%{_uuid}%::entity}
-    {_cacheResult} is set:
-        {_cacheResult} is alive
-        return {_cacheResult}
-    loop all living entities:
-        uuid of loop-entity contains {_uuid}:
-            # This gets rid of a warning saying that you can't save entities.
-            # The cache is cleared on script unload. It doesn't matter.
-            set {_entity} to loop-entity
-            set {-rpgSkript::cache::entityByUUID::%{_uuid}%::entity} to {_entity}
-            return loop-entity
+	set {_cacheResult} to getEntityByUUIDCache({_uuid})
+	{_cacheResult} is set:
+		{_cacheResult} is not alive:
+			return {_none}
+		return {_cacheResult}
+	loop all living entities:
+		uuid of loop-entity contains {_uuid}:
+			putEntityByUUIDCache({_uuid}, loop-entity)
+			return loop-entity
+
+local function getEntityByUUIDCache(index: text) :: entity:
+	return {-rpgSkript::cache::entityByUUID::%{_index}%::entity}
+
+local function putEntityByUUIDCache(index: text, entity: entity):
+	set {-rpgSkript::cache::entityByUUID::%{_index}%::entity} to {_entity}
 
 every 2 seconds:
 
