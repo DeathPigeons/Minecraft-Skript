@@ -9,7 +9,7 @@ on script load:
 function calculateXPForLevel(player: player):: number:
   set {_xpneeded} to 0
 
-  set {_xpneeded} to floor(10 + 200 * (1.027^({playerSkript::playerLevel::%{_player}%}) - 1 ))
+  set {_xpneeded} to floor(5 + 250 * (1.027^({playerSkript::playerLevel::%{_player}%}) - 1 ))
 
   return floor({_xpneeded})
 
@@ -61,7 +61,7 @@ function getXP(player: player):: number:
 on death of a monster:
   isMinion(victim) is false:
     loop players in radius 20 around victim:
-      set {_xpdropped} to 1 * ({rpgdiff})
+      set {_xpdropped} to 1 * (1.1^({rpgdiff} - 1))
       if {-evilSkript::%victim%::isBoss} is true:
         set {_xpdropped} to {_xpdropped} * 1.5
       set {_xpdropped} to floor({_xpdropped})
@@ -210,7 +210,7 @@ function calculateCoreStatBonus(player: player, stat: text):: number:
   if {_stat} is "damage":
     if {playerSkript::damageStat::%{_player}%} is not set:
       set {playerSkript::damageStat::%{_player}%} to 0
-    return 1 + {playerSkript::damageStat::%{_player}%} * 0.05 * {_bonus}
+    return 1 + {playerSkript::damageStat::%{_player}%} * 0.075 * {_bonus}
   if {_stat} is "health":
     if {playerSkript::healthStat::%{_player}%} is not set:
       set {playerSkript::healthStat::%{_player}%} to 0
@@ -222,7 +222,7 @@ function calculateCoreStatBonus(player: player, stat: text):: number:
   if {_stat} is "magic":
     if {playerSkript::magicDamageStat::%{_player}%} is not set:
       set {playerSkript::magicDamageStat::%{_player}%} to 0
-    return 1 + {playerSkript::magicDamageStat::%{_player}%} * 0.05 * {_bonus}
+    return 1 + {playerSkript::magicDamageStat::%{_player}%} * 0.01 * {_bonus}
   if {_stat} is "minion":
     if {playerSkript::minionPowerStat::%{_player}%} is not set:
       set {playerSkript::minionPowerStat::%{_player}%} to 0
