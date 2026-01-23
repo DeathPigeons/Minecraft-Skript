@@ -97,6 +97,10 @@ on chat:
 		set the message to "&e[&2Monk&e]&r %message%"
 	hasClass(player, "Nethermancer") is true:
 		set the message to "&0[&4Nethermancer&0]&r %message%"
+	hasClass(player, "bard") is true:
+		set the message to "&a[&6Bard&a]&r %message%"
+	hasClass(player, "warlock") is true:
+		set the message to "&8[&5Warlock&8]&r %message%"
 
 function paginate(lines: texts, page: integer, perPage: integer={_none}) :: texts:
 	{_perPage} is not set:
@@ -373,25 +377,41 @@ function isFriendlyMob(entity: entity) :: boolean:
 function setMaxHealth(player: player):
 	set {_newMax} to 10
 	if hasClass({_player}, "herobrine") is true:
-		set {_newMax} to 40
-	else if hasClass({_player}, "warrior") is true:
-		set {_newMax} to 20
+		set {_newMax} to {_newMax} + 40
+	if hasClass({_player}, "barbarian") is true:
+		set {_newMax} to {_newMax} + 15
+	if hasClass({_player}, "druid") is true:
+		set {_newMax} to {_newMax} + 15
+	if hasClass({_player}, "paladin") is true:
+		set {_newMax} to {_newMax} + 20
+	if hasClass({_player}, "nethermancer") is true:
+		set {_newMax} to {_newMax} + 12
+	if hasClass({_player}, "wizard") is true:
+		set {_newMax} to {_newMax} + 8
+	if hasClass({_player}, "sorceror") is true:
+		set {_newMax} to {_newMax} + 8
+	if hasClass({_player}, "endwarden") is true:
+		set {_newMax} to {_newMax} +  8
+	if hasClass({_player}, "rogue") is true:
+		set {_newMax} to {_newMax} + 10
+	if hasClass({_player}, "monk") is true:
+		set {_newMax} to {_newMax} + 12
+	if hasClass({_player}, "cleric") is true:
+		set {_newMax} to {_newMax} +  10
+	if hasClass({_player}, "artificer") is true:
+		set {_newMax} to {_newMax} + 10
+	if hasClass({_player}, "necromancer") is true:
+		set {_newMax} to {_newMax} + 10
+	if hasClass({_player}, "warlock") is true:
+		set {_newMax} to {_newMax} + 12
+	if hasClass({_player}, "bard") is true:
+		set {_newMax} to {_newMax} +  10
+	if hasClass({_player}, "warrior") is true:
+		set {_newMax} to {_newMax} + 20
 		if hasResearch({_player}, "durable") is true:
-			set {_newMax} to {_newMax} * 1.25
-	else if hasClass({_player}, "barbarian") is true:
-		set {_newMax} to 15
-	else if hasClass({_player}, "druid") is true:
-		set {_newMax} to 15
-	else if hasClass({_player}, "nethermancer") is true:
-		set {_newMax} to 12
-	else if hasClass({_player}, "wizard") is true:
-		set {_newMax} to 8
-	else if hasClass({_player}, "sorceror") is true:
-		set {_newMax} to 8
-	else if hasClass({_player}, "endwarden") is true:
-		set {_newMax} to 8
-	else:
-		set {_newMax} to 10
+			set {_newMax} to {_newMax} * 1.5
+
+	set {_newMax} to {_newMax} / calculateClassCount({_player})
 
 	hasClass({_player}, "druid") is true:
 		sun light level at {_player} is greater than 5:
@@ -454,7 +474,7 @@ function setMaxHealth(player: player):
 
 	set {_newMax} to ceil({_newMax})
 	if {_newMax} is greater than 512:
-		setupMaxBarrier({_player}, {_newMax} - 512)
+		set {rpgSkript::extraHealth::%{_player}%} to {_newMax} - 512
 		set {_newMax} to 512
 	if {_player}'s maximum health is not {_newMax}:
 		set {_player}'s maximum health to {_newMax}
@@ -462,12 +482,18 @@ function setMaxHealth(player: player):
 
 	scriptDebugBroadcastType("health", "%{_player}%'s max health is now %{_newMax}%")
 
-function setupMaxBarrier(player: player, shield: number):
+function setupMaxBarrier(player: player):
 	if {rpgSkript::barrier::%{_player}%} is not set: 
 		set {rpgSkript::barrier::%{_player}%} to 0
-	if {rpgSkript::maxBarrier::%{_player}%} is not {_shield}:
-		set {rpgSkript::maxBarrier::%{_player}%} to floor({_shield} / 2)
-		send "&cYour maximum barrier has changed to %{_shield}% points" to {_player}
+	set {_newMax} to 0
+	set {_newMax} to {_newMax} + ({rpgSkript::extraHealth::%{_player}%} / 2)
+	if hasImbue({_player}, "Temerity") is true:
+		set {_newMax} to {_newMax} + 0.5 * maximum health of {_player}
+	if hasImbue({_player}, "Intellectual Barrier") is true:
+		set {_newMax} to {_newMax} + 0.01 * getMaxMana({_player})
+	if {rpgSkript::maxBarrier::%{_player}%} is not {_newMax}:
+		set {rpgSkript::maxBarrier::%{_player}%} to {_newMax}
+		send "&cYour maximum barrier has changed to %{_newMax}% points" to {_player}
 
 function getMaxBarrier(player: player):: number:
 	if {rpgSkript::maxBarrier::%{_player}%} is set: 
@@ -493,6 +519,8 @@ function regenBarrier(player: player):
 		
 	set {_add} to 5
 	if hasClass({_player}, "paladin") is true:
+		set {_add} to {_add} * 1.5
+	if hasClass({_player}, "monk") is true:
 		set {_add} to {_add} * 1.5
 	if hasImbue({_player}, "Intellectual Barrier") is true:
 		set {_add} to {_add} * 1.5
@@ -1739,6 +1767,7 @@ every 2 seconds:
 
 	loop all players:
 		setMaxHealth(loop-player)
+		setupMaxBarrier(loop-player)
 		if hasEffect(loop-player, "recentcombat") is false:
 			regenBarrier(loop-player)
 			if hasImbue(loop-player, "intellectual barrier") is true:
@@ -2549,6 +2578,7 @@ on damage:
 			else:
 				if health of attacker is equal to maximum health of attacker:
 					apply absorption 3 without particles to the attacker for 10 seconds replacing the existing effect
+					regenBarrier(attacker)
 				else:
 					heal(attacker, 2)
 				
@@ -2812,6 +2842,7 @@ on damage:
 						send "&eParried!" to victim
 						if health of victim is equal to maximum health of victim:
 							apply absorption 2 without particles to the victim for 10 seconds replacing the existing effect
+							regenBarrier(victim)
 						else:
 							heal(victim, 2)
 		hasClass(victim, "herobrine") is true:
@@ -3506,28 +3537,34 @@ function generateStatLore( item: item):: item:
 			{_item} is a book
 		then:
 			set {_num} to {_num} + 1
-		set {-rpgSkript::possibleStats::1} to "Strength"
-		set {-rpgSkript::possibleStats::2} to "Dexterity"
-		set {-rpgSkript::possibleStats::3} to "Wisdom"
-		set {-rpgSkript::possibleStats::4} to "Intelligence"
-		set {-rpgSkript::possibleStats::5} to "Charisma"
-		set {-rpgSkript::statColor::Strength} to "&4"
-		set {-rpgSkript::statColor::Dexterity} to "&a"
-		set {-rpgSkript::statColor::Wisdom} to "&b"
-		set {-rpgSkript::statColor::Intelligence} to "&3"
-		set {-rpgSkript::statColor::Charisma} to "&e"
+		set {_possibleStats::1} to "Strength"
+		set {_possibleStats::2} to "Dexterity"
+		set {_possibleStats::3} to "Wisdom"
+		set {_possibleStats::4} to "Intelligence"
+		set {_possibleStats::5} to "Charisma"
+		set {_possibleStats::6} to "Constitution"
+		set {_statColor::Strength} to "&4"
+		set {_statColor::Dexterity} to "&a"
+		set {_statColor::Wisdom} to "&b"
+		set {_statColor::Intelligence} to "&3"
+		set {_statColor::Charisma} to "&e"
+		set {_statColor::Constitution} to "&8"
 		while {_num} > 0:
-			set {_ranstat} to random integer between 1 and size of {-rpgSkript::possibleStats::*}
-			set {_statName} to {-rpgSkript::possibleStats::%{_ranstat}%}
-			set {_color} to {-rpgSkript::statColor::%{_statName}%}
-			{-rpgSkript::statColor::%{_statName}%} is set
+			set {_ranstat} to random integer between 1 and size of {_possibleStats::*}
+			set {_statName} to {_possibleStats::%{_ranstat}%}
+			while {_statColor::%{_statName}%} is not set:
+				set {_ranstat} to {_ranstat} + 1
+				if {_ranstat} is greater than 6:
+					set {_ranstat} to 1
+				set {_statName} to {_possibleStats::%{_ranstat}%}
+			set {_color} to {_statColor::%{_statName}%}
 			hasLore({_item}, "%{_statName}%") is false:
 				set {_item} to addImbue({_item}, "%{_color}%%{_statName}%")
-				remove {-rpgSkript::possibleStats::%{_ranstat}%} from {-rpgSkript::possibleStats::*}
+				remove {_possibleStats::%{_ranstat}%} from {_possibleStats::*}
 				remove 1 from {_num}
 
-		delete {-rpgSkript::possibleStats::*}
-		delete {-rpgSkript::statColor::*}
+		delete {_possibleStats::*}
+		delete {_statColor::*}
 
 	return {_item}	
 
