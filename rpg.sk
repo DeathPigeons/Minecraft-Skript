@@ -454,6 +454,7 @@ function setMaxHealth(player: player):
 
 	set {_newMax} to ceil({_newMax})
 	if {_newMax} is greater than 512:
+		setupMaxBarrier({_player}, {_newMax} - 512)
 		set {_newMax} to 512
 	if {_player}'s maximum health is not {_newMax}:
 		set {_player}'s maximum health to {_newMax}
@@ -461,6 +462,74 @@ function setMaxHealth(player: player):
 
 	scriptDebugBroadcastType("health", "%{_player}%'s max health is now %{_newMax}%")
 
+function setupMaxBarrier(player: player, shield: number):
+	if {rpgSkript::barrier::%{_player}%} is not set: 
+		set {rpgSkript::barrier::%{_player}%} to 0
+	if {rpgSkript::maxBarrier::%{_player}%} is not {_shield}:
+		set {rpgSkript::maxBarrier::%{_player}%} to floor({_shield} / 2)
+		send "&cYour maximum barrier has changed to %{_shield}% points" to {_player}
+
+function getMaxBarrier(player: player):: number:
+	if {rpgSkript::maxBarrier::%{_player}%} is set: 
+		return {rpgSkript::maxBarrier::%{_player}%}
+	return 0
+
+function getBarrier(player: player):: number:
+	if {rpgSkript::barrier::%{_player}%} is set: 
+		return {rpgSkript::barrier::%{_player}%}
+	return 0
+
+function checkBarrier(player: player):
+	if {rpgSkript::barrier::%{_player}%} > {rpgSkript::maxBarrier::%{_player}%}:
+		set {rpgSkript::barrier::%{_player}%} to {rpgSkript::maxBarrier::%{_player}%}
+	if {rpgSkript::barrier::%{_player}%} < 0:
+		set {rpgSkript::barrier::%{_player}%} to 0
+
+function regenBarrier(player: player):
+	if {rpgSkript::barrier::%{_player}%} is not set:
+		stop
+	if {rpgSkript::maxBarrier::%{_player}%} is not set:
+		stop
+		
+	set {_add} to 5
+	if hasClass({_player}, "paladin") is true:
+		set {_add} to {_add} * 1.5
+	if hasImbue({_player}, "Intellectual Barrier") is true:
+		set {_add} to {_add} * 1.5
+	if hasImbue({_player}, "Temerity") is true:
+		set {_add} to {_add} * 1.5
+	
+	addBarrier( {_player}, {_add} )
+
+function addBarrier(player: player, amount: number):
+	set {_before} to {rpgSkript::barrier::%{_player}%}
+	set {rpgSkript::barrier::%{_player}%} to {rpgSkript::barrier::%{_player}%} + {_amount}
+	checkBarrier({_player})
+	if abs( {rpgSkript::barrier::%{_player}%} - {_before} ) > 0.01:
+		displayBarrier({_player})
+
+function subBarrier(player: player, amount: number) :: number:
+	if {rpgSkript::barrier::%{_player}%} is not set:
+		return 0
+	if hasBarrier({_player}) is true:
+		set {_notblocked} to 0
+		set {rpgSkript::barrier::%{_player}%} to {rpgSkript::barrier::%{_player}%} - {_amount}
+		if {rpgSkript::barrier::%{_player}%} is less than 0:
+			set {_notblocked} to abs({rpgSkript::barrier::%{_player}%})
+			set {rpgSkript::barrier::%{_player}%} to 0
+		return {_notblocked}
+
+function hasBarrier(player: player) :: boolean:
+	if {rpgSkript::barrier::%{_player}%} is greater than 0:
+		return true
+	return false
+
+function displayBarrier(player: player):
+	set {_dispM} to {rpgSkript::barrier::%{_player}%}
+	if {_dispM} < 0:
+		set {_dispM} to 0
+	send action bar "&8Barrier: %{_dispM}% / %{rpgSkript::maxBarrier::%{_player}%}%" to {_player}
+		
 function canFly(player: player):: boolean:
 	if {rpgSkript::%{_player}%::batshape} is true:
 		return true
@@ -893,7 +962,7 @@ function heal(entity: entity, amount: number) :: boolean:
 			set {_amount} to {_amount} * 2
 	hasImbue({_entity}, "temerity") is true:
 		if health of {_entity} is not less than maximum health of {_entity}:
-			apply absorption 5 to {_entity} for 10 seconds
+			regenBarrier({_entity})
 	heal {_entity} by {_amount}
 	scriptDebugBroadcastType("heal", "%{_entity}% heals for %{_amount}%")
 	return true
@@ -1403,7 +1472,8 @@ every 1 seconds:
 		clear loop-player's scoreboard
 		set title of loop-player's scoreboard to "&eInformation"
 		set line 15 of loop-player's scoreboard to "&a"
-		set line 14 of loop-player's scoreboard to "&a"
+		if hasBarrier(loop-player) is true:
+			set line 14 of loop-player's scoreboard to "&8 Barrier: %{rpgSkript::barrier::%loop-player%}% / %{rpgSkript::maxBarrier::%loop-player%}%"
 		if hasClass(loop-player, "nethermancer") is false:
 			set line 13 of loop-player's scoreboard to "&3 Mana: %{rpgSkript::mana::%loop-player%}% / %{rpgSkript::maxMana::%loop-player%}%"
 		else:
@@ -1669,6 +1739,11 @@ every 2 seconds:
 
 	loop all players:
 		setMaxHealth(loop-player)
+		if hasEffect(loop-player, "recentcombat") is false:
+			regenBarrier(loop-player)
+			if hasImbue(loop-player, "intellectual barrier") is true:
+				if subMana(loop-player, 20, false) is true:
+					regenBarrier(loop-player)
 		if hasImbue(loop-player, "Crown of Thorns") is true:
 			chance of 15%:
 				set health of loop-player to health of loop-player - maximum health of loop-player * 0.05
@@ -2227,9 +2302,6 @@ on damage:
 		set the damage to the damage * 1.5
 	hasImbue(victim, "Subdue to Anger") is true:
 		set the damage to the damage * 1.50
-	hasImbue(victim, "Intellectual Barrier") is true:
-		if subMana(victim, the damage, false) is true:
-			set the damage to 0
 	hasEffect(victim, "inspired") is true:
 		set the damage to the damage * 0.9
 	hasEffect(attacker, "inspired") is true:
@@ -2854,6 +2926,9 @@ on damage:
 			else:
 				regenHeat(victim, 1)
 
+		if hasBarrier(victim) is true:
+			set the damage to subBarrier(victim, the damage)				
+
 		if the damage is greater than 0:
 			loop all players in radius 15 around victim:
 				if hasImbue(loop-player, "guardian") is true:
@@ -3412,6 +3487,50 @@ function generateClassLore( item: item):: item:
 			set {_item} to addImbue({_item}, "&eMonk Class")
 	return {_item}
 
+function generateStatLore( item: item):: item:
+	if at least one of:
+		{_item} is any armor
+		{_item} is a shield
+		{_item} is any banner
+		{_item} is a book
+	then:
+		set {_odds} to a random integer between 1 and 10
+		if {_odds} is less than 6:
+			set {_num} to 1
+		else if {_odds} is less than 10:
+			set {_num} to 2
+		else:
+			set {_num} to 3
+		if at least one of:
+			{_item} is any banner
+			{_item} is a book
+		then:
+			set {_num} to {_num} + 1
+		set {-rpgSkript::possibleStats::1} to "Strength"
+		set {-rpgSkript::possibleStats::2} to "Dexterity"
+		set {-rpgSkript::possibleStats::3} to "Wisdom"
+		set {-rpgSkript::possibleStats::4} to "Intelligence"
+		set {-rpgSkript::possibleStats::5} to "Charisma"
+		set {-rpgSkript::statColor::Strength} to "&4"
+		set {-rpgSkript::statColor::Dexterity} to "&a"
+		set {-rpgSkript::statColor::Wisdom} to "&b"
+		set {-rpgSkript::statColor::Intelligence} to "&3"
+		set {-rpgSkript::statColor::Charisma} to "&e"
+		while {_num} > 0:
+			set {_ranstat} to random integer between 1 and size of {-rpgSkript::possibleStats::*}
+			set {_statName} to {-rpgSkript::possibleStats::%{_ranstat}%}
+			set {_color} to {-rpgSkript::statColor::%{_statName}%}
+			{-rpgSkript::statColor::%{_statName}%} is set
+			hasLore({_item}, "%{_statName}%") is false:
+				set {_item} to addImbue({_item}, "%{_color}%%{_statName}%")
+				remove {-rpgSkript::possibleStats::%{_ranstat}%} from {-rpgSkript::possibleStats::*}
+				remove 1 from {_num}
+
+		delete {-rpgSkript::possibleStats::*}
+		delete {-rpgSkript::statColor::*}
+
+	return {_item}	
+
 command /legendaryitem <text>:
 	executable by: players
 	trigger:
@@ -3621,6 +3740,7 @@ function generateMythicLore( item: item):: item:
 		set {_item} to addImbue({_item}, "&fEthereal")
 		set {_item} to addImbue({_item}, "&7Reinforced")
 		set {_item} to addImbue({_item}, "&7Weightless")
+		set {_item} to generateStatLore({_item})
 
 		#set {_item} to generateClassLore({_item})
 
@@ -3707,6 +3827,7 @@ function generateLegendaryLore( item: item, name: text):: item:
 			set {_item} to addImbue({_item}, "&7Weightless")
 
 	#set {_item} to generateClassLore({_item})
+	set {_item} to generateStatLore({_item})
 	return {_item}
 	
 function generateLore( item: item):: item:
@@ -4584,9 +4705,6 @@ function handleMagicDamage(caster: entity, target: entity, damage: number, eleme
 		set {_damage} to {_target} * 1.5
 	hasEffect({_caster}, "amplified") is true:
 		set {_damage} to {_damage} * 1.5
-	hasImbue({_target}, "Intellectual Barrier") is true:
-		if subMana({_target}, {_damage}, false) is true:
-			set {_damage} to 0
 	hasEffect({_target}, "inspired") is true:
 		set {_damage} to {_damage} * 0.9
 	hasEffect({_target}, "reinforced") is true:
@@ -4641,9 +4759,14 @@ function handleMagicDamage(caster: entity, target: entity, damage: number, eleme
 				set {_damage} to {_damage} * 0.75
 
 		if {_target} is a player:
+			if hasBarrier({_target}) is true:
+				set {_damage} to subBarrier({_target}, {_damage})
 			play sound "entity.player.hurt" at {_target}
 
-	set health of {_target} to health of {_target} - {_damage}
+	if {_damage} is greater than 0:
+		set health of {_target} to health of {_target} - {_damage}
+		applyEffect({_target}, "recentcombat", 2 seconds, {_caster})
+		applyEffect({_caster}, "recentcombat", 2 seconds, {_target})
 
 
 on place of lightning rod:
