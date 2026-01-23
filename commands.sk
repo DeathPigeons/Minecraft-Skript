@@ -23,7 +23,7 @@ command /trainingdummy:
 			send "&cYou do not have access to that command." to player
 			stop
 		spawn 1 villager at player:
-			set maximum health of the zombie to 100000000
+			set maximum health of the villager to 100000000
 			set attack damage attribute of the villager to 0
 			set movement speed attribute of the villager to 0
 			heal the villager
@@ -41,6 +41,7 @@ command /classinfo <text>:
 			send "Resource: 0 Base Mana / 10 Base Energy" to command executor
 			send "Abilties: Power Attacks and Enhanced Tool Crafting" to command executor
 			send "Health: Base 20, can be increased to 25" to command executor
+			send "Preferred Stat Affixes: Strength & Dexterity" to command executor
 			send "Constraints: None, can wear any armor" to command executor
 		else if arg 1 is "rogue":
 			send "Rogue Features:" to command executor
@@ -48,6 +49,7 @@ command /classinfo <text>:
 			send "Resource: 0 Base Mana / 15 Base Energy" to command executor
 			send "Abilties: Can see information on surrounding items, mobs, and players. Critical hits give Dark Shroud" to command executor
 			send "Health: Base 20" to command executor
+			send "Preferred Stat Affixes: Charisma & Dexterity" to command executor
 			send "Constraints: Cannot use abilities while slowed, and can not wear heavy armor" to command executor
 		else if arg 1 is "wizard":
 			send "Wizard Features:" to command executor
@@ -55,6 +57,7 @@ command /classinfo <text>:
 			send "Resource: Increasing Mana with Levels / 0 Base Energy" to command executor
 			send "Abilties: Magma Cream (Fireball Spell), Lapis Lazuli (Ice Ball Spell), Diamond (Lightning Bolt Spell), Ameythst Shard (Teleport Spell), Location Memorization, Storage" to command executor
 			send "Health: Base 16" to command executor
+			send "Preferred Stat Affixes: Intelligence & Wisdom" to command executor
 			send "Constraints: Cannot wear armor heavier than light" to command executor
 		else if arg 1 is "nethermancer":
 			send "Nethermancer Features:" to command executor
@@ -62,6 +65,7 @@ command /classinfo <text>:
 			send "Resource: Base 1000 Mana / 0 Base Energy / 1000 Base Heat" to command executor
 			send "Abilties: Heat Radiance, Firestorm, Magma Cream (Fireball Spell), Health Regeneration based on Heat, can drink Lava/Water " to command executor
 			send "Health: Base 12" to command executor
+			send "Preferred Stat Affixes: Strength & Intelligence" to command executor
 			send "Constraints: Constantly Changing Heat" to command executor
 		else if arg 1 is "Paladin":
 			send "Paladin Features:" to command executor
@@ -69,63 +73,88 @@ command /classinfo <text>:
 			send "Resource: 30 Base Mana / 0 Base Energy" to command executor
 			send "Abilties: Hallowed Radiance, Preventing Death of Players, Totem of Undying (Dampen Spell), Fast Healing" to command executor
 			send "Health: Base 20" to command executor
+			send "Preferred Stat Affixes: Strength & Constitution" to command executor
 			send "Constraints: None" to command executor
 		else if arg 1 is "Cleric":
 			send "Cleric Features:" to command executor
 			send "Damage/Resistances: None" to command executor
-			send "Mana: 1000 Base Mana" to command executor
+			send "Resource: 1000 Base Mana" to command executor
 			send "Abilties: /Channel (Regen, Absorb, Cleanse, Mana, Cure, or Haste), Totem of Undying (Dampen Spell / Revive Spell), /Pray (Food / Strength ), & /soulbond(tp)" to command executor
 			send "Health: Base 20" to command executor
+			send "Preferred Stat Affixes: Wisdom & Charisma" to command executor
 			send "Constraints: Limited Mana Regen" to command executor
 		else if arg 1 is "Druid":
 			send "Druid Features:" to command executor
 			send "Damage/Resistances: Various Effects Depending on Form" to command executor
-			send "Mana" to command executor
-			send "Abilties" to command executor
-			send "Health" to command executor
-			send "Constraints" to command executor
+			send "Resource: Increasing Mana / 3 Base Wildshape " to command executor
+			send "Abilties: /wildshape <form>, String (Cobweb Spell), Green Dye (Poison Gas Spell), Swimming Efficiency, & Increased Crop Growth in Human Form" to command executor
+			send "Health: Various amounts depending on Form" to command executor
+			send "Preferred Stat Affixes: Wisdom & Constitution" to command executor
+			send "Constraints: Limited Wildshape" to command executor
 		else if arg 1 is "Monk":
 			send "Monk Features:" to command executor
-			send "Damage/Resistances:" to command executor
-			send "Mana" to command executor
-			send "Abilties" to command executor
-			send "Health" to command executor
-			send "Constraints" to command executor
+			send "Damage/Resistances: Increased damage on consecutive hits and damage resistance on consecutive damage taken" to command executor
+			send "Resource: 20 Base Energy" to command executor
+			send "Abilties: Life on Hit, Absorption, ConsecutiveHits/Victim, Punch Damage, and Parry" to command executor
+			send "Health: 10 Base Health" to command executor
+			send "Preferred Stat Affixes: Dexterity & Constitution" to command executor
+			send "Constraints: Limited to Punching for maximum bonuses" to command executor
 		else if arg 1 is "Endwarden":
 			send "Endwarden Features:" to command executor
-			send "Damage/Resistances:" to command executor
-			send "Mana" to command executor
-			send "Abilties" to command executor
-			send "Health" to command executor
-			send "Constraints" to command executor
+			send "Damage/Resistances: None" to command executor
+			send "Resource: 1500 Base Mana" to command executor
+			send "Abilties: Mana Stealing, Teleport on near-Death, Purple Dye (Singularity Spell), Shulker Shell (Dark Shroud Spell), Glowing Ink Sac (Tether Spell), End Crystal (Black Hole Spell), & Ameythst Shard (Teleport Spell)" to command executor
+			send "Health: 8 Base Health" to command executor
+			send "Preferred Stat Affixes: Dexterity & Intelligence" to command executor
+			send "Constraints: Takes Damage in Water and no Self Mana Regen" to command executor
 		else if arg 1 is "Necromancer":
 			send "Necromancer Features:" to command executor
-			send "Damage/Resistances:" to command executor
-			send "Mana" to command executor
-			send "Abilties" to command executor
-			send "Health" to command executor
-			send "Constraints" to command executor
+			send "Damage/Resistances: None" to command executor
+			send "Resource: Increasing Mana" to command executor
+			send "Abilties: Minions (Rotten Flesh/Bone), Redstone (Bloodsurge Spell), and Rituals" to command executor
+			send "Health: 10 Base Health" to command executor
+			send "Preferred Stat Affixes: Intelligence & Constitution" to command executor
+			send "Constraints: Limited viability outside of Minions" to command executor
 		else if arg 1 is "Barbarian":
 			send "Barbarian Features:" to command executor
-			send "Damage/Resistances:" to command executor
-			send "Mana" to command executor
-			send "Abilties" to command executor
-			send "Health" to command executor
-			send "Constraints" to command executor
+			send "Damage/Resistances: Increased Damage/Resistance as Health goes down and more surrounding enemies. Increased damage while off-handing a sword/axe. Reduced damage/resistance against projectiles." to command executor
+			send "Resource: 5 Base Energy" to command executor
+			send "Abilties: Red Dye (Rage Spell), Increased Thorns, Punch Knockback, Projectiles Thrown, Leap, & Undying" to command executor
+			send "Health: 15 Base Health" to command executor
+			send "Preferred Stat Affixes: Strength & Dexterity" to command executor
+			send "Constraints: Can not hold a shield" to command executor
 		else if arg 1 is "Sorceror":
 			send "Sorceror Features:" to command executor
 			send "Damage/Resistances:" to command executor
 			send "Mana" to command executor
 			send "Abilties" to command executor
 			send "Health" to command executor
+			send "Preferred Stat Affixes: Wisdom & Charisma" to command executor
 			send "Constraints" to command executor
-		else if arg 1 is "Artificer":
-			send "Artificer Features:" to command executor
+		else if arg 1 is "Warlock":
+			send "Warlock Features:" to command executor
 			send "Damage/Resistances:" to command executor
 			send "Mana" to command executor
 			send "Abilties" to command executor
 			send "Health" to command executor
+			send "Preferred Stat Affixes: Constitution & Charisma" to command executor
 			send "Constraints" to command executor
+		else if arg 1 is "Bard":
+			send "Bard Features:" to command executor
+			send "Damage/Resistances:" to command executor
+			send "Mana" to command executor
+			send "Abilties" to command executor
+			send "Health" to command executor
+			send "Preferred Stat Affixes: Dexterity & Charisma" to command executor
+			send "Constraints" to command executor
+		else if arg 1 is "Artificer":
+			send "Artificer Features:" to command executor
+			send "Damage/Resistances: None" to command executor
+			send "Resource: Increased Mana near Workstations" to command executor
+			send "Abilties: Control Panel, Constructs, Potion Brewing, Exo-Suit, and Artificing" to command executor
+			send "Health: 10 Base Health" to command executor
+			send "Preferred Stat Affixes: Intelligence & Constitution" to command executor
+			send "Constraints: No mana outside workstations" to command executor
 		else:
 			send "Not a Valid Class" to command executor
 
