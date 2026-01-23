@@ -110,6 +110,10 @@ function calculateClassCount(player: player):: number:
     set {_classcount} to {_classcount} + 1
   if hasClass({_player}, "artificer") is true:
     set {_classcount} to {_classcount} + 1
+  if hasClass({_player}, "warlock") is true:
+    set {_classcount} to {_classcount} + 1
+  if hasClass({_player}, "bard") is true:
+    set {_classcount} to {_classcount} + 1
   if hasClass({_player}, "herobrine") is true:
     set {_classcount} to {_classcount} + 1
 
@@ -208,35 +212,35 @@ function calculateCoreStatBonus(player: player, stat: text):: number:
   if hasImbue({_player}, "Crown of Thorns") is true:
     set {_bonus} to {_bonus} + 0.5
   if hasClass({_player}, "warrior") is true:
-    set {_bonus} to {_bonus} + 0.075 * countImbue({_player}, "Strength") + 0.075 * countImbue({_player}, "Dexterity")
+    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Strength") + 0.05 * countImbue({_player}, "Dexterity")
   if hasClass({_player}, "paladin") is true:
-    set {_bonus} to {_bonus} + 0.075 * countImbue({_player}, "Strength") + 0.025 * countImbue({_player}, "Wisdom")
+    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Strength") + 0.05 * countImbue({_player}, "Constitution")
   if hasClass({_player}, "wizard") is true:
-    set {_bonus} to {_bonus} + 0.075 * countImbue({_player}, "Intelligence") + 0.075 * countImbue({_player}, "Wisdom")
+    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Intelligence") + 0.05 * countImbue({_player}, "Wisdom")
   if hasClass({_player}, "rogue") is true:
-    set {_bonus} to {_bonus} + 0.025 * countImbue({_player}, "Charisma") + 0.075 * countImbue({_player}, "Dexterity")
+    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Charisma") + 0.05 * countImbue({_player}, "Dexterity")
   if hasClass({_player}, "cleric") is true:
-    set {_bonus} to {_bonus} + 0.075 * countImbue({_player}, "Wisdom") + 0.05 * countImbue({_player}, "Charisma")
+    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Wisdom") + 0.05 * countImbue({_player}, "Charisma")
   if hasClass({_player}, "barbarian") is true:
-    set {_bonus} to {_bonus} + 0.075 * countImbue({_player}, "Strength") + 0.05 * countImbue({_player}, "Dexterity")
+    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Strength") + 0.05 * countImbue({_player}, "Dexterity")
   if hasClass({_player}, "druid") is true:
-    set {_bonus} to {_bonus} + 0.075 * countImbue({_player}, "Wisdom") + 0.025 * countImbue({_player}, "Strength")
+    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Wisdom") + 0.05 * countImbue({_player}, "Constitution")
   if hasClass({_player}, "nethermancer") is true:
-    set {_bonus} to {_bonus} + 0.075 * countImbue({_player}, "Strength") + 0.05 * countImbue({_player}, "Intelligence")
+    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Strength") + 0.05 * countImbue({_player}, "Intelligence")
   if hasClass({_player}, "necromancer") is true:
-    set {_bonus} to {_bonus} + 0.075 * countImbue({_player}, "Intelligence") + 0.05 * countImbue({_player}, "Dexterity")
+    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Intelligence") + 0.05 * countImbue({_player}, "Constitution")
   if hasClass({_player}, "artificer") is true:
-    set {_bonus} to {_bonus} + 0.075 * countImbue({_player}, "Intelligence") + 0.05 * countImbue({_player}, "Charisma")
+    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Intelligence") + 0.05 * countImbue({_player}, "Constitution")
   if hasClass({_player}, "sorceror") is true:
-    set {_bonus} to {_bonus} + 0.025 * countImbue({_player}, "Wisdom") + 0.075 * countImbue({_player}, "Charisma")
+    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Wisdom") + 0.05 * countImbue({_player}, "Charisma")
   if hasClass({_player}, "endwarden") is true:
-    set {_bonus} to {_bonus} + 0.075 * countImbue({_player}, "Intelligence") + 0.05 * countImbue({_player}, "Dexterity")
+    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Intelligence") + 0.05 * countImbue({_player}, "Dexterity")
   if hasClass({_player}, "monk") is true:
-    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Wisdom") + 0.075 * countImbue({_player}, "Dexterity")
+    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Constitution") + 0.05 * countImbue({_player}, "Dexterity")
   if hasClass({_player}, "bard") is true:
-    set {_bonus} to {_bonus} + 0.075 * countImbue({_player}, "Charisma") + 0.05 * countImbue({_player}, "Dexterity")
+    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Charisma") + 0.05 * countImbue({_player}, "Dexterity")
   if hasClass({_player}, "warlock") is true:
-    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Wisdom") + 0.075 * countImbue({_player}, "Charisma")
+    set {_bonus} to {_bonus} + 0.05 * countImbue({_player}, "Constitution") + 0.05 * countImbue({_player}, "Charisma")
   if {_stat} is "damage":
     if {playerSkript::damageStat::%{_player}%} is not set:
       set {playerSkript::damageStat::%{_player}%} to 0
