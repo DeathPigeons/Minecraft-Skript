@@ -375,7 +375,7 @@ function isFriendlyMob(entity: entity) :: boolean:
 	return false
 
 function setMaxHealth(player: player):
-	set {_newMax} to 10
+	set {_newMax} to 0
 	if hasClass({_player}, "herobrine") is true:
 		set {_newMax} to {_newMax} + 40
 	if hasClass({_player}, "barbarian") is true:
@@ -411,7 +411,10 @@ function setMaxHealth(player: player):
 		if hasResearch({_player}, "durable") is true:
 			set {_newMax} to {_newMax} * 1.5
 
-	set {_newMax} to {_newMax} / calculateClassCount({_player})
+	if calculateClassCount({_player}) is 0:
+		set {_newMax} to 10
+	else:
+		set {_newMax} to {_newMax} / calculateClassCount({_player})
 
 	hasClass({_player}, "druid") is true:
 		sun light level at {_player} is greater than 5:
@@ -476,6 +479,8 @@ function setMaxHealth(player: player):
 	if {_newMax} is greater than 512:
 		set {rpgSkript::extraHealth::%{_player}%} to {_newMax} - 512
 		set {_newMax} to 512
+	if {_newMax} is less than 1:
+		set {_newMax} to 1
 	if {_player}'s maximum health is not {_newMax}:
 		set {_player}'s maximum health to {_newMax}
 		send "&cYour maximum health has changed to %{_newMax}% hearts" to {_player}
@@ -538,7 +543,7 @@ function addBarrier(player: player, amount: number):
 
 function subBarrier(player: player, amount: number) :: number:
 	if {rpgSkript::barrier::%{_player}%} is not set:
-		return 0
+		return {_amount}
 	if hasBarrier({_player}) is true:
 		set {_notblocked} to 0
 		set {rpgSkript::barrier::%{_player}%} to {rpgSkript::barrier::%{_player}%} - {_amount}
@@ -546,6 +551,7 @@ function subBarrier(player: player, amount: number) :: number:
 			set {_notblocked} to abs({rpgSkript::barrier::%{_player}%})
 			set {rpgSkript::barrier::%{_player}%} to 0
 		return {_notblocked}
+	return {_amount}
 
 function hasBarrier(player: player) :: boolean:
 	if {rpgSkript::barrier::%{_player}%} is greater than 0:
