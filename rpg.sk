@@ -102,38 +102,6 @@ on chat:
 	hasClass(player, "warlock") is true:
 		set the message to "&8[&5Warlock&8]&r %message%"
 
-function paginate(lines: texts, page: integer, perPage: integer={_none}) :: texts:
-	{_perPage} is not set:
-		set {_perPage} to {@itemsOnPage}
-
-	set {_count} to countLines({_lines::*})
-	set {_pages} to ceil( {_count} / {_perPage} )
-
-	set {_starting} to ({_page} - 1) * {_perPage}
-	set {_ending} to {_starting} + {_perPage} - 1
-	set {_index} to 0
-
-	add "&b ------- Page %{_page}% / %{_pages}% -------" to {_toRet::*}
-
-	{_page} < 1:
-		return {_toRet::*}
-	{_page} > {_pages}:
-		return {_toRet::*}
-
-	loop {_lines::*}:
-		if {_index} >= {_starting}:
-			if {_index} <= {_ending}:
-				add loop-value to {_toRet::*}
-		add 1 to {_index}
-
-	return {_toRet::*}
-
-function countLines(lines: texts) :: number:
-	set {_toRet} to 0
-	loop {_lines::*}:
-		add 1 to {_toRet}
-	return {_toRet}
-
 function benchmarkStart(type: string):
 	{@benchmark} is true
 	{-rpgSkript::benchmark::%{_type}%} is not set:
@@ -333,6 +301,8 @@ function isMonster(entity: entity) :: boolean:
 	{_entity} is a player:
 		hasClass({_entity}, "herobrine") is true:
 			return true
+		hasEffect({_entity}, "hulk") is true:
+			return true
 	isMinion({_entity}) is true:
 		return false
 	{_entity} is a monster:
@@ -438,6 +408,12 @@ function setMaxHealth(player: player):
 		if {rpgSkript::%{_player}%::ritualstr} is true:
 			set {_newMax} to 1.5 * {_newMax}
 
+	if hasImbue({_player}, "gamma") is true:
+		if hasEffect({_player}, "hulk") is false:
+			set {_newMax} to {_newMax} * 0.5
+		else:
+			set {_newMax} to {_newMax} * 5
+
 	if hasImbue({_player}, "Health Boost") is true:
 		set {_newMax} to ({_newMax} + {_newMax} * 0.15 * countImbue({_player}, "Health Boost"))
 
@@ -446,6 +422,9 @@ function setMaxHealth(player: player):
 
 	if hasImbue({_player}, "guardian") is true:
 		set {_newMax} to {_newMax} * 1.5
+
+	if hasImbue({_player}, "captain") is true:
+		set {_newMax} to {_newMax} * 1.25
 
 	hasEffect({_player}, "inspired") is true:
 		set {_newMax} to {_newMax} * 1.1
@@ -531,6 +510,9 @@ function regenBarrier(player: player):
 		set {_add} to {_add} * 1.5
 	if hasImbue({_player}, "Temerity") is true:
 		set {_add} to {_add} * 1.5
+
+	if hasEffect({_player}, "recentcombat") is true:
+		set {_add} to {_add} * 0.5
 	
 	addBarrier( {_player}, {_add} )
 
@@ -767,6 +749,21 @@ function hasImbue(player: player, text: text) :: boolean:
 		return true
 	if hasLore({_player}'s off hand item, {_text}) is true:
 		return true
+	#if at least one of:
+	#	hasLore(off hand item of {_player}, "inspirational") is false
+	#	hasLore(off hand item of {_player}, "captain") is false	
+	#then:
+	#	if hasEffect({_player}, "appliance") is true:	
+	#		set {_source} to getEffectSource({_player}, "appliance")
+	#		{_source} is not {_player}
+	#		if at least one of:
+	#			hasLore(helmet of {_source}, {_text}) is true
+	#			hasLore(chestplate of {_source}, {_text}) is true
+	#			hasLore(leggings of {_source}, {_text}) is true
+	#			hasLore(boots of {_source}, {_text}) is true
+	#			hasLore(off hand item of {_source}, {_text}) is true
+	#		then:
+	#			return true
 	return false
 
 function hasLore(item: item, text: text) :: boolean:
@@ -1296,6 +1293,24 @@ function removeAllEffects(entity: entity):
 	loop {-rpgSkript::effects::%{_index}%::*}:
 		removeEffect({_entity}, loop-index)
 
+function isNegativeEffect(effect: string):: boolean:
+	if at least one of:
+		{_effect} is "shocking"
+		{_effect} is "bleeding"
+		{_effect} is "vulnerable"
+		{_effect} is "infected"
+		{_effect} is "disease"
+		{_effect} is "mana leak"
+		{_effect} is "firestorm"
+		{_effect} is "phased"
+		{_effect} is "void"
+		{_effect} is "levitate"
+		{_effect} is "radiated"
+		{_effect} is "silenced"
+	then:
+		return true
+	return false
+
 function removeNegativeEffects(entity:entity):
 	set {_index} to generateIndex({_entity})
 	loop {-rpgSkript::effects::%{_index}%::*}:
@@ -1311,12 +1326,22 @@ function removeNegativeEffects(entity:entity):
 			loop-index is "void"
 			loop-index is "levitate"
 			loop-index is "radiated"
+			loop-index is "silenced"
 		then:
 			removeEffect({_entity}, loop-index)
 			
 function removeEffect(entity: entity, name: string):
 	scriptDebugBroadcastType("removeeffect", "Removing Effect %{_name}% from %{_entity}%")
 	set {_index} to generateIndex({_entity})
+	if {_name} is "recentcombat":
+		hasImbue({-rpgSkript::effects::%{_index}%::%{_name}%::source}, "malefic") is true
+		isWildshape({-rpgSkript::effects::%{_index}%::%{_name}%::source}, "wolf") is true
+		if {-rpgSkript::%{-rpgSkript::effects::%{_index}%::%{_name}%::source}%::maleficCrit} is not set:
+			set {-rpgSkript::%{-rpgSkript::effects::%{_index}%::%{_name}%::source}%::maleficCrit} to 0
+		set {-rpgSkript::%{-rpgSkript::effects::%{_index}%::%{_name}%::source}%::maleficCrit} to {-rpgSkript::%{-rpgSkript::effects::%{_index}%::%{_name}%::source}%::maleficCrit} - 0.02
+		if {-rpgSkript::%{-rpgSkript::effects::%{_index}%::%{_name}%::source}%::maleficCrit} is less than 0:
+			set {-rpgSkript::%{-rpgSkript::effects::%{_index}%::%{_name}%::source}%::maleficCrit} to 0
+				
 	delete {-rpgSkript::effects::%{_index}%::%{_name}%}
 	delete {-rpgSkript::effects::%{_index}%::%{_name}%::*}
 	if size of {-rpgSkript::effects::%{_index}%::*} is less than 1:
@@ -1326,6 +1351,11 @@ function removeEffect(entity: entity, name: string):
 function applyEffect(entity: entity, name: string, duration: timespan, source: entity):
 	scriptDebugBroadcastType("applyeffect", "Applying Effect %{_name}% to %{_entity}% for %{_duration}%")
 	set {_index} to generateIndex({_entity})
+	if {_entity} is a player:
+		if {_source} is a player:
+			if isSameFaction({_entity}, {_source}) is true:
+				if isNegativeEffect({_name}) is true:
+					stop
 	set {-rpgSkript::effects::%{_index}%::%{_name}%} to 0
 	set {-rpgSkript::effects::%{_index}%::%{_name}%::duration} to {_duration}
 	set {-rpgSkript::effects::%{_index}%::%{_name}%::source} to {_source}
@@ -1333,14 +1363,28 @@ function applyEffect(entity: entity, name: string, duration: timespan, source: e
 	# Also populate entityByUUID cache
 	putEntityByUUIDCache({_index}, {_entity})
 
+	if {_name} is "hulk":
+		{_entity} is a player:
+			hasEffect({_entity}, "hulk") is false
+			broadcast "&2%{_entity}% is hulking out!"
+
+	if {_name} is "recentcombat":
+		hasImbue({_source}, "malefic") is true
+		isWildshape({_source}, "wolf") is true
+		if {-rpgSkript::%{_source}%::maleficCrit} is not set:
+			set {-rpgSkript::%{_source}%::maleficCrit} to 0
+		set {-rpgSkript::%{_source}%::maleficCrit} to {-rpgSkript::%{_source}%::maleficCrit} + 0.02
+		if {-rpgSkript::%{_source}%::maleficCrit} is greater than 0.5:
+			set {-rpgSkript::%{_source}%::maleficCrit} to 0.5
+
 	if {_name} is "bleeding":
 		if hasEffect({_entity}, "bloodrend") is true:
 			if {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} is not set:
 				set {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} to 0
 			if getEffectSource({_entity}, "bleeding") is a player:
-				set {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} to {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} + ((0.025 * calculateCoreStatBonus(getEffectSource({_entity}, "bleeding"), "damage")) * convertTimespanToSeconds({_duration}))
+				set {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} to {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} + ((0.037 * calculateCoreStatBonus(getEffectSource({_entity}, "bleeding"), "damage")) * convertTimespanToSeconds({_duration}))
 			else:
-				set {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} to {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} + (0.025 * convertTimespanToSeconds({_duration}))
+				set {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} to {-rpgSkript::effects::%{_index}%::%{_name}%::bleedtotal} + (0.037 * convertTimespanToSeconds({_duration}))
 
 	
 function hasEffect(entity: entity, name: string) :: boolean:
@@ -1486,6 +1530,11 @@ function drawEffects(entity: entity):
 		show rollDice(10, 3) (red dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 1, 1, 1)
 		show rollDice(10, 3) (red dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 1, 1, -1)
 		show rollDice(10, 3) (red dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector -1, 1, 1)
+	hasEffect({_entity}, "hulk") is true:
+		show rollDice(10, 3) (green dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector -1, 1, 0)
+		show rollDice(10, 3) (green dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 1, 1, 0)
+		show rollDice(10, 3) (green dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, -1)
+		show rollDice(10, 3) (green dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 1, 1)
 	hasEffect({_entity}, "firestorm") is true:
 		show rollDice(10, 3) (orange dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 2.5, 0)
 		show rollDice(10, 3) (red dust with offset of 0.3, 0.5, 0.3) at (location of {_entity} ~ vector 0, 2.5, 0)
@@ -1798,7 +1847,23 @@ every 2 seconds:
 
 		cullMinions(loop-player)
 		cullConstructs(loop-player)
-		
+
+		if hasImbue(loop-player, "appliance") is true:
+			loop players in radius 10 of loop-player:
+				loop-player-2 is not loop-player-1
+				applyEffect(loop-player-2, "appliance", 5 seconds, loop-player-1)
+
+		hasEffect(loop-player, "hulk") is true:
+			heal(loop-player, 2)
+			loop entities in radius 10 of loop-player:
+				loop-entity-2 is not loop-player
+				chance of 10%:
+					set {_vec} to vector between loop-player and loop-entity-2
+					set y component of {_vec} to 0
+					set {_vec} to normalized {_vec}
+					push loop-entity-2 {_vec} with force 1.2
+					push loop-entity-2 upwards with force 0.8
+					handleMagicDamage(loop-player, loop-entity-2, 10, "physical", true)						
 		hasClass(loop-player, "wizard") is true:
 			if hasResearch(loop-player, "power") is true:
 				add 3 experience to loop-player
@@ -1980,17 +2045,23 @@ every 2 seconds:
 				time in world of loop-player is not between 19:00 and 5:00:
 					set {_add} to 0.25 * countImbue(loop-player, "photosynthesis")
 					heal(loop-player, {_add})
+
+		hasImbue(loop-player, "Five Senses") is true:
+			apply blindness 2 without particles to the loop-player for 10 seconds replacing the existing effect
+
 		if hasImbue(loop-player, "speed") is true:
-			if countImbue(loop-player, "speed") is 1:
-				apply swiftness 1 without particles to the loop-player for 5 seconds replacing the existing effect
-			else if countImbue(loop-player, "speed") is 2:
-				apply swiftness 2 without particles to the loop-player for 5 seconds replacing the existing effect	
-			else if countImbue(loop-player, "speed") is 3:
-				apply swiftness 3 without particles to the loop-player for 5 seconds replacing the existing effect
+			if countImbue(loop-player, "speed") is 5:
+				apply swiftness 5 without particles to the loop-player for 5 seconds replacing the existing effect
 			else if countImbue(loop-player, "speed") is 4:
 				apply swiftness 4 without particles to the loop-player for 5 seconds replacing the existing effect	
-			else if countImbue(loop-player, "speed") is 5:
-				apply swiftness 5 without particles to the loop-player for 5 seconds replacing the existing effect			
+			else if countImbue(loop-player, "speed") is 3:
+				apply swiftness 3 without particles to the loop-player for 5 seconds replacing the existing effect
+			else if countImbue(loop-player, "speed") is 2:
+				apply swiftness 2 without particles to the loop-player for 5 seconds replacing the existing effect	
+			else if hasImbue(loop-player, "captain") is true:
+				apply swiftness 2 without particles to the loop-player for 5 seconds replacing the existing effect	
+			else if countImbue(loop-player, "speed") is 1:
+				apply swiftness 1 without particles to the loop-player for 5 seconds replacing the existing effect			
 		if hasImbue(loop-player, "radiation") is true:
 			applyEffect(loop-player, "radiated", 60 seconds, loop-player)
 		if hasImbue(loop-player, "lightning rod") is true:
@@ -2324,6 +2395,12 @@ on experience change:
 		add 2 experience to {-rpgSkript::%event-player%::soulbondplayer}
 
 on damage:
+	#attacker is a player:
+	#	victim is a player:
+	#		IsSameFaction(attacker, victim) is true:
+	#			cancel the event
+	#			stop
+
 	set {_odamage} to the damage
 	{commandSkript::%victim%::isTrainingDummy} is true:
 		send "&6You hit the dummy for %{_odamage}% points of damage!" to the attacker
@@ -2518,6 +2595,12 @@ on damage:
 
 	attacker is a player:
 
+		if hasImbue(attacker, "Captain") is true:
+			if attacker's held item is not air:
+				set the damage to 0
+			else:
+				set the damage to the damage * 1.5
+
 		set the damage to the damage * calculateCoreStatBonus(attacker, "damage")
 
 		hasClass(attacker, "nethermancer") is true:
@@ -2690,10 +2773,37 @@ on damage:
 	if hasLore(attacker's helmet, "Subdue to Anger") is true:
 		set {_dmgboost} to a random number between 1.5 and 3
 		set the damage to the damage * {_dmgboost}
-	if hasLore(attacker's helmet, "Wrestler") is true:
+	if hasImbue(victim, "five senses") is true:
+		chance of 50%:
+			set {_ran} to a random integer between 0 and 1
+			if {_ran} is 0:
+				damage attacker by damage * 0.8
+				set the damage to 0
+				send "&eParried!" to victim
+				if health of victim is equal to maximum health of victim:
+					apply absorption 2 without particles to the victim for 10 seconds replacing the existing effect
+					regenBarrier(victim)
+				else:
+					heal(victim, 2)	
+			else:
+				set the damage to 0
+				play sound "entity.player.attack.nodamage" at victim
+				send action bar "&2~ ~ DODGE ~ ~" to victim				
+	if hasImbue(attacker, "Fisticuffs") is true:
 		attacker's held item is air
-		set the damage to the damage * 2
+		set the damage to the damage * (1 + (0.1 * countImbue(attacker, "Fisticuffs")))
 		apply slowness 2 to the victim for 5 seconds replacing the existing effect
+	if hasImbue(victim, "Fisticuffs") is true:
+		victim's held item is air
+		chance of (10 * countImbue(victim, "Fisticuffs"))%:
+			damage attacker by damage * 0.8
+			set the damage to 0
+			send "&eParried!" to victim
+			if health of victim is equal to maximum health of victim:
+				apply absorption 2 without particles to the victim for 10 seconds replacing the existing effect
+				regenBarrier(victim)
+			else:
+				heal(victim, 2)
 	if hasWeaponLore(attacker, "Endajack") is true:
 		set the damage to the damage * 1.50
 		set {_raneffect} to a random integer between 0 and 2
@@ -3010,6 +3120,24 @@ on damage:
 	hasImbue(victim, "guardian") is true:
 		set the damage to the damage * 0.75
 
+	hasImbue(victim, "gamma") is true:
+		if hasEffect(victim, "hulk") is true:
+			set the damage to the damage * 0.25
+			chance of 30%:
+				rageTrigger(victim)
+			applyEffect(victim, "hulk", 7.5 seconds, victim)
+		else:
+			if {-rpgSkript::%victim%::hulkChance} is not set:
+				set {-rpgSkript::%victim%::hulkChance} to 0
+			if the damage is greater than 0:
+				set {-rpgSkript::%victim%::hulkChance} to {-rpgSkript::%victim%::hulkChance} + 10
+			chance of {-rpgSkript::%victim%::hulkChance}%:
+				applyEffect(victim, "hulk", 15 seconds, victim)
+				set {-rpgSkript::%victim%::hulkChance} to 0
+
+	hasImbue(victim, "captain") is true:
+		set the damage to the damage * 0.85
+
 	hasImbue(victim, "flame shield") is true:
 		set {_loc} to the victim's location
 		set {_loc} to the location 1 meter above {_loc}
@@ -3263,7 +3391,9 @@ function calculateCritical(hit:entity, damaged:entity) :: number:
 	hasImbue({_hit}, "malefic") is true:
 		isWildshape({_hit}, "wolf") is true:
 			hasEffect({_hit}, "recentcombat") is true:
-				set {_crit} to {_crit} + 0.3
+				if {-rpgSkript::%{_hit}%::maleficCrit} is not set:
+					set {-rpgSkript::%{_hit}%::maleficCrit} to 0
+				set {_crit} to {_crit} + {-rpgSkript::%{_hit}%::maleficCrit}
 	hasClass({_hit}, "rogue") is true:
 		set {_crit} to {_crit} + 0.15
 	hasClass({_hit}, "monk") is true:
@@ -3297,7 +3427,7 @@ function calculateCritical(hit:entity, damaged:entity) :: number:
 		set {_crit} to {_crit} + 0.05
 	hasWeaponLore({_hit}, "The Grandfather") is true:
 		set {_crit} to {_crit} + 0.2
-	
+	set {_crit} to {_crit} + (0.05 * calculateCoreStatBonus({_hit}, "damage"))
 	return {_crit}
 
 function calculateOverpower(hit:entity, damaged:entity) :: number:
@@ -3323,6 +3453,8 @@ function calculateOverpower(hit:entity, damaged:entity) :: number:
 		set {_crit} to {_crit} + 0.1
 	hasEffect({_hit}, "inspired") is true:
 		set {_crit} to {_crit} + 0.05
+	hasEffect({_hit}, "hulk") is true:
+		set {_crit} to {_crit} + 0.2
 	return {_op}
 	  
 
@@ -3623,7 +3755,7 @@ function generateMythicLore( item: item):: item:
 		return {_item}
 	if chance of (20+({rpgdiff}/5))%:
 		if {_item} is any helmet:
-			set {_ranMythicLore} to a random integer between 0 and 3
+			set {_ranMythicLore} to a random integer between 0 and 4
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&4Subdue to Anger")
 				set {_item} to addImbue({_item}, "&4Undying")
@@ -3640,6 +3772,10 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&aUnconfined Form")
 				set {_item} to addImbue({_item}, "&4Health Boost")
 				set name of {_item} to "&aHelmet of Unconfined Form"
+			if {_ranMythicLore} is 4:
+				set {_item} to addImbue({_item}, "&cFive Senses")
+				set {_item} to addImbue({_item}, "&aFisticuffs")
+				set name of {_item} to "&cHelmet of Five Senses"
 		else if {_item} is any chestplate:
 			set {_ranMythicLore} to a random integer between 0 and 3
 			if {_ranMythicLore} is 0:
@@ -3651,9 +3787,9 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&fEnlighten")
 				set name of {_item} to "&bHeart of the Magical Storm"
 			if {_ranMythicLore} is 2:
-				set {_item} to addImbue({_item}, "&aWrestler")
-				set {_item} to addImbue({_item}, "&4Health Boost")
-				set name of {_item} to "&aWrestler's Garb"
+				set {_item} to addImbue({_item}, "&2Gamma")
+				set {_item} to addImbue({_item}, "&4Energy Boost")
+				set name of {_item} to "&2Mantle of Gamma"
 			if {_ranMythicLore} is 3:
 				set {_item} to addImbue({_item}, "&9Vibranium")
 				set {_item} to addImbue({_item}, "&4Health Boost")
@@ -3698,6 +3834,11 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&4Health Boost")
 				set name of {_item} to "&fShield of the Protector"
 			else if {_ranMythicLore} is 2:
+				set {_item} to addImbue({_item}, "&fCaptain")
+				set {_item} to addImbue({_item}, "&9Appliance")
+				set {_item} to addImbue({_item}, "&4Health Boost")
+				set name of {_item} to "&4Shield &fof &9Freedom"
+			else if {_ranMythicLore} is 3:
 				set {_item} to addImbue({_item}, "&9Mana Reject")
 				set {_item} to addImbue({_item}, "&9Mana Boost")
 				set {_item} to addImbue({_item}, "&4Health Boost")
@@ -3718,7 +3859,7 @@ function generateMythicLore( item: item):: item:
 				set name of {_item} to "&4The Grandfather"
 			if {_ranMythicLore} is 3:
 				set {_item} to addImbue({_item}, "&9Azurewraith")
-				set {_item} to addImbue({_item}, "&9Mana Leah")
+				set {_item} to addImbue({_item}, "&9Mana Leak")
 				set name of {_item} to "&9The Azurewraith"
 		else if {_item} is any axe:
 			set {_ranMythicLore} to a random integer between 0 and 2
@@ -3754,7 +3895,7 @@ function generateMythicLore( item: item):: item:
 			set {_ranMythicLore} to a random integer between 0 and 0
 			if {_ranMythicLore} is 0:
 				set {_item} to addImbue({_item}, "&bInspirational")
-				set {_item} to addImbue({_item}, "&fEnlighten")
+				set {_item} to addImbue({_item}, "&9Appliance")
 				set name of {_item} to "&bFlag of Valor"
 		else if {_item} is a book:
 			set {_ranMythicLore} to a random integer between 0 and 4
@@ -3891,6 +4032,8 @@ function generateLore( item: item):: item:
 			set {_item} to addImbue({_item}, "&7Iron Will")
 		chance of (2+({rpgdiff}/5))%:
 			set {_item} to addImbue({_item}, "&4Undying")
+		chance of (2+({rpgdiff}/5))%:
+			set {_item} to addImbue({_item}, "&aFisticuffs")
 		chance of (2+({rpgdiff}/5))%:
 			set {_item} to addImbue({_item}, "&8Golem")
 		chance of (2+({rpgdiff}/5))%:
@@ -4478,15 +4621,30 @@ on death of an animal:
 					add 2 raw chicken to the drops
 
 on death of a player:
-	hasClass(victim, "rogue") is true:
-		keep the items
-		clear drops
-		send "&aYou may have died, but they'll never get your items!" to the victim
-		stop
-	loop the drops:
-		hasLore(loop-item, "ethereal") is true:
-			remove loop-item from the drops
-			add loop-item to {rpgSkript::onRespawn::%victim%::*}
+	hasClass(victim, "artificer") is true:
+		hasResearch(victim, "life-saving_procedures") is true:
+			{rpgSkript::%victim%::lastSave} is not set:
+				set {rpgSkript::%victim%::lastSave} to 30 minutes ago
+			difference between {rpgSkript::%victim%::lastSave} and now is less than 5 minutes:
+				send "&4Your suit cannot save you at this time!" to victim
+				stop
+			set {rpgSkript::%victim%::lastSave} to now
+			cancel the event
+			applyEffect(victim, "regneration", 10 seconds, victim)			
+			applyEffect(victim, "spirit", 10 seconds, victim)	
+
+	hasClass(victim, "cleric") is true:
+		chance of 30%:
+			cancel the event
+			send "&6The gods save you from death!" to the victim
+			set the health of victim to 0.1 * the maximum health of victim
+			stop
+		subMana(victim, 500) is true:
+			cancel the event
+			send "&6You use your divine powers to escape death!" to the victim
+			set the health of victim to 0.1 * the maximum health of victim
+			stop
+			scriptDebugBroadcastType("cleric", "%victim% attempts reviving")	
 
 	hasClass(victim, "barbarian") is true:
 		hasEffect(victim, "rage") is true
@@ -4512,32 +4670,7 @@ on death of a player:
 			teleport victim to loop-player
 			applyEffect(victim, "regneration", 10 seconds, loop-player)			
 			applyEffect(victim, "spirit", 10 seconds, loop-player)
-			applyEffect(loop-player, "spirit", 10 seconds, loop-player)	
-			
-	hasClass(victim, "artificer") is true:
-		hasResearch(victim, "life-saving_procedures") is true:
-			{rpgSkript::%victim%::lastSave} is not set:
-				set {rpgSkript::%victim%::lastSave} to 30 minutes ago
-			difference between {rpgSkript::%victim%::lastSave} and now is less than 5 minutes:
-				send "&4Your suit cannot save you at this time!" to victim
-				stop
-			set {rpgSkript::%victim%::lastSave} to now
-			cancel the event
-			applyEffect(victim, "regneration", 10 seconds, victim)			
-			applyEffect(victim, "spirit", 10 seconds, victim)	
-
-	hasClass(victim, "cleric") is true:
-		chance of 30%:
-			cancel the event
-			send "&6The gods save you from death!" to the victim
-			set the health of victim to 0.1 * the maximum health of victim
-			stop
-		subMana(victim, 500) is true:
-			cancel the event
-			send "&6You use your divine powers to escape death!" to the victim
-			set the health of victim to 0.1 * the maximum health of victim
-			stop
-			scriptDebugBroadcastType("cleric", "%victim% attempts reviving")		
+			applyEffect(loop-player, "spirit", 10 seconds, loop-player)		
 
 	loop players in radius 15 around victim:
 		loop-player is not victim
@@ -4555,7 +4688,16 @@ on death of a player:
 			send "&3%loop-player% revives you!" to victim
 			cancel the event
 			stop
-		
+
+	hasClass(victim, "rogue") is true:
+		keep the items
+		clear drops
+		send "&aYou may have died, but they'll never get your items!" to the victim
+		stop
+	loop the drops:
+		hasLore(loop-item, "ethereal") is true:
+			remove loop-item from the drops
+			add loop-item to {rpgSkript::onRespawn::%victim%::*}
 
 on respawn:
 	loop {rpgSkript::onRespawn::%player%::*}:
@@ -4611,9 +4753,7 @@ function calculateMagicCritical(hit:entity, damaged:entity) :: number:
 		set {_crit} to {_crit} + 0.05
 	hasClass({_hit}, "druid") is true:
 		if {rpgSkript::%{_hit}%::spidershape} is true:
-			set {_crit} to {_crit} + 0.1
-		if {rpgSkript::%{_hit}%::wolfshape} is true:
-			set {_crit} to {_crit} + 0.125
+			set {_crit} to {_crit} + 0.15
 	hasClass({_hit}, "herobrine") is true:
 		set {_crit} to 1
 	hasImbue({_hit}, "bloodied") is true:
@@ -4634,6 +4774,10 @@ function calculateMagicCritical(hit:entity, damaged:entity) :: number:
 	return {_crit}
 
 function handleMagicDamage(caster: entity, target: entity, damage: number, element: string, avoidable: boolean):
+	if {_caster} is a player:
+		if {_target} is a player:
+			if isSameFaction({_caster}, {_target}) is true:
+				stop
 	setMaxHealth({_target})
 	hasEffect({_caster}, "spirit") is true:
 		stop
@@ -4721,6 +4865,8 @@ function handleMagicDamage(caster: entity, target: entity, damage: number, eleme
 		if {_reduction} is less than 0.5:
 			set {_reduction} to 0.5
 		set {_damage} to {_damage} * {_reduction}
+	if hasImbue({_target}, "captain") is true:
+		set {_damage} to {_damage} * 0.85
 
 	if hasImbue({_target}, "undying") is true:
 		set {_damagered} to (0.3 - (countImbue({_target}, "undying") * 0.075)) + ( health of {_target} / maximum health of {_target} )
@@ -4732,6 +4878,12 @@ function handleMagicDamage(caster: entity, target: entity, damage: number, eleme
 		set {_damage} to {_damage} * {_reduction}
 	if hasImbue({_target}, "guardian") is true:
 		set {_damage} to {_damage} * 0.75
+	if hasImbue({_target}, "five senses") is true:
+		if {_avoidable} is true:
+			chance of 50%:
+				set {_damage} to 0
+				play sound "entity.player.attack.nodamage" at {_target}
+				send action bar "&c~ ~ DODGE ~ ~" to {_target}				
 	if hasImbue({_target}, "shielded") is true:
 		set {_damage} to {_damage} * 0.25
 	if hasImbue({_target}, "subdue to anger") is true:
@@ -4782,6 +4934,21 @@ function handleMagicDamage(caster: entity, target: entity, damage: number, eleme
 	if hasWeaponLore({_caster}, "bloodied") is true:
 		set {_damageboost} to 1 + ( 1 - (health of {_caster} / maximum health of {_caster} ) )
 		set {_damage} to {_damage} * {_damageboost}
+
+	hasImbue({_target}, "gamma") is true:
+		if hasEffect({_target}, "hulk") is true:
+			set {_damage} to {_damage} * 0.25
+			chance of 30%:
+				rageTrigger({_target})
+			applyEffect({_target}, "hulk", 7.5 seconds, {_target})
+		else:
+			if {-rpgSkript::%{_target}%::hulkChance} is not set:
+				set {-rpgSkript::%{_target}%::hulkChance} to 0
+			if {_damage} is greater than 0:
+				set {-rpgSkript::%{_target}%::hulkChance} to {-rpgSkript::%{_target}%::hulkChance} + 10
+			chance of {-rpgSkript::%{_target}%::hulkChance}%:
+				applyEffect({_target}, "hulk", 15 seconds, {_target})
+				set {-rpgSkript::%{_target}%::hulkChance} to 0
 	
 	set {_damage} to {_damage} * calculateCoreStatBonus({_caster}, "magic")
 
@@ -4805,6 +4972,7 @@ function handleMagicDamage(caster: entity, target: entity, damage: number, eleme
 			if hasBarrier({_target}) is true:
 				set {_damage} to subBarrier({_target}, {_damage})
 			play sound "entity.player.hurt" at {_target}
+
 
 	if {_damage} is greater than 0:
 		set health of {_target} to health of {_target} - {_damage}
@@ -4900,6 +5068,9 @@ function setupMana(player: player):
 
 	if hasImbue({_player}, "mana reject") is true:
 		set {rpgSkript::mana::%{_player}%} to 0
+
+	if hasEffect({_player}, "hulk") is true:
+		set {_newMax} to 0
 
 	set {_newMax} to {_newMax} * calculateCoreStatBonus({_player}, "mana")
 
