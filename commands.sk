@@ -211,3 +211,57 @@ command /shareitem:
 		broadcast "&a%held item of player%"
 		loop lore of held item of player:
 			broadcast "&a%loop-value%"
+
+command /shareeffects:
+	executable by: players
+	trigger:
+		set {_index} to generateIndex(player)
+		if {-rpgSkript::effects::%{_index}%::*} is not set:
+			send "&4Your effect variable is not even set!!!" to player
+			stop
+		else:
+			loop {-rpgSkript::effects::%{_index}%::*}:
+				set {_diff} to difference between now and {-rpgSkript::effects::%{_index}%::%loop-value%::applied}
+				if {_diff} is greater than {-rpgSkript::effects::%{_index}%::%loop-value%::duration}:
+					removeEffect({_entity}, loop-value)
+				else:
+					broadcast "%loop-value% for %{_diff}% from %{-rpgSkript::effects::%{_index}%::%loop-value%::source}%"
+				wait 1 tick
+
+command /shareimbues:
+	executable by: players
+	trigger:
+		if helmet of player is not air:
+			loop lore of helmet of player:
+				broadcast "%loop-value% from %helmet of player%"
+		if chestplate of player is not air:
+			loop lore of chestplate of player:
+				broadcast "%loop-value% from %chestplate of player%"
+		if leggings of player is not air:
+			loop lore of leggings of player:
+				broadcast "%loop-value% from %leggings of player%"
+		if boots of player is not air:
+			loop lore of boots of player:
+				broadcast "%loop-value% from %boots of player%"
+		if off hand item of player is not air:
+			loop lore of off hand item of player:
+				broadcast "%loop-value% from %off hand item of player%"
+		if hasEffect(player, "appliance") is true:
+			hasImbue(player, "captain") is false
+			hasImbue(player, "inspirational") is false
+			set {_source} to getEffectSource(player, "appliance")
+			if helmet of {_source} is not air:
+				loop lore of helmet of {_source}:
+					broadcast "%loop-value% from %{_source}%'s %helmet of {_source}%"
+			if chestplate of {_source} is not air:
+				loop lore of chestplate of {_source}:
+					broadcast "%loop-value% from %{_source}%'s %chestplate of {_source}%"
+			if leggings of {_source} is not air:
+				loop lore of leggings of {_source}:
+					broadcast "%loop-value% from %{_source}%'s %leggings of {_source}%"
+			if boots of {_source} is not air:
+				loop lore of boots of {_source}:
+					broadcast "%loop-value% from %{_source}%'s %boots of {_source}%"
+			if off hand item of {_source} is not air:
+				loop lore of off hand item of {_source}:
+					broadcast "%loop-value% from %{_source}%'s %off hand item of {_source}%"
