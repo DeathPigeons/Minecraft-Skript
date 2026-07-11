@@ -1,0 +1,176 @@
+Options:
+	prefix: &b[&aChat Fun Skript&b]&r
+	consolePrefix: &6[&8Console&6]&r
+
+on script load:
+	consoleMessage("Loaded!")
+
+on script unload:
+	consoleMessage("Unloading...")
+
+	delete {-chatFun::rateLimiting::*}
+
+local function consoleMessage(message: text):
+	send "{@consolePrefix} {@prefix} &e%{_message}%" to console
+
+local function broadcastMessage(message: text):
+	broadcast "{@prefix} &e%{_message}%"
+
+local function matchesRegularExpression(line: text, expr: text) :: boolean:
+	if {_line} in lowercase matches {_expr}:
+		return true
+	return false
+
+local function containsPhraseMatchingExpression(line: text, expr: text) :: boolean:
+	if matchesRegularExpression({_line}, ".*\b%{_expr}%\b.*") is true:
+		return true
+	return false
+
+local function chatRateLimit(name: text, span: timespan) :: boolean:
+	if {-chatFun::rateLimiting::%{_name}%::last} is not set:
+		set {-chatFun::rateLimiting::%{_name}%::last} to {_span} ago
+
+	if difference between {-chatFun::rateLimiting::%{_name}%::last} and now is greater than {_span}:
+		set {-chatFun::rateLimiting::%{_name}%::last} to now
+		return true
+	return false
+
+local function fakeJoinName(name: text):
+	broadcast "&e%{_name}% joined the game"
+
+local function fakeLeaveName(name: text):
+	broadcast "&e%{_name}% left the game"
+
+local function godSay(line: text):
+	broadcast "&a[&cGod&a] %{_line}%"
+
+local function DarianSay(line: text):
+	set {_odds} to a random integer between 0 and 3
+	if {_odds} is 0:
+		broadcast "&8[&3DarianM1&8] %{_line}%"
+	else if {_odds} is 1:
+		broadcast "&c[&7JavaWizard40&c] %{_line}%"
+	else if {_odds} is 2:
+		broadcast "&6[&9RootCellar&6] %{_line}%"
+	else if {_odds} is 3:
+		broadcast "&3[&eBackhandmonk049&3] %{_line}%"
+
+command /godsay <text>:
+	trigger:
+		command executor has permission "chatfun.god"
+		godSay(arg 1)
+
+local function herobrineSay(line: text):
+	broadcast "&8[&4Herobrine&8] &d%{_line}%"
+
+command /herobrinesay <text>:
+	trigger:
+		command executor has permission "chatfun.herobrine"
+		herobrineSay(arg 1)
+
+local function butcherSay(line: text):
+	broadcast "&4[&cThe Butcher&4] &6%{_line}%"
+
+command /butchersay <text>:
+	trigger:
+		command executor has permission "chatfun.butcher"
+		butcherSay(arg 1)
+
+local function botSay(line: text, extra: boolean=true):
+	broadcast "&7[&9Bot&7] &c%{_line}%"
+
+	{_extra} is true
+	chance of 10%:
+		wait 30 ticks
+		skripterSay("Hmm...seems buggy")
+		wait 20 ticks
+		fakeLeaveName("Bot")
+
+command /botsay <text>:
+	trigger:
+		command executor has permission "chatfun.bot"
+		botSay(arg 1, false)
+
+local function skripterSay(line: text):
+	broadcast "&c[&7Skripter&c] &f%{_line}%"
+
+command /skriptersay <text>:
+	trigger:
+		command executor has permission "chatfun.skripter"
+		skripterSay(arg 1)
+
+local function linuxUserSay(line: text):
+	broadcast "&3[&7Linux User&3] &b%{_line}%"
+
+command /linuxusersay <text>:
+	trigger:
+		command executor has permission "chatfun.linuxuser"
+		linuxUserSay(arg 1)
+
+local function windowsUserSay(line: text):
+	broadcast "&b[&3Windows User&b] &b%{_line}%"
+
+command /windowsusersay <text>:
+	trigger:
+		command executor has permission "chatfun.windowsuser"
+		windowsUserSay(arg 1)
+
+command /fakejoin <text>:
+	trigger:
+		command executor has permission "chatfun.fake"
+		fakeJoinName(arg 1)
+
+command /fakeleave <text>:
+	trigger:
+		command executor has permission "chatfun.fake"
+		fakeLeaveName(arg 1)
+
+on chat:
+	wait 5 ticks
+	if containsPhraseMatchingExpression(the message, "thanks?,? god") is true:
+		godSay("You're welcome, %event-player%!")
+	else if the message contains "god":
+		chance of 30%:
+			fakeJoinName("God")
+			wait 10 ticks
+		godSay("Huh?")
+
+on join:
+	wait 50 ticks
+	godSay("Hey, %event-player%! Welcome to the game!")
+	wait 35 ticks
+	chance of 40%:
+		wait 5 ticks
+		botSay("Welcome, %event-player%!")
+	chance of 10%:
+		wait 5 ticks
+		skripterSay("Howdy, %event-player%!")
+	chance of 10%:
+		wait 5 ticks
+		linuxUserSay("Hey, %event-player%!")
+
+on quit:
+	wait 50 ticks
+	godSay("Bye, %event-player%!")
+
+on death:
+	wait 5 ticks
+	victim is a player:
+		godSay("RIP")
+		chance of 1%:
+			DarianSay("Skill Issue")
+	victim is not a player:
+		victim is a zombie:
+			chance of 2%:
+				godSay("You should've seen what that zombie did while he was alive")
+		victim is a chicken:
+			attacker is a player
+			chance of 2%:
+				godSay("Who's *really* the chicken here?")
+
+on target:
+	target is a player
+	chance of 5%:
+		chatRateLimit("god_watch_out", 300 seconds) is true
+		godSay("Watch out, %target%!")
+
