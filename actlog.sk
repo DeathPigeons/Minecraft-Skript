@@ -1,0 +1,148 @@
+Options:
+	prefix: &e[&6Action Log&e]&r
+	consolePrefix: &6[&8Console&6]&r
+	logActions: true
+	logToFile: false
+
+on script load:
+	actionConsoleMessage("Loaded!")
+
+on script unload:
+	actionConsoleMessage("Unloading...")
+
+local function logAction(message: text):
+	{@logToFile} is true:
+		log "%{_message}%" to "action/main.log"
+
+local function actionBroadcast(message: text):
+	broadcast "{@prefix} &e%{_message}%"
+
+local function actionConsoleMessage(message: text):
+	send "{@consolePrefix} {@prefix} &e%{_message}%" to console
+
+local function shouldPrintActionType(type: string) :: boolean:
+	if {actionLog::action::%{_type}%} is not set:
+		set {actionLog::action::%{_type}%} to true
+	return {actionLog::action::%{_type}%}
+
+local function scriptActionBroadcast(message: text):
+	scriptActionBroadcastType("main", {_message})
+
+local function scriptActionBroadcastType(type: string, message: text):
+	{@logActions} is true:
+		shouldPrintActionType({_type}) is true:
+			broadcast "{@prefix} %{_type}% &e%{_message}%"
+
+local function scriptActionConsoleMessage(message: text):
+	scriptActionConsoleMessageType("main", {_message})
+
+local function scriptActionConsoleMessageType(type: string, message: text):
+	{@logActions} is true:
+		shouldPrintActionType({_type}) is true:
+			send "{@consolePrefix} {@prefix} %{_type}% &e%{_message}%" to console
+	#scriptActionBroadcastType({_type}, {_message})
+	logAction("%{_type}% -> %{_message}%")
+
+local function convertItemToString(item: item) :: text:
+	set {_toRet} to "%{_item}%"
+	{_item} is enchanted:
+		set {_toRet} to "%{_toRet}% enchanted with %{_item}'s enchantments%"
+	return {_toRet}
+
+command /logaction <string> <boolean>:
+	trigger:
+		command executor has permission "actionLog.control"
+		set {actionLog::action::%arg 1%} to arg 2
+		send "&eAction logging changed" to command executor
+
+command /loggedactions <integer=1>:
+	trigger:
+		command executor has permission "actionLog.control"
+
+		loop {actionLog::action::*}:
+			add "&e%loop-index% -> %loop-value%" to {_allLines::*}
+
+		set {_lines::*} to paginate({_allLines::*}, arg 1)
+
+		loop {_lines::*}:
+			send loop-value to command executor
+
+command /logactionreset:
+	trigger:
+		command executor has permission "actionLog.control"
+		delete {actionLog::action::*}
+		send "&cEnabled action types reset" to command executor
+
+on server list ping:
+	scriptActionConsoleMessageType("ping", "A client has pinged the server")
+
+on connect:
+	scriptActionConsoleMessageType("connect", "%player% is connecting...")
+
+on craft:
+	event-item is not air:
+		scriptActionConsoleMessageType("craft", "%event-player% crafted %event-item%")
+
+on fish:
+	scriptActionConsoleMessageType("fish", "%event-player% fishes")
+
+on death:
+	wait 5 ticks
+	attacker is a player:
+		scriptActionConsoleMessageType("combat", "%attacker% killed %victim%")
+	victim is a player:
+		scriptActionConsoleMessageType("combat", "%victim% was killed by %attacker%")
+
+on damage:
+	wait 5 ticks
+	event is cancelled:
+		stop
+	attacker is a player:
+		scriptActionConsoleMessageType("combat", "%attacker% hits %victim% for %the damage% damage")
+	victim is a player:
+		set {_cause} to damage cause
+		attacker is set:
+			set {_cause} to attacker
+		scriptActionConsoleMessageType("combat", "%victim% hit for %the damage% damage from %{_cause}%")
+
+on tool break:
+	scriptActionConsoleMessageType("item", "%event-player% breaks %convertItemToString(event-item)%")
+
+on drop:
+	scriptActionConsoleMessageType("item", "%event-entity% drops %convertItemToString(event-item)%")
+
+on consume:
+	scriptActionConsoleMessageType("item", "%event-entity% consumes %plain event-item%")
+
+on item despawn:
+	scriptActionConsoleMessageType("item", "%convertItemToString(event-item)% despawning")
+
+on pick up:
+	scriptActionConsoleMessageType("item", "%event-entity% picks up %convertItemToString(event-item)%")
+
+on level change:
+	scriptActionConsoleMessageType("exp", "%event-player% is now level %level of event-player%")
+
+on player world change:
+	scriptActionConsoleMessageType("world", "%event-player% enters world %world of event-player%")
+
+on weather change:
+	scriptActionConsoleMessageType("world", "%event-world%'s weather changes to %weather in event-world%")
+
+on respawn:
+	scriptActionConsoleMessageType("combat", "%event-player% revives")
+
+on smelt:
+	event is not cancelled
+	scriptActionConsoleMessageType("smelt", "a furnace smelts %plain ore slot of event-block%")
+
+on fuel burn:
+	event is not cancelled
+	scriptActionConsoleMessageType("smelt", "a furnace burns %plain fuel slot of event-block%")
+
+on enchant:
+	scriptActionConsoleMessageType("enchant", "%event-player% enchants %event-item% with %applied enchantments%")
+
+on armor change:
+	event-item is not air:
+		# scriptActionConsoleMessageType("equip", "%event-player% equips %event-item% (%event-item's enchantments%)")
