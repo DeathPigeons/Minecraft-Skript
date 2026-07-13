@@ -3705,7 +3705,7 @@ function generateStatLore( item: item):: item:
 		delete {_statColor::*}
 
 	return {_item}	
-
+	
 command /legendaryitem <text>:
 	executable by: players
 	trigger:
@@ -4016,81 +4016,105 @@ function generateLegendaryLore( item: item, name: text):: item:
 	
 function generateLore( item: item):: item:
 	scriptDebugBroadcastType("loot", "Generating random lore for Item")
+	chance of (1 - (2+({rpgdiff}/5)))%:
+		return {_item}
+	set {_num} to floor({rpgdifficulty} / 10)
+	if {_num} is greater than 0:
+		set {_odds} to a random integer between -1 and 1
+		set {_num} to {_num} + {_odds}
+	if at least one of:
+		{_item} is any banner
+		{_item} is a book
+	then:
+		set {_num} to {_num} + 1
+	if {_num} is less than 1:
+		return {_item}
 	if at least one of:
 		{_item} is any armor
 		{_item} is a shield
 		{_item} is a banner
 		{_item} is a book
 	then:
-		set {_chanceboost} to 1
+		set {_chanceboost} to false
 		if at least one of:
 			{_item} is a book
 			{_item} is a banner
 		then:
-			set {_chanceboost} to 3
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&7Iron Will")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&4Undying")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&aFisticuffs")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&8Golem")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&cFlame Shield")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&fFrost Shield")
-		chance of ((2+({rpgdiff}/5))*{_chanceboost})%:
-			set {_item} to addImbue({_item}, "&9Mana Shield")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&aPhotosynthesis")
-		chance of ((2+({rpgdiff}/5))*{_chanceboost})%:
-			set {_item} to addImbue({_item}, "&fEnlighten")
-		chance of ((2+({rpgdiff}/5))*{_chanceboost})%:
-			set {_item} to addImbue({_item}, "&4Health Boost")
-		chance of ((2+({rpgdiff}/5))*{_chanceboost})%:
-			set {_item} to addImbue({_item}, "&4Energy Boost")
-		chance of ((2+({rpgdiff}/5))*{_chanceboost})%:
-			set {_item} to addImbue({_item}, "&9Mana Boost")
-		chance of ((2+({rpgdiff}/5))*{_chanceboost})%:
-			set {_item} to addImbue({_item}, "&0Minion Boost")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&9Light")
-		chance of ((2+({rpgdiff}/5))*{_chanceboost})%:
-			set {_item} to addImbue({_item}, "&9Speed")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&fUnbreakable")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&7Reinforced")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&7Weightless")
-			
+			set {_chanceboost} to true
+		while {_num} > 0:
+			set {_ran} to a random integer between 1 and 18
+			if {_chanceboost} is true:
+				# Change this as new affixes are added to keep books and banners gravitating towards a higher {_ran}
+				if {_ran} < 13:
+					set {_ran} to {_ran} + 5
+			if {_ran} is 1:
+				set {_item} to addImbue({_item}, "&8Golem")
+			else if {_ran} is 2:
+				set {_item} to addImbue({_item}, "&fUnbreakable")
+			else if {_ran} is 3:
+				set {_item} to addImbue({_item}, "&7Reinforced")
+			else if {_ran} is 4:
+				set {_item} to addImbue({_item}, "&7Weightless")
+			else if {_ran} is 5:
+				set {_item} to addImbue({_item}, "&9Light")
+			else if {_ran} is 6:
+				set {_item} to addImbue({_item}, "&aFisticuffs")
+			else if {_ran} is 7:
+				set {_item} to addImbue({_item}, "&7Iron Will")
+			else if {_ran} is 8:
+				set {_item} to addImbue({_item}, "&4Undying")
+			else if {_ran} is 9:
+				set {_item} to addImbue({_item}, "&9Speed")
+			else if {_ran} is 10:
+				set {_item} to addImbue({_item}, "&cFlame Shield")
+			else if {_ran} is 11:
+				set {_item} to addImbue({_item}, "&fFrost Shield")
+			else if {_ran} is 12:
+				set {_item} to addImbue({_item}, "&9Mana Shield")
+			else if {_ran} is 13:
+				set {_item} to addImbue({_item}, "&aPhotosynthesis")
+			else if {_ran} is 14:
+				set {_item} to addImbue({_item}, "&4Health Boost")
+			else if {_ran} is 15:
+				set {_item} to addImbue({_item}, "&4Energy Boost")
+			else if {_ran} is 16:
+				set {_item} to addImbue({_item}, "&9Mana Boost")
+			else if {_ran} is 17:
+				set {_item} to addImbue({_item}, "&0Minion Boost")
+			else if {_ran} is 18:
+				set {_item} to addImbue({_item}, "&fEnlighten")
+			set {_num} to {_num} - 1
+	
 	if at least one of:
 		{_item} is any sword
 		{_item} is any axe
 		{_item} is a bow
 		{_item} is a crossbow
 		{_item} is a trident
-	then:
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&4Bloodied")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&cFirststrike")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&4Vampiric")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&6Siphon")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&4Bleeding")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&fHallowed")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&9Mana Leak")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&fUnbreakable")
-		chance of (2+({rpgdiff}/5))%:
-			set {_item} to addImbue({_item}, "&7Reinforced")
-
+	then:			
+		while {_num} > 0:
+			set {_ran} to a random integer between 1 and 9
+			
+			if {_ran} is 1:
+				set {_item} to addImbue({_item}, "&4Bloodied")
+			else if {_ran} is 2:
+				set {_item} to addImbue({_item}, "&cFirststrike")
+			else if {_ran} is 3:				
+				set {_item} to addImbue({_item}, "&4Vampiric")
+			else if {_ran} is 4:
+				set {_item} to addImbue({_item}, "&6Siphon")
+			else if {_ran} is 5:
+				set {_item} to addImbue({_item}, "&4Bleeding")
+			else if {_ran} is 6:
+				set {_item} to addImbue({_item}, "&fHallowed")
+			else if {_ran} is 7:
+				set {_item} to addImbue({_item}, "&9Mana Leak")
+			else if {_ran} is 8:
+				set {_item} to addImbue({_item}, "&fUnbreakable")
+			else if {_ran} is 9:
+				set {_item} to addImbue({_item}, "&7Reinforced")
+			set {_num} to {_num} - 1
+	
 	return {_item}
 
 on loot generate:
