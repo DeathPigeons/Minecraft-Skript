@@ -566,11 +566,11 @@ on inventory click:
 command /skilltree:
   executable by: players
   trigger:
-		set {_menu} to a new chest inventory with 6 rows named "&bSkill Tree"
+    set {_menu} to a new chest inventory with 6 rows named "&bSkill Tree"
 		
-		populateSkillTree(player, {_menu})
+    populateSkillTree(player, {_menu})
 		
-		open {_menu} to player
+    open {_menu} to player
 
 function populateSkillTree(player: player, menu: inventory):
   if name of {_menu} is "&bSkill Tree":
