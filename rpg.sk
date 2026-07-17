@@ -1712,7 +1712,7 @@ every 1 seconds:
 			loop all entities in radius 5 around {_entity}:
 				loop-entity is not {_entity}
 				hasEffect(loop-entity, "shocking") is false
-				handleMagicDamage(getEffectSource({_entity}, "shocking"), {_entity}, 0.5, "lightning", false)
+				handleMagicDamage(getEffectSource({_entity}, "shocking"), {_entity}, 0.5, "electric", false)
 				applyEffect(loop-entity, "shocking", 0.1 seconds, getEffectSource({_entity}, "shocking"))
 				set {_vec} to vector between {_entity} and loop-entity
 				set y component of {_vec} to 0
@@ -2073,7 +2073,7 @@ every 2 seconds:
 						create lightning effect at loop-entity-2
 						apply slowness 255 to loop-entity-2 for 3 seconds replacing the existing effect
 						apply glowing 1 to loop-entity-2 for 3 seconds replacing the existing effect
-						handleMagicDamage(loop-player, loop-entity-2, 10, "lightning", true)
+						handleMagicDamage(loop-player, loop-entity-2, 10, "electric", true)
 	
 
 			
@@ -2126,7 +2126,7 @@ every 5 seconds:
 						apply slowness 3 to loop-entity-3 for 1.5 seconds replacing the existing effect
 						apply glowing 1 to loop-entity-3 for 1.5 seconds replacing the existing effect
 						applyEffect(loop-entity-3, "vulnerable", 3 seconds, loop-player)
-						handleMagicDamage(loop-player, loop-entity-3, 5, "lightning", true)
+						handleMagicDamage(loop-player, loop-entity-3, 5, "electric", true)
 						wait 1 tick
 				if getConstructType(loop-value-2) is "Gravitron":
 					set {_ability} to a random integer between 0 and 1
@@ -2245,7 +2245,7 @@ every 5 seconds:
 							apply slowness 255 to loop-entity-3 for 3 seconds replacing the existing effect
 							apply glowing 1 to loop-entity-3 for 3 seconds replacing the existing effect
 							applyEffect(loop-entity-3, "vulnerable", 3 seconds, loop-player)
-							handleMagicDamage(loop-player, loop-entity-3, 10, "lightning", true)
+							handleMagicDamage(loop-player, loop-entity-3, 10, "electric", true)
 							exit 1 loop
 
 			
@@ -2805,12 +2805,26 @@ on damage:
 			else:
 				heal(victim, 2)
 	if hasWeaponLore(attacker, "Endajack") is true:
-		set the damage to the damage * 1.50
-		set {_raneffect} to a random integer between 0 and 2
+		attacker is a player
+		set {_raneffect} to a random integer between 0 and 4
 		if {_raneffect} is 1:
-			applyEffect(victim, "levitate", 7.5 seconds, attacker)
+			push victim upwards with force 5
 		else if {_raneffect} is 2:
-			applyEffect(victim, "phased", 7.5 seconds, attacker)	
+			set {_vec} to vector between attacker and victim
+			set y component of {_vec} to 0
+			set {_vec} to normalized {_vec}
+			push victim {_vec} with force 5
+		else if {_raneffect} is 3:
+			set {_vec} to vector between victim and attacker
+			set y component of {_vec} to 0
+			set {_vec} to normalized {_vec}
+			push attacker {_vec} with force 5				
+		else if {_raneffect} is 4:
+			victim is not a player:
+				isBoss(victim) is false
+				spawn 1 chicken at location of victim
+				kill victim
+				
 	if hasWeaponLore(attacker, "sacrificial") is true:
 		set the damage to the damage * 5.0
 		if attacker is a player:
@@ -3681,12 +3695,14 @@ function generateStatLore( item: item):: item:
 		set {_possibleStats::4} to "Intelligence"
 		set {_possibleStats::5} to "Charisma"
 		set {_possibleStats::6} to "Constitution"
+		set {_possibleStats::7} to "Willpower"
 		set {_statColor::Strength} to "&4"
 		set {_statColor::Dexterity} to "&a"
 		set {_statColor::Wisdom} to "&b"
 		set {_statColor::Intelligence} to "&3"
 		set {_statColor::Charisma} to "&e"
 		set {_statColor::Constitution} to "&8"
+		set {_statColor::Willpower} to "&6"
 		while {_num} > 0:
 			set {_ranstat} to random integer between 1 and size of {_possibleStats::*}
 			set {_statName} to {_possibleStats::%{_ranstat}%}
@@ -3808,6 +3824,10 @@ function generateMythicLore( item: item):: item:
 				set {_item} to addImbue({_item}, "&9Soul Tether")
 				set {_item} to addImbue({_item}, "&fEnlighten")
 				set name of {_item} to "&9Soul Tether"
+			if {_ranMythicLore} is 3:
+				set {_item} to addImbue({_item}, "&bVortex")
+				set {_item} to addImbue({_item}, "&9Speed")
+				set name of {_item} to "&bPants of the Raging Vortex"			
 		else if {_item} is any boots:
 			set {_ranMythicLore} to a random integer between 0 and 2
 			if {_ranMythicLore} is 0:
@@ -5723,7 +5743,7 @@ on right click with diamond:
 	loop all entities in radius 22 around (event-player's targeted block):
 		loop-entity is not a dropped item
 		loop-entity is not the player
-		handleMagicDamage(event-player, loop-entity, 25, "lightning", true)
+		handleMagicDamage(event-player, loop-entity, 25, "electric", true)
 		add 12 experience to the player
 	create lightning effect at the event-player's targeted block
 	create an explosion with force 12 at the event-player's targeted block
@@ -6898,6 +6918,17 @@ every 10 seconds:
 		hasImbue(loop-player, "guardian") is true:
 			apply absorption 5 to the loop-player for 15 seconds replacing the existing effect
 			applyEffect(loop-player, "regeneration", 15 seconds, loop-player)
+
+		hasImbue(loop-player, "vortex") is true:
+			loop-player is sprinting
+			loop all monsters in radius 10 around loop-player:
+				isMinion(loop-monster) is false
+				apply slowness 3 to loop-monster for 7 seconds replacing the existing effect
+				handleMagicDamage(loop-player, loop-monster, 3, "electric", false)
+				set {_vec} to normalized vector between loop-monster and loop-player
+				push loop-monster {_vec} with force 1.1
+				push loop-monster upwards with force 0.6
+				
 							
 		hasClass(loop-player, "nethermancer") is true:
 			inventorySmelt(loop-player)
