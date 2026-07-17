@@ -701,8 +701,8 @@ function populateSkillTree(player: player, menu: inventory):
     set slot 35 of {_menu} to {_item}
 
 on inventory click:
-	event-inventory is not event-player's inventory
-	if name of event-inventory is "&bSkill Tree":
+  event-inventory is not event-player's inventory
+  if name of event-inventory is "&bSkill Tree":
     cancel event
 
     if index of event-slot is 37:
