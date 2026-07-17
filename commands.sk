@@ -265,3 +265,160 @@ command /shareimbues:
 			if off hand item of {_source} is not air:
 				loop lore of off hand item of {_source}:
 					broadcast "%loop-value% from %{_source}%'s %off hand item of {_source}%"
+
+command /itemloreinfo:
+	executable by: players
+	trigger:
+		loop lore of held item of player:
+			if loop-value is "Strength":
+				send "&4Strength: Boosts Warrior, Paladin, Barbarian, and Nethermancer stats" to player
+			else if loop-value is "Dexterity":
+				send "&aDexterity: Boosts Warrior, Rogue, Barbarian, Endwarden, Monk, and Bard stats" to player
+			else if loop-value is "Wisdom":
+				send "&bWisdom: Boosts Wizard, Cleric, Druid, Sorceror, and Warlock stats" to player
+			else if loop-value is "Intelligence":
+				send "&3Intelligence: Boosts Wizard, Nethermancer, Necromancer, Artificer, and Endwarden stats" to player
+			else if loop-value is "Charisma":
+				send "&eCharisma: Boosts Rogue, Cleric, Sorceror, Bard, and Warlock stats" to player
+			else if loop-value is "Constitution":
+				send "&8Constitution: Boosts Paladin stats" to player
+			else if loop-value is "Willpower":
+				send "&6Willpower: Boosts Druid, Necromancer, Artificer, and Monk stats" to player
+			else if loop-value is "Golem":
+				send "&8Golem: Stacking Strength and Slowness while worn, plus bonus max health per stack" to player
+			else if loop-value is "Unbreakable":
+				send "&fUnbreakable: This item never loses durability" to player
+			else if loop-value is "Reinforced":
+				send "&7Reinforced: Reduces incoming damage per stack, and gives a chance to block durability loss" to player
+			else if loop-value is "Weightless":
+				send "&7Weightless: Doesn't count toward your armor weight class, even if the piece itself is heavy" to player
+			else if loop-value is "Light":
+				send "&9Light: Counts as light armor for weight-class purposes, even if the piece itself is medium/heavy" to player
+			else if loop-value is "Fisticuffs":
+				send "&aFisticuffs: Bonus unarmed damage per stack, plus a chance to parry attacks when fighting bare-handed" to player
+			else if loop-value is "Iron Will":
+				send "&7Iron Will: Reduces damage from burn, freeze, poison, and wither, and blocks the disease penalty" to player
+			else if loop-value is "Undying":
+				send "&4Undying: The lower your health, the more incoming damage is reduced" to player
+			else if loop-value is "Speed":
+				send "&9Speed: Grants stacking Swiftness while worn" to player
+			else if loop-value is "Flame Shield":
+				send "&cFlame Shield: Reflects fire back at attackers and reduces fire/burn damage taken" to player
+			else if loop-value is "Frost Shield":
+				send "&fFrost Shield: Reduces freeze damage and general incoming damage" to player
+			else if loop-value is "Mana Shield":
+				send "&9Mana Shield: Converts incoming damage into mana drain instead of health loss" to player
+			else if loop-value is "Photosynthesis":
+				send "&aPhotosynthesis: Passively heals and boosts max health while standing in direct sunlight" to player
+			else if loop-value is "Health Boost":
+				send "&4Health Boost: Increases max health per stack" to player
+			else if loop-value is "Energy Boost":
+				send "&4Energy Boost: Increases max Energy per stack" to player
+			else if loop-value is "Mana Boost":
+				send "&9Mana Boost: Increases max mana per stack" to player
+			else if loop-value is "Minion Boost":
+				send "Minion Boost: Buffs the attack and health of your summoned minions per stack" to player
+			else if loop-value is "Enlighten":
+				send "&fEnlighten: Increases XP gained per stack" to player
+			else if loop-value is "Bloodied":
+				send "&4Bloodied: The lower your health, the more bonus damage and crit chance you deal" to player
+			else if loop-value is "Firststrike":
+				send "&cFirststrike: Huge bonus damage against full-health targets" to player
+			else if loop-value is "Vampiric":
+				send "&4Vampiric: Heals you for a percentage of damage dealt" to player
+			else if loop-value is "Siphon":
+				send "&6Siphon: Drains mana from the victim and grants it to you" to player
+			else if loop-value is "Bleeding":
+				send "&4Bleeding: Applies a bleeding damage-over-time effect on hit" to player
+			else if loop-value is "Hallowed":
+				send "&fHallowed: Applies the Hallowed debuff to the target on hit" to player
+			else if loop-value is "Mana Leak":
+				send "&9Mana Leak: Makes the victim's future mana spending less efficient" to player
+			else if loop-value is "Subdue to Anger":
+				send "&4Subdue to Anger: Massive bonus damage and crit chance dealt, but you take 50% more damage in return" to player
+			else if loop-value is "Intellectual Barrier":
+				send "&9Intellectual Barrier: Boosts your barrier capacity and regen, scaled off your max mana" to player
+			else if loop-value is "Crown of Thorns":
+				send "Crown of Thorns: Deals periodic self-damage in exchange for a global power boost" to player
+			else if loop-value is "Unconfined Form":
+				send "&aUnconfined Form: Grants bonus max health and periodically forces a random wildshape transformation with a heal" to player
+			else if loop-value is "Five Senses":
+				send "&cFive Senses: Blinds you, but grants a chance to parry incoming hits and increases punch damage" to player
+			else if loop-value is "Razorplate":
+				send "&8Razorplate: Reflects a portion of damage taken straight back at your attacker" to player
+			else if loop-value is "Gale's Curse":
+				send "&bGale's Curse: Periodically drains your own mana, but combos with other magic imbues for bonus payoff" to player
+			else if loop-value is "Gamma":
+				send "&2Gamma: Massively reduces damage taken and increased damage done while enraged, at the cost of reduced raw power while calm. Increased magical power while calm." to player
+			else if loop-value is "Vibranium":
+				send "&9Vibranium: Banks damage you take as stored energy, then unloads it as bonus melee damage" to player
+			else if loop-value is "Temerity":
+				send "&bTemerity: Grants a large barrier pool based on your max health" to player
+			else if loop-value is "Malefic":
+				send "&4Malefic: Builds crit chance the longer you stay in combat while wolf-shaped" to player
+			else if loop-value is "Esu":
+				send "&cEsu: Grants bonus crit chance while hasted or sped up" to player
+			else if loop-value is "Gamble":
+				send "&aGamble: Multiplies hit damage by a random 0-3x roll" to player
+			else if loop-value is "Bloodrend":
+				send "&4Bloodrend: Applies the Bloodrend damage-over-time effect on hit" to player
+			else if loop-value is "Splinter":
+				send "&fSplinter: Chance to mark the target vulnerable and splash damage to nearby enemies" to player
+			else if loop-value is "Venom":
+				send "&fVenom: Bonus damage plus a chance to poison the target on hit" to player
+			else if loop-value is "Duelist":
+				send "&bDuelist: Huge bonus damage in a repeated 1-on-1 duel with the same target, but weaker against others" to player
+			else if loop-value is "The Grandfather":
+				send "&4The Grandfather: Boosts crit chance and triples damage on a critical hit" to player
+			else if loop-value is "Azurewraith":
+				send "&9Azurewraith: On-hit ice magic damage plus a slow, weaken, and vulnerable debuff" to player
+			else if loop-value is "Sniper":
+				send "&bSniper: Bonus arrow damage that scales with distance to the target" to player
+			else if loop-value is "Demon Hunter":
+				send "&4Demon Hunter: Massive bonus damage against monsters with arrows and bolts" to player
+			else if loop-value is "Endajack":
+				send "&9Endajack: Random knockback effects on hit, occasionally instantly dispatching non-boss mobs" to player
+			else if loop-value is "Radiation":
+				send "&aRadiation: Applies Radiated to yourself and prevents DoT from Radiated" to player
+			else if loop-value is "Raid Leader":
+				send "&9Raid Leader: Passively spawns and buffs Pillager minions, and boosts your minion cap" to player
+			else if loop-value is "Lightning Rod":
+				send "&9Lightning Rod: Passive aura that strikes nearby enemies with lightning" to player
+			else if loop-value is "Detonation":
+				send "&8Detonation: Chance to deal AoE damage to nearby enemies when you're hit" to player
+			else if loop-value is "Anti-Gravity":
+				send "&9Anti-Gravity: Passive aura that levitates and shadow-damages nearby enemies" to player
+			else if loop-value is "Spidersilk":
+				send "&fSpidersilk: Shrinks how far mobs can detect you, and extends invisibility duration in darkness" to player
+			else if loop-value is "Servitude":
+				send "&4Servitude: Splits incoming damage between you and your minions" to player
+			else if loop-value is "Shared Misery":
+				send "&4Shared Misery: Passively heals nearby low-health allies at your own expense" to player
+			else if loop-value is "Inspirational":
+				send "&bInspirational: Buffs nearby allies with the Inspired effect" to player
+			else if loop-value is "Appliance":
+				send "&9Appliance: Shares your worn gear's bonuses with nearby allies" to player
+			else if loop-value is "Grimoire":
+				send "Grimoire: Boosts your minion cap and speeds up summoned zombies" to player
+			else if loop-value is "Volatile Death":
+				send "&4Volatile Death: Summoned minions explode with AoE magic damage on death, and boosts your minion cap" to player
+			else if loop-value is "Oculus":
+				send "&9Oculus: Teleporting yanks nearby monsters to you and blasts them with damage" to player
+			else if loop-value is "Starless":
+				send "&9Starless: Rapid consecutive spellcasting gets progressively cheaper" to player
+			else if loop-value is "Minion Golem":
+				send "Minion Golem: Converts your entire minion cap into one single, much stronger minion" to player
+			else if loop-value is "Ethereal":
+				send "&fEthereal: This item survives your death and is returned to you on respawn" to player
+			else if loop-value is "Guardian":
+				send "&fGuardian: Reduces damage taken and boosts max health, at the cost of extra slowness while worn" to player
+			else if loop-value is "Captain":
+				send "&fCaptain: Reduces damage taken, grants swiftness, and shares your gear bonuses with nearby allies" to player
+			else if loop-value is "Mana Reject":
+				send "&9Mana Reject: Continuously drains your own mana to zero, but grants bonus max health while empty" to player
+			else if loop-value is "Sacrificial":
+				send "&4Sacrificial: Deals massive bonus damage to your target, at the cost of your own health" to player
+			else if loop-value is "Butcher":
+				send "&4Butcher: Bonus damage plus a chance to apply bleeding and slow the target" to player
+			else if loop-value is "Soul Tether":
+				send "&9Soul Tether: If a nearby ally would die, teleports them to you and saves them instead" to player
