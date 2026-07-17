@@ -335,7 +335,7 @@ command /itemloreinfo:
 			else if loop-value is "Mana Leak":
 				send "&9Mana Leak: Makes the victim's future mana spending less efficient" to player
 			else if loop-value is "Subdue to Anger":
-				send "&4Subdue to Anger: Massive bonus damage and crit chance dealt, but you take 50% more damage in return" to player
+				send "&4Subdue to Anger: Massive bonus damage and crit chance dealt, but you take 1.50x more damage in return" to player
 			else if loop-value is "Intellectual Barrier":
 				send "&9Intellectual Barrier: Boosts your barrier capacity and regen, scaled off your max mana" to player
 			else if loop-value is "Crown of Thorns":
