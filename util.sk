@@ -59,4 +59,3 @@ function concatStringList(list: texts, delim: string=" ") :: text:
 			set {_toRet} to "%{_toRet}%%{_delim}%%loop-value%"
 
 	return {_toRet}
-
