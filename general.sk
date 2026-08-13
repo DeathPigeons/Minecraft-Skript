@@ -18,7 +18,7 @@ command /feedback [<text="">]:
 		log "[%command executor%] %argument%" to "feedback/feedback.log"
 		send "&bFeedback filed."
 		send "&b[FeedBack] &2%command executor%: &c%argument%" to console
-
+	
 on join:
 	wait 5 seconds
 	send "&bUse '/feedback' to send feedback or ideas to be filed and viewed by the server administrator" to the player
