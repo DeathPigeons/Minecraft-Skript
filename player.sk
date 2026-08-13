@@ -43,9 +43,12 @@ function levelUp(player: player):
     levelUp({_player})
   if {playerSkript::numResearchPoints::%{_player}%} is not set:
     set {playerSkript::numResearchPoints::%{_player}%} to 0
+  if {playerSkript::numSkillPoints::%{_player}%} is not set:
+    set {playerSkript::numSkillPoints::%{_player}%} to 0
   set {playerSkript::numResearchPoints::%{_player}%} to {playerSkript::numResearchPoints::%{_player}%} + 1
   if mod({playerSkript::playerLevel::%{_player}%}, 5) = 0:
     set {playerSkript::numResearchPoints::%{_player}%} to {playerSkript::numResearchPoints::%{_player}%} + 1
+    set {playerSkript::numSkillPoints::%{_player}%} to {playerSkript::numSkillPoints::%{_player}%} + 1    
   play sound "block.bell.use" with pitch 2.0 at {_player}
 
 function getLevel(player: player):: number:
@@ -59,6 +62,7 @@ function getXP(player: player):: number:
   return {playerSkript::playerXP::%{_player}%}
 
 on death of a monster:
+  {-evilSkript::%victim%::isNatural} is true
   isMinion(victim) is false:
     loop players in radius 20 around victim:
       set {_xpdropped} to 1 * (1.1^({rpgdiff} - 1))
@@ -68,18 +72,37 @@ on death of a monster:
 
       addXP(loop-player, {_xpdropped})
 
+command /setLevel <player> <number>:
+  trigger:
+    command executor has permission "rpg.control"
+    set {_player} to arg 1
+    set {playerSkript::playerLevel::%{_player}%} to arg 2
+    send "%{_player}%'s level set to %arg 2%" to command executor
+    send "Your level was set to %arg 2%" to {_player}
+    set {playerSkript::numResearchPoints::%{_player}%} to (getLevel({_player})) + (1 * floor(getLevel({_player}) / 5))
+    set {playerSkript::numSkillPoints::%{_player}%} to (1 * floor(getLevel({_player}) / 5))
+    set {playerSkript::damageStat::%{_player}%} to 0
+    set {playerSkript::healthStat::%{_player}%} to 0
+    set {playerSkript::manaStat::%{_player}%} to 0
+    set {playerSkript::magicDamageStat::%{_player}%} to 0
+    set {playerSkript::minionPowerStat::%{_player}%} to 0
+    delete {rpgSkript::%{_player}%::research::*}
+
 # Player Research
 
-command /resetResearch:
-  executable by: players
+command /resetResearch <player>:
   trigger:
-    send "&7Resetting your Research!" to player
-    set {playerSkript::numResearchPoints::%player%} to (getLevel(player)) + (1 * floor(getLevel(player) / 5))
-    set {playerSkript::damageStat::%player%} to 0
-    set {playerSkript::healthStat::%player%} to 0
-    set {playerSkript::manaStat::%player%} to 0
-    set {playerSkript::magicDamageStat::%player%} to 0
-    set {playerSkript::minionPowerStat::%player%} to 0
+    command executor has permission "rpg.control"
+    set {_player} to arg 1
+    send "&7Resetting Research!" to command executor
+    set {playerSkript::numResearchPoints::%{_player}%} to (getLevel({_player})) + (1 * floor(getLevel({_player}) / 5))
+    set {playerSkript::numSkillPoints::%{_player}%} to (1 * floor(getLevel({_player}) / 5))
+    set {playerSkript::damageStat::%{_player}%} to 0
+    set {playerSkript::healthStat::%{_player}%} to 0
+    set {playerSkript::manaStat::%{_player}%} to 0
+    set {playerSkript::magicDamageStat::%{_player}%} to 0
+    set {playerSkript::minionPowerStat::%{_player}%} to 0
+    delete {rpgSkript::%{_player}%::research::*}
 
 function calculateClassCount(player: player):: number:
   set {_classcount} to 0
@@ -152,6 +175,21 @@ function getResearchPoints(player: player):: number:
   if {playerSkript::numResearchPoints::%{_player}%} is not set:
     set {playerSkript::numResearchPoints::%{_player}%} to 0 
   return {playerSkript::numResearchPoints::%{_player}%} 
+
+function useSkillPoint(player: player, num: number):: boolean:
+  if {playerSkript::numSkillPoints::%{_player}%} is not set:
+    set {playerSkript::numSkillPoints::%{_player}%} to 0  
+
+  if {playerSkript::numSkillPoints::%{_player}%} is greater than or equal to {_num}:
+    set {playerSkript::numSkillPoints::%{_player}%} to {playerSkript::numSkillPoints::%{_player}%} - {_num}
+    return true
+  else:
+    return false
+
+function getSkillPoints(player: player):: number:
+  if {playerSkript::numSkillPoints::%{_player}%} is not set:
+    set {playerSkript::numSkillPoints::%{_player}%} to 0 
+  return {playerSkript::numSkillPoints::%{_player}%} 
 
 function increaseCoreStat(player: player, stat: text):
   if {_stat} is "damage":
@@ -312,11 +350,11 @@ function populatePlayerResearchMenu(player: player, menu: inventory):
   set line 3 of {_item}'s lore to "&bCurrent Minion Power Bonus: %calculateCoreStatBonus({_player}, "minion")%"
   set slot 5 of {_menu} to {_item}
 
-  set {_item} to light grey wool named "&2Rogue"
+  set {_item} to light gray wool named "&2Rogue"
   set line 1 of {_item}'s lore to "&cToggles the Rogue Class"
   set line 2 of {_item}'s lore to "&cToggled: %hasClass({_player}, "rogue")%"
   set slot 27 of {_menu} to {_item}
-  set {_item} to grey wool named "&cWarrior"
+  set {_item} to gray wool named "&cWarrior"
   set line 1 of {_item}'s lore to "&cToggles the Warrior Class"
   set line 2 of {_item}'s lore to "&cToggled: %hasClass({_player}, "warrior")%"
   set slot 28 of {_menu} to {_item}
@@ -340,7 +378,7 @@ function populatePlayerResearchMenu(player: player, menu: inventory):
   set line 1 of {_item}'s lore to "&7Toggles the Necromancer Class"
   set line 2 of {_item}'s lore to "&7Toggled: %hasClass({_player}, "necromancer")%"
   set slot 33 of {_menu} to {_item}
-  set {_item} to dark grey wool named "&4Barbarian"
+  set {_item} to gray wool named "&4Barbarian"
   set line 1 of {_item}'s lore to "&4Toggles the Barbarian Class"
   set line 2 of {_item}'s lore to "&4Toggled: %hasClass({_player}, "barbarian")%"
   set slot 34 of {_menu} to {_item}
@@ -482,84 +520,69 @@ on inventory click:
 	
   populatePlayerResearchMenu(player, event-inventory)
 
-  # Factions - Terraria-esque
+  # Teams
 
-function setFaction(player: player, faction: string):
-	scriptDebugBroadcastType("faction", "Putting {_player} in faction {_faction}")
-	set {-rpgSkript::factions::%{_player}%::faction} to {_faction}
+command /createTeam <text> <text>:
+  executable by: players
+  trigger:
+    set {_color} to arg 2
+    set {_name} to arg 1
+    if at least one of:
+      {_color} is "red"
+      {_color} is "blue"
+      {_color} is "green"
+    then:
+      register a new team "%{_name}%"
+      set team color of "%{_name}%" to "%{_color}%"
+      broadcast "A new team has been created. Team %{_name}% by %player%!"
+      add player to team "%{_name}%"
+      set {playerSkript::team::teamOwner} to player
 
-function removeFaction(player: player, faction: string):
-	scriptDebugBroadcastType("faction", "Removing {_player} in faction {_faction} from faction")
-	delete {-rpgSkript::factions::%{_player}%::faction}
+command /joinTeam <text>:
+  executable by: players
+  trigger:
+    set {_name} to arg 1
+    add player to team {_name}
 
-function isInFaction(player: player, faction: string):: boolean:
-	scriptDebugBroadcastType("faction", "Checking factions of {_player}")	
-	if {-rpgSkript::factions::%{_player}%::faction} is {_faction}:
-		return true
-	else:
-		return false
+command /disbandTeam <text>:
+  executable by: players
+  trigger:
+    set {_name} to arg 1
+    if {playerSkript::%{_name}%::teamOwner} is player:
+      unregister team "%{_name}%"
+      delete {playerSkript::%{_name}%::*}
+      broadcast "Team %{_name}% has been disbanded!"
+    else if command executor has permission "rpg.control":
+      unregister team "%{_name}%"
+      delete {playerSkript::%{_name}%::*}
+      broadcast "Team %{_name}% has been disbanded!"
+    else:
+      send "&4You are not the team owner!" to player
 
-function isSameFaction(player: player, secondPlayer: player):: boolean:
-	scriptDebugBroadcastType("faction", "Checking same factions of {_player} and {_secondPlayer}")
-	if at least one of:
-		{-rpgSkript::factions::%{_secondPlayer}%::faction} is not set
-		{-rpgSkript::factions::%{_player}%::faction} is not set
-	then:
-		return false
-	if {-rpgSkript::factions::%{_player}%::faction} is {-rpgSkript::factions::%{_secondPlayer}%::faction}:
-		return true
-	else:
-		return false
+command /forceLeaveTeam <text> <player>:
+  trigger:
+    command executor has permission "rpg.control"
+    set {_name} to arg 1
+    set {_player} to arg 2
+    remove {_player} from team {_name}
 
-function getFactionPlayers(faction: string):: players:
-	loop all players:
-		if {-rpgSkript::factions::%loop-player%::faction} is {_faction}:
-			add {-rpgSkript::factions::%loop-player%::faction} to {_playerslist::*}
-	return {_playerslist::*}
-		
+    set {_num} to team size of "{_name}"
+    if {_num} is less than 1:
+      unregister team "%{_name}%"
+      broadcast "Team %{_name}% has been disbanded!"  
 
-command /alliancemenu:
-	executable by: players
-	trigger:
-		set {_menu} to a new chest inventory with 6 rows named "&bAlliance Menu"
-		
-		populateAllianceMenu(player, {_menu})
-		
-		open {_menu} to player
+command /leaveTeam <text>:
+  executable by: players
+  trigger:
+    set {_name} to arg 1
+    if {playerSkript::%{_name}%::teamOwner} is player:
+      unregister team "%{_name}%"
+      delete {playerSkript::%{_name}%::*}
+      broadcast "Team %{_name}% has been disbanded!"
+    else:
+      remove player from team {_name}
+      broadcast "%player% has left team %{_name}%!"
 
-function populateAllianceMenu(player: player, menu: inventory):
-	set {_item} to red wool named "Covenant"
-	#set {_temp} to {_player}
-	#if IsInFaction({_player}, "Covenant") is true:
-	#	set {_item} to lime wool named "Covenant"
-	set line 1 of {_item}'s lore to "Sets Faction to Covenant"
-	set slot 1 of {_menu} to {_item}
-
-	set {_item} to red wool named "Dominion"
-	#if IsInFaction({_player}, "Dominion") is true:
-	#	set {_item} to lime wool named "Dominion"
-	set line 1 of {_item}'s lore to "Sets Faction to Dominion"
-	set slot 2 of {_menu} to {_item}
-
-
-on inventory click:
-	event-inventory is not event-player's inventory
-	name of event-inventory is "&bAlliance Menu"
-	cancel event
-
-	if index of event-slot is 1:
-		if isInFaction(player, "Covenant") is true:
-			removeFaction(player, "Covenant")
-		else:
-			setFaction(player, "Covenant")
-
-	if index of event-slot is 2:
-		if isInFaction(player, "Dominion") is true:
-			removeFaction(player, "Dominion")
-		else:
-			setFaction(player, "Dominion")
-
-	populateAllianceMenu(player, event-inventory)
 
 # Skill Tree
 
@@ -567,67 +590,221 @@ command /skilltree:
   executable by: players
   trigger:
     set {_menu} to a new chest inventory with 6 rows named "&bSkill Tree"
+    scriptDebugBroadcastType("skilltree", "%player% attempts to open their skill tree.")
 		
-    populateSkillTree(player, {_menu})
+    populateSkillTree(player, {_menu}, "Skill Tree")
+    scriptDebugBroadcastType("skilltree", "%player%'s skill tree is populated.")
 		
     open {_menu} to player
+    scriptDebugBroadcastType("skilltree", "%player%'s skill tree is opened to them.")
 
-function populateSkillTree(player: player, menu: inventory):
-  if name of {_menu} is "&bSkill Tree":
+function populateSkillTree(player: player, menu: inventory, name: string):
+  scriptDebugBroadcastType("skilltree", "%{_player}% is attempting to populate skill tree named %{_name}%")
+  if {_name} is "Skill Tree":
+    scriptDebugBroadcastType("skilltree", "%{_player}%'s skill tree is attempting to be populated.")
+    set {_item} to pink wool named "&bSkill Points Available - %getSkillPoints({_player})%"
+    set slot 0 of {_menu} to {_item}
     if hasClass({_player}, "rogue") is true:
-      set {_item} to light grey wool named "&2Rogue"
+      set {_item} to light gray wool named "&2Rogue"
       set line 1 of {_item}'s lore to "&2Opens the Rogue Skill Tree"
       set slot 27 of {_menu} to {_item}
+      scriptDebugBroadcastType("skilltree", "%{_player}%'s skill tree contains the Rogue Skill Tree.")
     if hasClass({_player}, "warrior") is true:
-      set {_item} to grey wool named "&cWarrior"
+      set {_item} to gray wool named "&cWarrior"
       set line 1 of {_item}'s lore to "&cOpens the Warrior Skill Tree"
       set slot 28 of {_menu} to {_item}
+      scriptDebugBroadcastType("skilltree", "%{_player}%'s skill tree contains the Warrior Skill Tree.")
     if hasClass({_player}, "wizard") is true:
       set {_item} to blue wool named "&3Wizard"
       set line 1 of {_item}'s lore to "&3Opens the Wizard Skill Tree"
       set slot 29 of {_menu} to {_item}
+      scriptDebugBroadcastType("skilltree", "%{_player}%'s skill tree contains the Wizard Skill Tree.")
     if hasClass({_player}, "paladin") is true:
       set {_item} to white wool named "&9Paladin"
       set line 1 of {_item}'s lore to "&9Opens the Paladin Skill Tree"
       set slot 30 of {_menu} to {_item}
+      scriptDebugBroadcastType("skilltree", "%{_player}%'s skill tree contains the Paladin Skill Tree.")
     if hasClass({_player}, "cleric") is true:
       set {_item} to yellow wool named "&eCleric"
       set line 1 of {_item}'s lore to "&eOpens the Cleric Skill Tree"
       set slot 31 of {_menu} to {_item}
+      scriptDebugBroadcastType("skilltree", "%{_player}%'s skill tree contains the Cleric Skill Tree.")
     if hasClass({_player}, "sorceror") is true:
       set {_item} to pink wool named "&cSorceror"
       set line 1 of {_item}'s lore to "&cOpens the Sorceror Skill Tree"
       set slot 32 of {_menu} to {_item}
+      scriptDebugBroadcastType("skilltree", "%{_player}%'s skill tree contains the Sorceror Skill Tree.")
     if hasClass({_player}, "necromancer") is true:
       set {_item} to black wool named "&7Necromancer"
       set line 1 of {_item}'s lore to "&7Opens the Necromancer Skill Tree"
       set slot 33 of {_menu} to {_item}
+      scriptDebugBroadcastType("skilltree", "%{_player}%'s skill tree contains the Necromancer Skill Tree.")
     if hasClass({_player}, "barbarian") is true:
-      set {_item} to dark grey wool named "&4Barbarian"
+      set {_item} to gray wool named "&4Barbarian"
       set line 1 of {_item}'s lore to "&4Opens the Barbarian Skill Tree"
       set slot 34 of {_menu} to {_item}
+      scriptDebugBroadcastType("skilltree", "%{_player}%'s skill tree contains the Barbarian Skill Tree.")
     if hasClass({_player}, "endwarden") is true:
       set {_item} to purple wool named "&9Endwarden"
       set line 1 of {_item}'s lore to "&9Opens the Endwarden Skill Tree"
       set slot 35 of {_menu} to {_item}
+      scriptDebugBroadcastType("skilltree", "%{_player}%'s skill tree contains the Endwarden Skill Tree.")
     if hasClass({_player}, "druid") is true:
       set {_item} to green wool named "&aDruid"
       set line 1 of {_item}'s lore to "&aOpens the Druid Skill Tree"
       set slot 36 of {_menu} to {_item}
+      scriptDebugBroadcastType("skilltree", "%{_player}%'s skill tree contains the Druid Skill Tree.")
     if hasClass({_player}, "artificer") is true:
       set {_item} to cyan wool named "&bArtificer"
       set line 1 of {_item}'s lore to "&bOpens the Artificer Skill Tree"
       set slot 37 of {_menu} to {_item}
+      scriptDebugBroadcastType("skilltree", "%{_player}%'s skill tree contains the Artificer Skill Tree.")
     if hasClass({_player}, "monk") is true:
       set {_item} to lime wool named "&2Monk"
       set line 1 of {_item}'s lore to "&2Opens the Monk Skill Tree"
       set slot 38 of {_menu} to {_item}
+      scriptDebugBroadcastType("skilltree", "%{_player}%'s skill tree contains the Monk Skill Tree.")
     if hasClass({_player}, "nethermancer") is true:
       set {_item} to red wool named "&4Nethermancer"
       set line 1 of {_item}'s lore to "&4Opens the Nethermancer Skill Tree"
       set slot 39 of {_menu} to {_item}
+      scriptDebugBroadcastType("skilltree", "%{_player}%'s skill tree contains the Nethermancer Skill Tree.")
 
-  if name of {_menu} is "&bArtificer Skill Tree":
+  # Rogue Skill Tree
+  if {_name} is "rogue skill tree":
+    scriptDebugBroadcastType("skilltree", "%{_player}%'s rogue skill tree is attempting to be populated.")    
+    set {_item} to red wool named "&4Assassin Tree"
+    set line 1 of {_item}'s lore to "&4The following skills are dedicated to the Melee & Sneak Based Assassin Skill Tree ->"
+    set slot 0 of {_menu} to {_item}
+
+    set {_item} to red wool named "&4Stealth"
+    if hasResearch({_player}, "stealth") is true:
+      set {_item} to lime wool named "&4Stealth"
+    set line 1 of {_item}'s lore to "&4Reduces the range at which enemies can target you."
+    set slot 1 of {_menu} to {_item}
+
+    set {_item} to red wool named "&4Sneak Attack"
+    if hasResearch({_player}, "sneak attack") is true:
+      set {_item} to lime wool named "&4Sneak Attack"
+    set line 1 of {_item}'s lore to "&4Increases the damage done when sneaking, increasing with the use of a sword."
+    set slot 2 of {_menu} to {_item}
+
+    set {_item} to red wool named "&4Dark Shroud"
+    if hasResearch({_player}, "dark shroud") is true:
+      set {_item} to lime wool named "&4Dark Shroud"
+    set line 1 of {_item}'s lore to "&4Allows the user to gain dark shrouds for protection."
+    set slot 3 of {_menu} to {_item}
+
+    set {_item} to red wool named "&4Poisons"
+    if hasResearch({_player}, "Poisons") is true:
+      set {_item} to lime wool named "&4Poisons"
+    set line 1 of {_item}'s lore to "&4Allows the user to craft and experiment with making special imbued arrows."
+    set slot 4 of {_menu} to {_item}
+
+    set {_item} to red wool named "&4Weakpoint"
+    if hasResearch({_player}, "Weakpoint") is true:
+      set {_item} to lime wool named "&4Weakpoint"
+    set line 1 of {_item}'s lore to "&4Increases odds at landing critical hit. "
+    set slot 5 of {_menu} to {_item}
+
+    set {_item} to yellow wool named "&aRanger Tree"
+    set line 1 of {_item}'s lore to "&aThe following skills are dedicated to the Archery Based Ranger Skill Tree ->"
+    set slot 18 of {_menu} to {_item}
+
+    set {_item} to yellow wool named "&aSniper"
+    if hasResearch({_player}, "sniper") is true:
+      set {_item} to lime wool named "&4Sniper"
+    set line 1 of {_item}'s lore to "&4Increases damage with ranged weapons with greater distance."
+    set slot 19 of {_menu} to {_item}
+
+    set {_item} to yellow wool named "&aDraw Strength"
+    if hasResearch({_player}, "Draw Strength") is true:
+      set {_item} to lime wool named "&4Draw Strength"
+    set line 1 of {_item}'s lore to "&4Increases damage with bows as you hold it longer. This consumes energy and expires when you run out."
+    set slot 20 of {_menu} to {_item}
+
+    set {_item} to yellow wool named "&aHunter's Satisfaction"
+    if hasResearch({_player}, "Hunter's Satisfaction") is true:
+      set {_item} to lime wool named "&4Hunter's Satisfaction"
+    set line 1 of {_item}'s lore to "&4Landing a critical hit grants a resource refund."
+    set slot 21 of {_menu} to {_item}
+
+    set {_item} to yellow wool named "&aCrippling Shot"
+    if hasResearch({_player}, "Crippling Shot") is true:
+      set {_item} to lime wool named "&4Crippling Shot"
+    set line 1 of {_item}'s lore to "&4Shots worth more than 0.10 of the targets HP will apply vulnerable."
+    set slot 22 of {_menu} to {_item}
+
+    set {_item} to yellow wool named "&aQuick Succession"
+    if hasResearch({_player}, "Quick Succession") is true:
+      set {_item} to lime wool named "&4Quick Succession"
+    set line 1 of {_item}'s lore to "&4Hitting a previous target will give a slight damage boost."
+    set slot 23 of {_menu} to {_item}
+
+    set {_item} to blue wool named "&9Thief Tree"
+    set line 1 of {_item}'s lore to "&9The following skills are dedicated to the Loot, Mobility, and Protection Based Thief Skill Tree ->"
+    set slot 36 of {_menu} to {_item}
+
+    set {_item} to blue wool named "&9Fit"
+    if hasResearch({_player}, "fit") is true:
+      set {_item} to lime wool named "&9Fit"
+    set line 1 of {_item}'s lore to "&9You may now wear Medium armor without loss of benefits."
+    set slot 37 of {_menu} to {_item}
+
+    set {_item} to blue wool named "&9Loot Bonus"
+    if hasResearch({_player}, "loot bonus") is true:
+      set {_item} to lime wool named "&9Loot Bonus"
+    set line 1 of {_item}'s lore to "&6Increases the odds of special loot from enemies you kill."
+    set slot 38 of {_menu} to {_item}
+
+    set {_item} to blue wool named "&9In the Shadows"
+    if hasResearch({_player}, "IntheShadows") is true:
+      set {_item} to lime wool named "&9In the Shadows"
+    set line 1 of {_item}'s lore to "&6Provides continuous night vision."
+    set slot 39 of {_menu} to {_item}
+
+    set {_item} to blue wool named "&9Smoke Grenade"
+    if hasResearch({_player}, "smoke grenade") is true:
+      set {_item} to lime wool named "&9Smoke Grenade"
+    set line 1 of {_item}'s lore to "&6Allows the use of the Smoke Grenade spell through the use of grey dye."
+    set slot 40 of {_menu} to {_item}
+
+  # Warrior Skill Tree
+  if {_name} is "warrior skill tree":
+    scriptDebugBroadcastType("skilltree", "%{_player}%'s artificer skill tree is attempting to be populated.")
+    set {_item} to red wool named "&4Weapons Expertise Tree"
+    set line 1 of {_item}'s lore to "&4The following skills are dedicated to the tools a Warrior can use for the Weapons Expertise Skill Tree ->"
+    set slot 0 of {_menu} to {_item}
+
+    set {_item} to red wool named "&4Master Smith"
+    if hasResearch({_player}, "master_smith") is true:
+      set {_item} to lime wool named "&4Master Smith"
+    set line 1 of {_item}'s lore to "&4Tools and Armor that you craft are enchanted"
+    set slot 1 of {_menu} to {_item}
+
+    set {_item} to yellow wool named "&aDefensive Tree"
+    set line 1 of {_item}'s lore to "&aThe following skills are dedicated to protection in the Defensive Skill Tree ->"
+    set slot 18 of {_menu} to {_item}
+
+    set {_item} to yellow wool named "&aDurable"
+    if hasResearch({_player}, "durable") is true:
+      set {_item} to lime wool named "&aDurable"
+    set line 1 of {_item}'s lore to "&aMaximum Health is increased by 25%%"
+    set slot 19 of {_menu} to {_item}
+
+    set {_item} to blue wool named "&9Survival Skills Tree"
+    set line 1 of {_item}'s lore to "&9The following skills are dedicated to survivability in the Survival Skills Skill Tree ->"
+    set slot 36 of {_menu} to {_item}
+
+    set {_item} to blue wool named "&9Tree Feller"
+    if hasResearch({_player}, "tree_feller") is true:
+      set {_item} to lime wool named "&9Tree Feller"
+    set line 1 of {_item}'s lore to "&9You cut trees down instantly"
+    set slot 37 of {_menu} to {_item}
+          
+  # Artificer Skill Tree
+  if {_name} is "artificer skill tree":
+    scriptDebugBroadcastType("skilltree", "%{_player}%'s artificer skill tree is attempting to be populated.")
     set {_item} to red wool named "&4Healing Construct"
     if hasResearch({_player}, "healing_construct") is true:
       set {_item} to lime wool named "&bHealing Construct"
@@ -705,14 +882,209 @@ on inventory click:
   if name of event-inventory is "&bSkill Tree":
     cancel event
 
-    if index of event-slot is 37:
-      set {_menu} to a new chest inventory with 6 rows named "&bArtificer Skill Tree"
+    if index of event-slot is 27:
+      set {_menu} to a new chest inventory with 6 rows named "&2Rogue Skill Tree"
 
-      populateSkillTree(player, {_menu})
+      populateSkillTree(player, {_menu}, "rogue skill tree")
 	
       open {_menu} to player
 
+    if index of event-slot is 28:
+      set {_menu} to a new chest inventory with 6 rows named "&cWarrior Skill Tree"
+
+      populateSkillTree(player, {_menu}, "warrior skill tree")
+	
+      open {_menu} to player
+
+    if index of event-slot is 37:
+      set {_menu} to a new chest inventory with 6 rows named "&bArtificer Skill Tree"
+
+      populateSkillTree(player, {_menu}, "artificer skill tree")
+	
+      open {_menu} to player
+  # Rogue
+  if name of event-inventory is "&2Rogue Skill Tree":  
+    cancel event
+    if index of event-slot is 1:
+      if hasResearch(player, "stealth") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&2Stealth Researched Added" to player
+          addResearch(player, "stealth")
+        else:
+          send "&4No skill points!" to player
+
+    if index of event-slot is 2:
+      if hasResearch(player, "sneak attack") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&2Sneak Attack Researched Added" to player
+          addResearch(player, "sneak attack")
+        else:
+          send "&4No skill points!" to player
+
+    if index of event-slot is 3:
+      if hasResearch(player, "dark shroud") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&2Dark Shroud Researched Added" to player
+          addResearch(player, "dark shroud")
+        else:
+          send "&4No skill points!" to player
+
+    if index of event-slot is 4:
+      if hasResearch(player, "Poisons") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&2Poisons Researched Added" to player
+          addResearch(player, "Poisons")
+        else:
+          send "&4No skill points!" to player
+
+    if index of event-slot is 5:
+      if hasResearch(player, "Weakpoint") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&2Weakpoint Researched Added" to player
+          addResearch(player, "Weakpoint")
+        else:
+          send "&4No skill points!" to player
+
+    if index of event-slot is 19:
+      if hasResearch(player, "sniper") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&2Dark Shroud Researched Added" to player
+          addResearch(player, "sniper")
+        else:
+          send "&4No skill points!" to player
+
+    if index of event-slot is 20:
+      if hasResearch(player, "draw strength") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&2Dark Shroud Researched Added" to player
+          addResearch(player, "draw strength")
+        else:
+          send "&4No skill points!" to player
+
+    if index of event-slot is 21:
+      if hasResearch(player, "Hunter's Satisfaction") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&2Hunter's Satisfaction Researched Added" to player
+          addResearch(player, "Hunter's Satisfaction")
+        else:
+          send "&4No skill points!" to player 
+
+    if index of event-slot is 22:
+      if hasResearch(player, "Crippling Shot") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&2Crippling Shot Researched Added" to player
+          addResearch(player, "Crippling Shot")
+        else:
+          send "&4No skill points!" to player 
+
+    if index of event-slot is 23:
+      if hasResearch(player, "Quick Succession") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&2Quick Succession Researched Added" to player
+          addResearch(player, "Quick Succession")
+        else:
+          send "&4No skill points!" to player 
+
+    if index of event-slot is 37:
+      if hasResearch(player, "fit") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&2Quick Succession Researched Added" to player
+          addResearch(player, "fit")
+        else:
+          send "&4No skill points!" to player 
+
+    if index of event-slot is 38:
+      if hasResearch(player, "loot bonus") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&2Loot Bonus Researched Added" to player
+          addResearch(player, "loot bonus")
+        else:
+          send "&4No skill points!" to player 
+
+    if index of event-slot is 39:
+      if hasResearch(player, "IntheShadows") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&2In the Shadows Researched Added" to player
+          addResearch(player, "IntheShadows")
+        else:
+          send "&4No skill points!" to player 
+
+    if index of event-slot is 40:
+      if hasResearch(player, "smoke grenade") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&2Smoke Grenade Researched Added" to player
+          addResearch(player, "smoke grenade")
+        else:
+          send "&4No skill points!" to player 
+
+    populateSkillTree(player, event-inventory, "rogue skill tree")
+
+  # Warrior
+  if name of event-inventory is "&cWarrior Skill Tree":  
+    cancel event
+    if index of event-slot is 1:
+      if hasResearch(player, "master_smith") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&cMaster Smith Researched Added" to player
+          addResearch(player, "master_smith")
+        else:
+          send "&4No skill points!" to player
+
+    if index of event-slot is 19:
+      if hasResearch(player, "durable") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&cDurable Researched Added" to player
+          addResearch(player, "durable")
+        else:
+          send "&4No skill points!" to player
+
+    if index of event-slot is 37:
+      if hasResearch(player, "tree_feller") is true:
+        send "&4You already have this research!" to player 
+      else:
+        if useSkillPoint(player, 1) is true:
+          send "&cTree Feller Researched Added" to player
+          addResearch(player, "tree_feller")
+        else:
+          send "&4No skill points!" to player  
+
+    populateSkillTree(player, event-inventory, "warrior skill tree")
+          
+  # Artificer
   if name of event-inventory is "&bArtificer Skill Tree":
+    cancel event
     if index of event-slot is 0:
       if hasResearch(player, "healing_construct") is true:
         send "&4You already have this research!" to player
@@ -726,7 +1098,7 @@ on inventory click:
       if hasResearch(player, "tesla_construct") is true:
         send "&4You already have this research!" to player
       else:
-        if takeItems( player, (64 redstone and 32 lapis lazuli and 16 nether quartz) ) is false:
+        if takeItems( player, (64 redstone and 32 lapis lazuli and 16 nether quartz ore) ) is false:
           send "&cDo not have the necessary items to unlock this! Items Needed: 64 Redstone and 32 lapis lazuli and 16 nether quartz" to player
           stop
         addResearch(player, "tesla_construct")
@@ -780,7 +1152,7 @@ on inventory click:
       if hasResearch(player, "mining_helmet") is true:
         send "&4You already have this research!" to player
       else:
-        if takeItems( player, (32 redstone and 16 nether quartz and 4 glass) ) is false:
+        if takeItems( player, (32 redstone and 16 nether quartz ore and 4 glass) ) is false:
           send "&cDo not have the necessary items to unlock this! Items Needed: 32 redstone and 16 nether quartz and 4 glass" to player
           stop
         addResearch(player, "mining_helmet")
@@ -820,5 +1192,7 @@ on inventory click:
           send "&cDo not have the necessary items to unlock this! Items Needed: 16 copper ingot and 8 leather and 4 slime ball" to player
           stop
         addResearch(player, "cushioned_soles")
-
-    populateSkillTree(player, event-inventory)
+        
+    populateSkillTree(player, event-inventory, "artificer skill tree")
+    # End Artificer
+      
