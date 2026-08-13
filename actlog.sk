@@ -1,17 +1,43 @@
 Options:
 	prefix: &e[&6Action Log&e]&r
 	consolePrefix: &6[&8Console&6]&r
-	logActions: true
-	logToFile: false
+	# Original Segment
+	#logActions: true
+	#logToFile: false
 
 on script load:
 	actionConsoleMessage("Loaded!")
+	# My Fix
+	set {logActions} to true
+	set {logToFile} to false
 
 on script unload:
 	actionConsoleMessage("Unloading...")
 
+# More Fix
+
+command /serverLogActions <boolean>:
+	trigger:
+		command executor has permission "server.control"
+		if arg 1 is true:
+			set {logActions} to true
+		else:
+			set {logActions} to false
+		send "Set {logActions} to %arg 1%" to command executor
+
+command /serverLogToFile <boolean>:
+	trigger:
+		command executor has permission "server.control"
+		if arg 1 is true:
+			set {logToFile} to true
+		else:
+			set {logToFile} to false
+		send "Set {logToFile} to %arg 1%" to command executor
+
+# End Fix
+
 local function logAction(message: text):
-	{@logToFile} is true:
+	{logToFile} is true:
 		log "%{_message}%" to "action/main.log"
 
 local function actionBroadcast(message: text):
@@ -29,7 +55,7 @@ local function scriptActionBroadcast(message: text):
 	scriptActionBroadcastType("main", {_message})
 
 local function scriptActionBroadcastType(type: string, message: text):
-	{@logActions} is true:
+	{logActions} is true:
 		shouldPrintActionType({_type}) is true:
 			broadcast "{@prefix} %{_type}% &e%{_message}%"
 
@@ -37,7 +63,7 @@ local function scriptActionConsoleMessage(message: text):
 	scriptActionConsoleMessageType("main", {_message})
 
 local function scriptActionConsoleMessageType(type: string, message: text):
-	{@logActions} is true:
+	{logActions} is true:
 		shouldPrintActionType({_type}) is true:
 			send "{@consolePrefix} {@prefix} %{_type}% &e%{_message}%" to console
 	#scriptActionBroadcastType({_type}, {_message})
@@ -48,6 +74,11 @@ local function convertItemToString(item: item) :: text:
 	{_item} is enchanted:
 		set {_toRet} to "%{_toRet}% enchanted with %{_item}'s enchantments%"
 	return {_toRet}
+
+function barrierPassToActlog(player: object, amount: object):
+	scriptActionConsoleMessageType("combat", "%{_player}%'s barrier was hit for %{_amount}%")
+
+	
 
 command /logaction <string> <boolean>:
 	trigger:
@@ -83,7 +114,7 @@ on craft:
 	event-item is not air:
 		scriptActionConsoleMessageType("craft", "%event-player% crafted %event-item%")
 
-on fish:
+on fishing line cast:
 	scriptActionConsoleMessageType("fish", "%event-player% fishes")
 
 on death:
@@ -102,7 +133,7 @@ on damage:
 	victim is a player:
 		set {_cause} to damage cause
 		attacker is set:
-			set {_cause} to attacker
+			set {_cause} to attacker			
 		scriptActionConsoleMessageType("combat", "%victim% hit for %the damage% damage from %{_cause}%")
 
 on tool break:
