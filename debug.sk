@@ -5,11 +5,13 @@ Options:
 	consolePrefix: &7[&dConsole&7]&r
 
 	debugPrefix: &e[&bDEBUG&e]&r
-	debug: true
+
 
 on script load:
 	scriptBroadcast("Loaded!")
 	scriptConsoleMessage("Loaded!")
+
+	set {debugDebug} to true
 
 on script unload:
 	scriptBroadcast("Unloading...")
@@ -26,11 +28,20 @@ local function shouldPrintDebugType(type: string) :: boolean:
 		set {debugSkript::debug::%{_type}%} to false
 	return {debugSkript::debug::%{_type}%}
 
+command /debugDebug <boolean>:
+	trigger:
+		command executor has permission "server.control"
+		if arg 1 is true:
+			set {debugDebug} to true
+		else:
+			set {debugDebug} to false
+		send "Set {debugDebug} to %arg 1%" to command executor
+		
 function debugScriptDebugBroadcast(message: text):
 	debugScriptDebugBroadcastType("main", {_message})
 
 function debugScriptDebugBroadcastType(type: string, message: text):
-	{@debug} is true:
+	{debugDebug} is true:
 		shouldPrintDebugType({_type}) is true:
 			#broadcast "{@debugPrefix} {@prefix} &f%{_type}% &7%{_message}%"
 			scriptBroadcast("&f%{_type}% &7%{_message}%")
@@ -39,7 +50,7 @@ local function debugScriptDebugConsoleMessage(message: text):
 	debugScriptDebugConsoleMessageType("main", {_message})
 
 function debugScriptDebugConsoleMessageType(type: string, message: text):
-	{@debug} is true:
+	{debugDebug} is true:
 		shouldPrintDebugType({_type}) is true:
 			#send "{@consolePrefix} {@debugPrefix} {@prefix} &f%{_type}% &7%{_message}%" to console
 			scriptConsoleMessage("&f%{_type}% &7%{_message}%")
