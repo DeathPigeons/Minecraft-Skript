@@ -1340,7 +1340,7 @@ function removeAllEffects(entity: entity):
 	loop {-rpgSkript::effects::%{_index}%::*}:
 		removeEffect({_entity}, loop-index)
 
-function isNegativeEffect(effect: string):: boolean:
+function isNegativeEffect(player: player, effect: string):: boolean:
 	if at least one of:
 		{_effect} is "shocking"
 		{_effect} is "bleeding"
@@ -1352,10 +1352,12 @@ function isNegativeEffect(effect: string):: boolean:
 		{_effect} is "phased"
 		{_effect} is "void"
 		{_effect} is "levitate"
-		{_effect} is "radiated"
 		{_effect} is "silenced"
 	then:
 		return true
+	if hasImbue({_player}, "radiation") is false:
+		if {_effect} is "radiated":
+			return true
 	return false
 
 function removeNegativeEffects(entity:entity):
@@ -1380,6 +1382,11 @@ function removeNegativeEffects(entity:entity):
 function removeEffect(entity: entity, name: string):
 	scriptDebugBroadcastType("removeeffect", "Removing Effect %{_name}% from %{_entity}%")
 	set {_index} to generateIndex({_entity})
+
+	if {_name} is "defensive stance":
+		{_entity} is a player:
+			send "&cYou exit a defensive stance!" to {_entity}
+			
 	if {_name} is "recentcombat":
 		hasImbue({-rpgSkript::effects::%{_index}%::%{_name}%::source}, "malefic") is true
 		isWildshape({-rpgSkript::effects::%{_index}%::%{_name}%::source}, "wolf") is true
@@ -1399,7 +1406,7 @@ function applyEffect(entity: entity, name: string, duration: timespan, source: e
 	scriptDebugBroadcastType("applyeffect", "Applying Effect %{_name}% to %{_entity}% for %{_duration}%")
 	set {_index} to generateIndex({_entity})
 	if team of {_source} is team of {_entity}:
-		if isNegativeEffect({_name}) is true:
+		if isNegativeEffect({_entity}, {_name}) is true:
 			stop
 			
 	set {-rpgSkript::effects::%{_index}%::%{_name}%} to 0
@@ -1412,6 +1419,10 @@ function applyEffect(entity: entity, name: string, duration: timespan, source: e
 	if {_name} is "void":
 		{_entity} is a player:
 			send "&9You are now Voided and Vulnerable!" to {_entity}
+
+	if {_name} is "defensive stance":
+		{_entity} is a player:
+			send "&cYou take a defensive stance!" to {_entity}
 
 	if {_name} is "hulk":
 		{_entity} is a player:
@@ -1513,40 +1524,42 @@ function drawEffects(entity: entity):
 		stop
 
 	hasEffect({_entity}, "test") is true:
-		draw flame particle at {_entity}
+		draw flame particle at (location of {_entity} ~ vector 0, 1.5, 0)
 	hasEffect({_entity}, "test2") is true:
-		draw dragon breath particle at {_entity}
+		draw dragon breath particle at (location of {_entity} ~ vector 0, 1.5, 0)
 	#hasEffect({_entity}, "test3") is true:
 	#	draw water drip particle at {_entity}
 	hasEffect({_entity}, "test4") is true:
-		draw electric spark particle at {_entity}
+		draw electric spark particle at (location of {_entity} ~ vector 0, 1.5, 0)
 	hasEffect({_entity}, "hallowed") is true:
-		draw electric spark particle at {_entity}
+		draw electric spark particle at (location of {_entity} ~ vector 0, 1.5, 0)
 	hasEffect({_entity}, "shocking") is true:
-		draw end rod particle at {_entity}
+		draw end rod particle at (location of {_entity} ~ vector 0, 1.5, 0)
 	hasEffect({_entity}, "bleeding") is true:
-		draw 1 of dust particle using dustOption(red, 1) at {_entity}
+		draw 1 of dust particle using dustOption(red, 1) at (location of {_entity} ~ vector 0, 1.5, 0)
 	hasEffect({_entity}, "disease") is true:
-		draw falling spore blossom particle at {_entity}
+		draw falling spore blossom particle at (location of {_entity} ~ vector 0, 1.5, 0)
 	hasEffect({_entity}, "infected") is true:
-		draw 1 of dust particle using dustOption(green, 1) at {_entity}
+		draw 1 of dust particle using dustOption(green, 1) at (location of {_entity} ~ vector 0, 1.5, 0)
 	hasEffect({_entity}, "phased") is true:
-		draw 1 of dust particle using dustOption(purple, 1) at {_entity}
-		draw 1 of dust particle using dustOption(black, 1) at {_entity}
+		draw 1 of dust particle using dustOption(purple, 1) at (location of {_entity} ~ vector 0, 1.5, 0)
+		draw 1 of dust particle using dustOption(black, 1) at (location of {_entity} ~ vector 0, 1.5, 0)
 	hasEffect({_entity}, "venom") is true:
-		draw 1 of dust particle using dustOption(green, 1) at {_entity}
-		draw 1 of dust particle using dustOption(black, 1) at {_entity}
+		draw 1 of dust particle using dustOption(green, 1) at (location of {_entity} ~ vector 0, 1.5, 0)
+		draw 1 of dust particle using dustOption(black, 1) at (location of {_entity} ~ vector 0, 1.5, 0)
 	hasEffect({_entity}, "void") is true:
-		draw 1 of dust particle using dustOption(white, 1) at {_entity}
-		draw 1 of dust particle using dustOption(black, 1) at {_entity}
+		draw 1 of dust particle using dustOption(white, 1) at (location of {_entity} ~ vector 0, 1.5, 0)
+		draw 1 of dust particle using dustOption(black, 1) at (location of {_entity} ~ vector 0, 1.5, 0)
+	hasEffect({_entity}, "taunted") is true:
+		draw 1 of dust particle using dustOption(red, 1) at (location of {_entity} ~ vector 0, 2, 0)
 	hasEffect({_entity}, "regeneration") is true:
 		chance of 10%:
-			draw heart particle at {_entity}
+			draw heart particle at (location of {_entity} ~ vector 0, 1.5, 0)
 	hasEffect({_entity}, "radiated") is true:
 		chance of 10%:
-			draw scrape particle at {_entity}
+			draw scrape particle at (location of {_entity} ~ vector 0, 1.5, 0)
 	hasEffect({_entity}, "levitate") is true:
-		draw 1 of dust particle using dustOption(purple, 1) at {_entity}
+		draw 1 of dust particle using dustOption(purple, 1) at (location of {_entity} ~ vector 0, 1.5, 0)
 	hasEffect({_entity}, "dark shroud") is true:
 		{-rpgSkript::%{_entity}%::darkshroud} is greater than 4:
 			draw 1 of dust particle using dustOption(purple, 1) at (location of {_entity} ~ vector -1, 1, 0)
@@ -1581,7 +1594,7 @@ function drawEffects(entity: entity):
 		draw 1 of dust particle using dustOption(orange, 1) at (location of {_entity} ~ vector 0, 2.5, 0)
 		draw 1 of dust particle using dustOption(red, 1) at (location of {_entity} ~ vector 0, 2.5, 0)
 	hasEffect({_entity}, "mana leak") is true:
-		draw 1 of dust particle using dustOption(green, 1) at {_entity}
+		draw 1 of dust particle using dustOption(green, 1) at (location of {_entity} ~ vector 0, 1.5, 0)
 
 command /rpgeffect <player> <text> <timespan>:
 	trigger:
@@ -1721,9 +1734,8 @@ every 1 seconds:
 				handleMagicDamage(getEffectSource({_entity}, "hallowed"), {_entity}, 0.5, "divine", false)
 				scriptDebugBroadcastType("hallowed", "Damaging Non-Monster %{_entity}% by 0.5")
 		hasEffect({_entity}, "bleeding") is true:
-			if hasClass({_entity}, "warrior") is false:
-				handleMagicDamage(getEffectSource({_entity}, "bleeding"), {_entity}, 0.037 * maximum health of {_entity}, "physical", false)
-				scriptDebugBroadcastType("bleeding", "Damaging Non-Warrior %{_entity}% by %{_bleed}%")
+			handleMagicDamage(getEffectSource({_entity}, "bleeding"), {_entity}, 0.037 * maximum health of {_entity}, "physical", false)
+			scriptDebugBroadcastType("bleeding", "Damaging %{_entity}% by %{_bleed}%")
 		hasEffect({_entity}, "mana leak") is true:
 			{_entity} is a player
 			set {_loss} to ({rpgSkript::maxMana::%{_entity}%} / 40) / 2
@@ -1910,6 +1922,11 @@ every 2 seconds:
 			heal(loop-player, 1)
 			loop-player's knockback resistance attribute is not 0.7:
 				set loop-player's knockback resistance attribute to 0.7
+			if hasResearch(loop-player, "second_wind") is true:
+				if health of loop-player is below 0.31 * maximum health of loop-player:
+					apply absorption 5 to the loop-player for 15 seconds 
+					applyEffect(loop-player, "resouceregenboost", 15 seconds, loop-player)	
+					applyEffect(loop-player, "regeneration", 15 seconds, loop-player)			
 			apply haste 2 to the loop-player for 30 seconds 
 			apply strength 1 to the loop-player for 30 seconds 
 		hasClass(loop-player, "paladin") is true:
@@ -2101,6 +2118,7 @@ every 2 seconds:
 				apply swiftness 1 to the loop-player for 5 seconds 			
 		if hasImbue(loop-player, "radiation") is true:
 			applyEffect(loop-player, "radiated", 60 seconds, loop-player)
+			scriptDebugBroadcastType("radiated", "%loop-player% has radiated applied to them from a legendary item.")
 		if hasImbue(loop-player, "lightning rod") is true:
 			loop all entities in radius 20 around loop-player:
 				chance of 5%:
@@ -2132,6 +2150,19 @@ every 5 seconds:
 					stop
 
 	loop all players:
+		if {-rpgSkript::%loop-player%::taunting} is true:
+			loop all entities in radius 25 around loop-player:
+				isMonster(loop-entity-2) is true
+				if hasResearch(loop-player, "taunt") is true:
+					chance of 50%:
+						applyEffect(loop-entity-2, "taunted", 7.5 seconds, loop-player)
+				if hasResearch(loop-player, "taunt_of_evil") is true:
+					if at least one of:
+						loop-entity-2 is a zombie
+						loop-entity-2 is a skeleton
+					then:
+						chance of 80%:
+							applyEffect(loop-entity-2, "taunted", 15 seconds, loop-player)						
 		hasClass(loop-player, "rogue") is true:
 			hasResearch(loop-player, "IntheShadows") is true:
 				light level at loop-player is less than 11:
@@ -2167,7 +2198,7 @@ every 5 seconds:
 						apply slowness 3 to loop-entity-3 for 1.5 seconds 
 						apply glowing 1 to loop-entity-3 for 1.5 seconds 
 						applyEffect(loop-entity-3, "vulnerable", 3 seconds, loop-player)
-						handleMagicDamage(loop-player, loop-entity-3, 5, "electric", true)
+						handleMagicDamage(loop-value-2, loop-entity-3, 5, "electric", true)
 						wait 1 tick
 				if getConstructType(loop-value-2) is "Gravitron":
 					set {_ability} to a random integer between 0 and 1
@@ -2179,14 +2210,14 @@ every 5 seconds:
 								push loop-entity-3 {_vec} with force 0.9
 								push loop-entity-3 upwards with force 0.6
 								apply slowness 3 to loop-entity-3 for 1.5 seconds 
-								handleMagicDamage(loop-player, loop-entity-3, 2, "physical", true)
+								handleMagicDamage(loop-value-2, loop-entity-3, 2, "physical", true)
 						if {_ability} is 1:
 							chance of 30%:
 								set {_vec} to normalized vector between loop-entity-3 and loop-value-2
 								push loop-entity-3 {_vec} with force 0.9
 								push loop-entity-3 upwards with force 0.6
 								apply slowness 3 to loop-entity-3 for 1.5 seconds 
-								handleMagicDamage(loop-player, loop-entity-3, 3, "physical", true)	
+								handleMagicDamage(loop-value-2, loop-entity-3, 3, "physical", true)	
 						wait 1 tick
 				if getConstructType(loop-value-2) is "missile":
 					set {_canFire} to true
@@ -2197,7 +2228,7 @@ every 5 seconds:
 						isMinion(loop-entity-3) is false
 						loop all monsters in radius 3 around loop-entity-3:
 							isMinion(loop-entity-4) is false
-							handleMagicDamage(loop-player, loop-entity-4, 10, "physical", true)	
+							handleMagicDamage(loop-value-2, loop-entity-4, 10, "physical", true)	
 							create a fake explosion at loop-entity-3
 							set {_canFire} to false
 						set {_numTarget} to {_numTarget} - 1
@@ -2459,7 +2490,8 @@ on damage:
 	hasEffect(attacker, "inspired") is true:
 		set the damage to the damage * 1.1
 	hasImbue(attacker, "vibranium") is true:
-		set the damage to the damage * ({-rpgSkript::%attacker%::vibranium}/10) 
+		set the damage to the damage * ({-rpgSkript::%attacker%::vibranium}/100) 
+		set {-rpgSkript::%attacker%::vibranium} to 100
 	{-evilSkript::%attacker%::isBoss} is true:
 		event-projectile is set:
 			set the damage to the damage * (1.1^({rpgdiff} - 1))
@@ -2770,6 +2802,20 @@ on damage:
 				scriptDebugBroadcastType("paladindamage", "%{_odamage}%: Paladin Monster Bonus x1.4 -> %{_ndamage}%")
 				set {_odamage} to the damage
 				applyEffect(victim, "hallowed", 8 seconds, attacker)
+		hasClass(attacker, "warrior") is true:
+			if hasEffect(attacker, "defensive stance") is true:
+				set the damage to the damage * 0.75
+				removeEffect(attacker, "defensive stance")
+				set {_ndamage} to the damage
+				scriptDebugBroadcastType("warriordamage", "%{_odamage}%: Warrior Defensive Stance Self Damage Reduction x0.75 -> %{_ndamage}%")
+				set {_odamage} to the damage
+			if hasResearch(attacker, "duelist") is true:
+				attacker's held item is tagged with item tag "paper:swords"
+				attacker's off hand item is not a shield
+				set the damage to the damage * 1.2
+				set {_ndamage} to the damage
+				scriptDebugBroadcastType("warriordamage", "%{_odamage}%: Warrior Duelist Damage Bonus x1.2 -> %{_ndamage}%")
+				set {_odamage} to the damage
 		hasClass(attacker, "barbarian") is true:
 			if event-projectile is set:
 				set the damage to the damage * 0.65
@@ -2803,7 +2849,7 @@ on damage:
 
 		#this needs to go last
 		if victim is a player:
-			set the damage to the damage * 0.5
+			set the damage to the damage * 0.1
 	if hasWeaponLore(attacker, "Sniper") is true:
 		event-projectile is set
 		set {_l} to the distance between location of attacker and location of victim
@@ -2854,6 +2900,15 @@ on damage:
 	if hasLore(attacker's helmet, "Subdue to Anger") is true:
 		set {_dmgboost} to a random number between 1.5 and 3
 		set the damage to the damage * {_dmgboost}
+	if hasLore(attacker's held item, "Heavy") is true:
+		if hasResearch(attacker, "heavy_handed") is false:
+			attacker's off hand item is air:
+				set the damage to the damage * 1.25
+				apply slowness 2 to the victim for 3 seconds 
+		else:
+			set the damage to the damage * 1.5
+				
+		
 	if hasImbue(victim, "five senses") is true:
 		chance of 50%:
 			set {_ran} to a random integer between 0 and 1
@@ -3075,10 +3130,41 @@ on damage:
 			damage cause is freeze:
 				cancel the event
 		hasClass(victim, "warrior") is true:
+			if hasEffect(victim, "defensive stance") is true:
+				attacker is set
+				damage attacker by the damage * 0.5
+				set the damage to the damage * 0.5
+				set {_ndamage} to the damage
+				scriptDebugBroadcastType("warriordamage", "%{_odamage}%: Warrior Defensive Stance Damage Reduction x0.5 -> %{_ndamage}%")
+				set {_odamage} to the damage
+			if hasResearch(victim, "duelist") is true:
+				victim's held item is tagged with item tag "paper:swords"
+				victim's off hand item is not a shield
+				set the damage to the damage * 0.9
+				set {_ndamage} to the damage
+				scriptDebugBroadcastType("warriordamage", "%{_odamage}%: Warrior Duelist Damage Reduction x0.9 -> %{_ndamage}%")
+				set {_odamage} to the damage
 			set the damage to the damage * 0.65
 			set {_ndamage} to the damage
 			scriptDebugBroadcastType("warriordamage", "%{_odamage}%: Warrior Damage Reduction x0.65 -> %{_ndamage}%")
 			set {_odamage} to the damage
+			if hasResearch(victim, "flexible") is true:
+				if the damage is less than 0.05 * maximum health of victim:
+					chance of 20%:
+						set the damage to 0
+						play sound "entity.player.attack.nodamage" at victim
+						send action bar "&2~ ~ DODGE ~ ~" to victim
+						set {_ndamage} to the damage
+						scriptDebugBroadcastType("warriordamage", "%{_odamage}%: Warrior Flexible Damage Reduction =0 -> %{_ndamage}%")
+						set {_odamage} to the damage
+			if hasResearch(victim, "brace") is true:
+				if the damage is greater than 0.1 * maximum health of victim:
+					if subEnergy(victim, 4, false) is true:
+						set the damage to the damage * 0.5
+						send "&cYou brace an incoming attack!" to victim
+						set {_ndamage} to the damage
+						scriptDebugBroadcastType("warriordamage", "%{_odamage}%: Warrior Brace Damage Reduction x0.5 -> %{_ndamage}%")
+						set {_odamage} to the damage
 		hasClass(victim, "rogue") is true:
 			canUseRogueAbilities(victim) is true
 			damage cause is fall:
@@ -3307,12 +3393,24 @@ on damage:
 
 	hasImbue(victim, "vibranium") is true:
 		if {-rpgSkript::%victim%::vibranium} is not set:
-			set {-rpgSkript::%victim%::vibranium} to 0
+			set {-rpgSkript::%victim%::vibranium} to 100
 		set {-rpgSkript::%victim%::vibranium} to {-rpgSkript::%victim%::vibranium} + the damage
 
 	if the damage is greater than 0:
 		applyEffect(victim, "recentcombat", 2 seconds, attacker)
 		applyEffect(attacker, "recentcombat", 2 seconds, victim)
+
+command /taunt <boolean>:
+	executable by: players
+	trigger:
+		if at least one of:
+			hasResearch(player, "taunt") is true
+			hasResearch(player, "taunt_of_evil") is true
+		then:
+			set {-rpgSkript::%player%::taunting} to arg 1
+			send "&cTaunting is set to %{-rpgSkript::%player%::taunting}%!" to player
+		else:
+			send "&4You do not have the taunt research!" to player
 	
 on target:
 
@@ -3328,6 +3426,13 @@ on target:
 		hasClass(target, "herobrine") is true:
 			cancel the event
 			stop
+		hasEffect(event-entity, "taunted") is true:
+			target of event-entity is not getEffectSource(event-entity, "taunted")
+			distance between event-entity and getEffectSource(event-entity, "taunted") is less than 26
+			reset target of event-entity
+			set target of event-entity to getEffectSource(event-entity, "taunted")
+			cancel the event	
+			stop		
 		hasClass(target, "rogue") is true:
 			canUseRogueAbilities(target) is true
 			distance between event-entity and target is greater than 10:
@@ -3932,6 +4037,10 @@ command /legendaryitem <text>:
 			set {_item} to netherite sword
 			set {_item} to addImbue({_item}, "&4Sacrificial")
 			set name of {_item} to "&4Sword of Sacrifice"
+		else if arg 1 is "Endajack":
+			set {_item} to netherite sword
+			set {_item} to addImbue({_item}, "&9Endajack")
+			set name of {_item} to "&9The Endajack"
 		give player {_item}		
 
 function generateMythicLore( item: item):: item:
@@ -4224,6 +4333,7 @@ function generateLegendaryLore( item: item, name: text):: item:
 function generateLore( item: item):: item:
 	scriptDebugBroadcastType("loot", "Generating random lore for Item")
 	chance of (1 - ((2+({rpgdiff}/5)))/100)%:
+		scriptDebugBroadcastType("loot", "Item returned with no additional lore.")
 		return {_item}
 	set {_num} to floor({rpgdifficulty} / 10)
 	if {_num} is greater than 0:
@@ -4237,6 +4347,7 @@ function generateLore( item: item):: item:
 		set {_num} to {_num} + 1
 	if {_num} is less than 1:
 		return {_item}
+	scriptDebugBroadcastType("loot", "Item attempting to add %{_num}% lore.")
 	if at least one of:
 		{_item} is tagged with item tag "paper:armor"
 		{_item} is a shield
@@ -4325,6 +4436,13 @@ function generateLore( item: item):: item:
 			else if {_ran} is 9:
 				set {_item} to addImbue({_item}, "&7Reinforced")
 			set {_num} to {_num} - 1
+	if at least one of:
+		{_item} is tagged with item tag "paper:swords"
+		{_item} is tagged with item tag "paper:axes"
+		{_item} is a mace
+	then:
+		chance of 50%:
+			addImbue({_item}, "&fHeavy")
 	
 	return {_item}
 
@@ -4536,8 +4654,41 @@ on spawn:
 
 # Warrior  
 
+function isLog(block: block):: boolean:
+	if at least one of:
+		{_block} is an acacia log
+		{_block} is a stripped acacia log
+		{_block} is a spruce log
+		{_block} is a stripped spruce log
+		{_block} is a oak log
+		{_block} is a stripped oak log
+		{_block} is a dark oak log
+		{_block} is a stripped dark oak log
+		{_block} is a pale oak log
+		{_block} is a stripped pale oak log
+		{_block} is a birch log
+		{_block} is a stripped birch log
+		{_block} is a jungle log
+		{_block} is a stripped jungle log
+		{_block} is a mangrove log
+		{_block} is a stripped mangrove log
+		{_block} is a cherry log
+		{_block} is a stripped cherry log
+		{_block} is a crimson stem
+		{_block} is a crimson hyphae
+		{_block} is a stripped crimson stem
+		{_block} is a stripped crimson hyphae
+		{_block} is a warped stem
+		{_block} is a warped hyphae
+		{_block} is a stripped warped stem
+		{_block} is a stripped warped hyphae
+	then:
+		return true
+	else:
+		return false
+		
 on block break:
-	event-block is tagged with item tag "minecraft:logs":
+	if isLog(event-block) is true:
 		hasClass(player, "warrior") is true
 		player's tool is tagged with item tag "paper:axes"
 		if hasResearch(player, "tree_feller") is true:
@@ -4549,14 +4700,14 @@ function fellTree(block: block, depth: number=1):
 	if {_depth} is greater than 300:
 		scriptDebugBroadcastType("treefeller", "Attempt to fell a tree is cancelled due to too great of depth. %{_depth}%.")
 		exit
-	if {_block} is not tagged with item tag "mineraft:logs":
-		scriptDebugBroadcastType("treefeller", "Attempt to fell a tree is cancelled due to event-block not being a log. %{_depth}%.")
+	if isLog({_block}) is false:
+		scriptDebugBroadcastType("treefeller", "Attempt to fell a tree is cancelled due to %{_block}% not being a log. %{_depth}%.")
 		exit
 	
 	set {_recurse} to false
-	{_block} is tagged with item tag "minecraft:logs":
+	if isLog({_block}) is true:
 		set {_recurse} to true
-		scriptDebugBroadcastType("treefeller", "Recurse is set to true. %{_depth}%.")		
+		scriptDebugBroadcastType("treefeller", "Recurse is set to true because %{_block}% is a log. %{_depth}%.")		
 	break {_block} naturally using a diamond axe
 	scriptDebugBroadcastType("treefeller", "A block is broken due to tree_feller. %{_depth}%.")
 		
@@ -4582,50 +4733,61 @@ on preparing craft:
 			enchant the event-slot with protection 1
 
 on rightclick:
-	hasClass(player, "warrior") is true
 
-	set {_didHit} to false
-	set {_can_power_attack} to false
-	
-	if {rpgSkript::%player%::powerattack_time} is not set:
-		set {_can_power_attack} to true
-	if difference between now and {rpgSkript::%player%::powerattack_time} is more than 4 seconds:
-		set {_can_power_attack} to true
-
-	if {_can_power_attack} is true:
-		player's held item is tagged with item tag "paper:swords":
-			loop all monsters in radius 5 around player:
-				set {_didHit} to true
-				apply slowness 3 to loop-monster for 7 seconds 
-				damage loop-entity by 3
-				set {_vec} to normalized vector between player and loop-entity
-				push loop-entity {_vec} with force 0.9
-				push loop-entity upwards with force 0.6
-				
-		player's held item is tagged with item tag "paper:axes":
-			set {_loc} to the location 2 meters below and 3 meters horizontally behind the player
-			set {_vec} to normalized vector between {_loc} and player
-			loop all monsters in radius 5 around player:
-				set {_didHit} to true
-				apply slowness 3 to loop-monster for 7 seconds 
-				damage loop-entity by 2
-				push loop-entity {_vec} with force 1.2
+	hasClass(player, "warrior") is true:
+		set {_didHit} to false
+		set {_can_power_attack} to false
 		
-		player's held item is tagged with item tag "paper:pickaxes":
-			distance between player and player's targeted block is less than 5:
-				create an explosion with force 0 at player's targeted block
-				loop all blocks in radius 2 around player's targeted block:
-					loop-block is not bedrock:
-						set {_didHit} to true
-						break loop-block naturally using player's held item
-
-		if {_didHit} is true:
-			set {rpgSkript::%player%::powerattack_time} to now
-			apply slowness 3 to player for 4 seconds 
-			send action bar "&c&lPOWER ATTACK" to the player
-				
-	else:
-		send action bar "&cYour power attack is still on cooldown!" to the player
+		if {rpgSkript::%player%::powerattack_time} is not set:
+			set {_can_power_attack} to true
+		if hasResearch(player, "enhanced_power_attack") is true:
+			if difference between now and {rpgSkript::%player%::powerattack_time} is more than 2 seconds:
+				set {_can_power_attack} to true
+		else:
+			if difference between now and {rpgSkript::%player%::powerattack_time} is more than 4 seconds:
+				set {_can_power_attack} to true
+					
+		if {_can_power_attack} is true:
+			player's held item is tagged with item tag "paper:swords":
+				loop all monsters in radius 5 around player:
+					set {_didHit} to true
+					apply slowness 3 to loop-monster for 7 seconds 
+					damage loop-entity by 3
+					set {_vec} to normalized vector between player and loop-entity
+					if hasResearch(player, "sword parrying") is true:
+						hasEffect(player, "defensive stance") is false
+						subEnergy(player, 2, false) is true:
+							applyEffect(player, "defensive stance", 5 seconds, player)
+							send "&aYou assume a defensive stance!" to player
+					push loop-entity {_vec} with force 0.9
+					push loop-entity upwards with force 0.6
+					
+			player's held item is tagged with item tag "paper:axes":
+				set {_loc} to the location 2 meters below and 3 meters horizontally behind the player
+				set {_vec} to normalized vector between {_loc} and player
+				loop all monsters in radius 5 around player:
+					set {_didHit} to true
+					apply slowness 3 to loop-monster for 7 seconds 
+					applyEffect(loop-entity, "vulnerable", 7 seconds, player)
+					damage loop-entity by 2
+					push loop-entity {_vec} with force 1.2
+			
+			player's held item is tagged with item tag "paper:pickaxes":
+				distance between player and player's targeted block is less than 5:
+					create an explosion with force 0 at player's targeted block
+					loop all blocks in radius 2 around player's targeted block:
+						loop-block is not bedrock:
+							set {_didHit} to true
+							break loop-block naturally using player's held item
+	
+			if {_didHit} is true:
+				set {rpgSkript::%player%::powerattack_time} to now
+				if hasResearch(player, "enhanced_power_attack") is false:
+					apply slowness 3 to player for 4 seconds 
+				send action bar "&c&lPOWER ATTACK" to the player
+					
+		else:
+			send action bar "&cYour power attack is still on cooldown!" to the player
 
 
 
@@ -4684,15 +4846,15 @@ on death of a monster:
 	{-evilSkript::%victim%::isNatural} is true
 	set {_z} to 5
 	if hasResearch(attacker, "loot bonus") is true:
-		set {_z} to 10
+		set {_z} to {_z} + 5
 	if {-evilSkript::%victim%::isBoss} is true:
 		clear the drops
 		add 30 experience to the drops
-		set {_z} to 20
+		set {_z} to {_z} + 15
 		if {-evilSkript::%victim%::isButcher} is true:
-			set {_z} to 40
+			set {_z} to {_z} + 30
 	set {_z} to {_z} + {rpgdiff}
-	chance of {_z} / 15%:
+	chance of ({_z} / 15)%:
 		set {_item} to generateMythicLore(generateRandomGear())
 		add {_item} to the drops
 	chance of {_z}%:
@@ -5029,6 +5191,19 @@ function handleMagicDamage(caster: entity, target: entity, damage: number, eleme
 	if isMinion({_target}) is true:
 		if {_element} is "earth":
 			set {_damage} to {_damage} * 1.5
+	if isMinion({_caster}) is true:
+		if at least one of:
+			{_caster} is a bee
+			{_caster} is an iron golem
+		then:
+			set {_damage} to {_damage} * calculateCoreStatBonus(getArchitect(uuid of {_caster}), "minion")
+	if isMinion({_caster}) is true:
+		if at least one of:
+			{_caster} is a pillager
+			{_caster} is a skeleton
+			{_caster} is a skeleton
+		then:
+			set {_damage} to {_damage} * calculateCoreStatBonus(getSummoner(uuid of {_caster}), "minion")
 
 	if hasImbue({_target}, "flame shield") is true:
 		if {_element} is "fire":
@@ -5131,7 +5306,7 @@ function handleMagicDamage(caster: entity, target: entity, damage: number, eleme
 
 	if {_target} is a player:
 		if {_caster} is a player:
-			set {_damage} to {_damage} * 0.5
+			set {_damage} to {_damage} * 0.1
 			
 	hasEffect({_target}, "soulbond") is true:
 		{-rpgSkript::%{_target}%::soulbondplayer} is alive:
@@ -5309,9 +5484,12 @@ function regenMana(player: player):
 
 	if hasClass({_player}, "nethermancer") is true:
 		set {_add} to floor({rpgSkript::heat::%{_player}%} / 20) 
-				
-			
 
+	if hasResearch({_player}, "spellsword") is true:
+		{rpgSkript::mana::%{_player}%} is not equal to {rpgSkript::maxMana::%{_player}%} 
+		if subEnergy({_player}, 1, false) is true:
+			set {_add} to {_add} * 1.2
+				
 	if hasImbue({_player}, "photosynthesis") is true:
 		sun light level at {_player} is greater than 5:
 			time in world of {_player} is not between 19:00 and 5:00:
@@ -5330,6 +5508,9 @@ function regenMana(player: player):
 
 	if hasImbue({_player}, "mana reject") is true:
 		set {_add} to 0
+
+	if hasEffect({_player}, "resourceregenboost") is true:
+		set {_add} to {_add} * 2.00
 	
 	addMana( {_player}, {_add} )
 
@@ -5707,17 +5888,17 @@ every tick:
 			set {_distance} to {_distance} - 0.25
 		set vector length of {_delta} to {_distance}
 		moveCryoball(loop-index, {_delta})
-		#set {-rpgSkript::cryoballs::%loop-index%::v} to {-rpgSkript::cryoballs::%loop-index%::v} -- (vector 0,0.1,0)
+		set {-rpgSkript::cryoballs::%loop-index%::v} to {-rpgSkript::cryoballs::%loop-index%::v} - (vector 0,0.1,0)
 
 function moveCryoball(index: string, v: vector):
 	if {-rpgSkript::cryoballs::%{_index}%} is not set:
 		exit
 	set {-rpgSkript::cryoballs::%{_index}%::loc} to ({-rpgSkript::cryoballs::%{_index}%::loc} ~ {_v})
 	set {_loc} to {-rpgSkript::cryoballs::%{_index}%::loc}
-	#draw water splash particle at {_loc}
+	draw 3 of dust particle using dustOption(blue, 1) at {_loc}
 	loop blocks in radius 1 around {_loc}:
 		draw cloud particle at loop-block
-		#draw water splash particle at {_loc}
+		draw 3 of dust particle using dustOption(blue, 1) at {_loc}
 		loop-block is water:
 			explodeCryoball({_index})
 		loop-block is lava:
@@ -6548,8 +6729,8 @@ command /channel <text>:
 				isMonster(loop-player) is false
 				removeNegativeEffects(loop-player)
 				cure loop-player
-				loop-player is not player
-				send "&6A Cleric cures you of your ailments!" to loop-player
+				loop-player is not player:
+					send "&6A Cleric cures you of your ailments!" to loop-player
 			play sound "item.trident.thunder" with pitch 2.0 at player
 			send "&6You cure your allies of their ailments!" to player
 		else if arg 1 is "resource":
@@ -6719,6 +6900,8 @@ function setupEnergy(player: player):
 	if hasEffect({_player}, "amplified") is true:
 		set {_newEnergy} to {_newEnergy} + 2
 
+	set {_newMax} to {_newMax} * calculateCoreStatBonus({_player}, "energy")
+
 	set {_newEnergy} to floor({_newEnergy})
 	if {_newEnergy} is not {rpgSkript::%{_player}%::maxEnergy}:
 		set {rpgSkript::%{_player}%::maxEnergy} to {_newEnergy}
@@ -6739,16 +6922,23 @@ function regenEnergy(player: player):
 
 	set {_add} to 0
 	if hasClass({_player}, "monk") is true:
-		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 75
+		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 25
 	else if hasClass({_player}, "rogue") is true:
-		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 100
+		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 50
 	else if hasClass({_player}, "warrior") is true:
-		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 125
+		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 75
 	else if hasClass({_player}, "barbarian") is true:
-		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 150
+		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 100
 
 	if hasEffect({_player}, "resourceboost") is true:
-		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 100
+		set {_add} to {rpgSkript::%{_player}%::maxEnergy} / 50
+
+	if hasEffect({_player}, "resourceregenboost") is true:
+		set {_add} to {_add} * 2.00
+
+	if hasResearch({_player}, "energy_regeneration") is true:
+		hasEffect({_player}, "recentcombat") is false
+		set {_add} to {_add} * 1.5
 		
 	addEnergy( {_player}, {_add} )
 
@@ -6760,6 +6950,9 @@ function addEnergy(player: player, amount: number):
 		displayEnergy({_player})
 
 function subEnergy(player: player, amount: number, print: boolean=true) :: boolean:
+	if hasResearch({_player}, "energy_efficient") is true:
+		{_amount} is greater than 1
+		set {_amount} to {_amount} * 0.5
 	{_player} has permission "rpg.control":
 		return true
 	if {rpgSkript::%{_player}%::Energy} is not set:
@@ -6933,25 +7126,28 @@ on rightclick holding glowstone dust:
 #								y coordinate of loop-block - y coordinate of player is greater than 0:							
 #									break loop-block naturally
 
-#on leftclick holding chains:
-#	hasClass(event-player, "barbarian") is true
-#	canUseBarbarianAbilities(event-player) is true
-#	if subEnergy(event-player, 1) is false:
-#		send "&4You do do not have the Energy to cast the Chains spell." to event-player
-#		stop
-#	else:
-#		send "&cYou cast the Chains spell." to event-player
-#		set {_Block} to 0
-#		set {_Cone} to 0
-#		loop 8 times:
-#			add 1 to {_Block}
-#			add 2 to {_Cone}
-#			set {_GetBlock} to block {_Block} blocks infront of event-player
-#			loop all entities in radius {_Cone} around {_GetBlock}:
-#				loop-entity is not event-player
-#				apply slowness 255 to loop-entity for 3 seconds 				
-#				apply weakness 2 to loop-entity for 5 seconds 
-#				teleport loop-entity to location of the block above the block 2 blocks in front of event-player
+on leftclick holding iron chain:
+	hasClass(event-player, "barbarian") is true
+	canUseBarbarianAbilities(event-player) is true
+	if subEnergy(event-player, 1) is false:
+		send "&4You do do not have the Energy to cast the Chains spell." to event-player
+		stop
+	else:
+		send "&cYou cast the Chains spell." to event-player
+		set {_Block} to 0
+		set {_Cone} to 0
+		loop 8 times:
+			add 1 to {_Block}
+			add 2 to {_Cone}
+			set {_GetBlock} to block {_Block} blocks infront of event-player
+			loop all entities in radius {_Cone} around {_GetBlock}:
+				loop-entity is not event-player
+				apply slowness 255 to loop-entity for 3 seconds 				
+				apply weakness 2 to loop-entity for 5 seconds 
+				set {_vec} to normalized vector between loop-entity and event-player
+				push loop-entity {_vec} with force 0.8
+				push loop-entity upwards with force 0.1
+				damage loop-entity by 3
 
 
 # Endwarden
